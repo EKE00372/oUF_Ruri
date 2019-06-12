@@ -4,8 +4,10 @@ local C, F, G, T = unpack(ns)
 -- note:
 -- 在CreateCastbar裡的self.Castbar中，self指的是頭像本身
 -- 而在施法條、光環、副資源等元素的PostUpdate中，self指的是self.Castbar，即施法條元素自身
--- 為了防止搞混，這裡的function(self, unit)有些會寫為function(element, unit)，例如ouf core、ndui等
--- 有些仍寫為function(castbar, unit)，例如ouf_mlight、farva等
+-- 為了防止搞混，這裡的function(self, unit)有些會寫為function(element, unit)
+-- 例如ouf core、ndui等
+-- 有些仍寫為function(castbar, unit)
+-- 例如ouf_mlight、farva等
 
 --==================================================--
 -----------------    [[ Health ]]    -----------------
@@ -109,13 +111,13 @@ end
 
 T.PostCastStop = function(self, unit)
 	local frame = self:GetParent()
-	if frame.mystyle == "NP" then
-		frame.Name:SetPoint("BOTTOM", 0, 6)
-	else
+	--if frame.mystyle == "NP" then
+		--frame.Name:SetPoint("BOTTOM", 0, 6)
+	--else
 		-- 施法結束時顯示名字
-		frame.Name:Show()
-		frame.Status:Show()
-	end
+		self:GetParent().Name:Show()
+		self:GetParent().Status:Show()
+	--end
 end
 
 -- [[ 狀態更新 ]] --

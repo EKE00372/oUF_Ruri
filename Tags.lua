@@ -63,18 +63,6 @@ oUF.colors.reaction[8] = {.26, 1, .22}
 -----------------    [[ Status ]]    -----------------
 --==================================================--
 
--- [[ 任務目標 ]] --
-
-oUF.Tags.Methods["quest"] = function(u)
-	local quest = UnitIsQuestBoss(u)
-	if quest then
-		return "|cff8AFF30!|r"
-	else
-		return ""
-	end
-end
-oUF.Tags.Events["quest"] = "UNIT_CLASSIFICATION_CHANGED"
-
 -- [[ 狀態 ]] --
 
 oUF.Tags.Methods["afkdnd"] = function(unit)
@@ -89,6 +77,26 @@ oUF.Tags.Methods["afkdnd"] = function(unit)
 	end
 end
 oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED"
+
+-- [[ 快樂值 ]] --
+
+oUF.Tags.Methods["happy"] = function(unit)
+	if G.myClass ~= "HUNTER" then return end
+	local happiness = select(1, GetPetHappiness())
+	
+	if not happiness then
+		return ""
+	else
+		if happiness == 3 then
+			return F.Hex(80, 220, 120) .. "^_^|r"
+		elseif happiness == 2 then
+			return F.Hex(245, 220, 0) .. "O_O|r"
+		else
+			return F.Hex(240, 40, 40) .. ">_<|r"
+		end
+	end
+end
+oUF.Tags.Events["happy"] = "UNIT_POWER_UPDATE"
 
 --==================================================--
 -----------------    [[ Values ]]    -----------------

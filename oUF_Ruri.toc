@@ -1,11 +1,11 @@
-## Interface: 80100
+## Interface: 11302
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R1.1
+## Version: C1.2
 ## Author: EK (Linodas@Illidan-US)
-## Notes: Unitframes with nameplates.
+## Notes: Unitframes with Numberstyle nameplates.
 ## RequiredDeps: oUF
 
-## Credits-to: Siweia, Paopao, Dawn
+## Credits-to: Siweia, Paopao, Dawn, Farva
 
 Config.lua
 AuraFilterList.lua

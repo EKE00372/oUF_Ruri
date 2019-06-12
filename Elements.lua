@@ -35,7 +35,7 @@ T.CreateCastbar = function(self, unit)
 	-- 橫豎的spark不一樣
 	if self.mystyle ~= "H" then
 		Castbar:SetOrientation("VERTICAL")
-		Castbar.Spark:SetRotation(math.rad(90))	-- spark材質也要轉90度
+		Castbar.Spark:SetRotation(math.rad(90))
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("TOP", Castbar:GetStatusBarTexture(), 0, 0)
 	else
@@ -56,10 +56,12 @@ T.CreateCastbar = function(self, unit)
 	self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 引導施法失敗	
 	-- 當前目標正在施法時，切換目標會重新獲取名字，防止丟失
 	self:RegisterEvent("UNIT_NAME_UPDATE", T.PostCastStopUpdate)
+	self:RegisterEvent("PLAYER_TARGET_CHANGED", T.PostCastStopUpdate, true)
 	table.insert(self.__elements, T.PostCastStopUpdate)
 	-- 打斷狀態刷新
 	self.Castbar.PostCastInterruptible = T.PostUpdateCast	
 	self.Castbar.PostCastNotInterruptible = T.PostUpdateCast
+	--self.PostCastDelayed
 end
 
 -- [[ 獨立施法條 ]] --
@@ -67,7 +69,7 @@ end
 T.CreateStandaloneCastbar = function(self, unit)
 	-- 創建一個條
 	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, .6, .6, .6, 1)
-	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)	
+	Castbar:SetFrameLevel(self:GetFrameLevel()+4)
 	-- 背景與邊框
 	Castbar.BarBG = F.CreateBD(Castbar, Castbar, 1, .15, .15, .15, .4)
 	-- 陰影
@@ -87,9 +89,9 @@ T.CreateStandaloneCastbar = function(self, unit)
 	
 	-- 不同模式的布局
 	if self.mystyle == "S" then
-		-- 簡易焦點
+		-- 簡易模式(簡易焦點)
 		Castbar:SetSize(C.PWidth/2, C.PHeight)
-		Castbar.Icon:SetSize(C.PHeight * 1.5, C.PHeight * 1.5)
+		Castbar.Icon:SetSize(C.PHeight*1.5, C.PHeight*1.5)
 		
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
@@ -115,7 +117,7 @@ T.CreateStandaloneCastbar = function(self, unit)
 		Castbar.Icon:SetSize(C.PHeight, C.PHeight)
 		Castbar:SetOrientation("VERTICAL")
 		
-		Castbar.Spark:SetRotation(math.rad(90))	-- spark材質也要轉90度
+		Castbar.Spark:SetRotation(math.rad(90))	-- 旋轉材質
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("TOP", Castbar:GetStatusBarTexture(), 0, 0)
 
@@ -124,7 +126,7 @@ T.CreateStandaloneCastbar = function(self, unit)
 	end
 	
 	-- 選項
-	Castbar.timeToHold = 0.05
+	Castbar.timeToHold = 0.05	
 	-- 註冊到ouf
 	self.Castbar = Castbar	
 	self.Castbar.PostCastStart = T.PostSCastStart			-- 開始施法
@@ -135,6 +137,7 @@ T.CreateStandaloneCastbar = function(self, unit)
 	-- 打斷狀態刷新
 	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	
 	self.Castbar.PostCastNotInterruptible = T.PostUpdateSCast
+	--self.PostCastDelayed
 end
 
 --===================================================--
@@ -194,12 +197,11 @@ T.CreateAuras = function(self, button)
 		Auras["growth-x"] = "RIGHT"
 		Auras["growth-y"] = "UP"
 		Auras:SetPoint("BOTTOMLEFT", self.HealthText, "TOPLEFT", 3, 0)
-		Auras:SetWidth(C.buSize * Auras.numTotal + Auras.spacing * (Auras.numTotal - 1))
+		Auras:SetWidth(C.buSize * Auras.numTotal + Auras.spacing * (Auras.numTotal-1))
 		Auras:SetHeight(C.buSize)
 	else
 		if self.mystyle == "H" then
-			local iconsPerLine = math.floor(self:GetWidth() / (C.buSize + Auras.spacing) + 0.5)
-			
+			local iconsPerLine = math.floor(self:GetWidth() / (C.buSize+Auras.spacing) + 0.5)
 			Auras.numBuffs = iconsPerLine
 			Auras.numDebuffs = C.maxAura
 			Auras.numTotal = C.maxAura
@@ -208,21 +210,20 @@ T.CreateAuras = function(self, button)
 			Auras.initialAnchor = "BOTTOMLEFT"
 			Auras["growth-x"] = "RIGHT"
 			Auras["growth-y"] = "UP"
-			Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
+			Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset*2+C.PPHeight)
 			Auras:SetWidth(self:GetWidth())
 			Auras:SetHeight(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
 		else
-			local iconsPerLine = math.floor(self:GetHeight() / (C.buSize + Auras.spacing) + 0.5)
-			
+			local iconsPerLine = math.floor(self:GetHeight() / (C.buSize+Auras.spacing) + 0.5)
 			Auras.numBuffs = iconsPerLine
 			Auras.numDebuffs = C.maxAura
 			Auras.numTotal = C.maxAura
 			Auras.gap = true
-	
+				
 			Auras.initialAnchor = "BOTTOMRIGHT"
 			Auras["growth-x"] = "LEFT"
 			Auras["growth-y"] = "UP"	
-			Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
+			Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset-1, 1)
 			Auras:SetWidth(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
 			Auras:SetHeight(self:GetHeight())
 		end
@@ -253,20 +254,18 @@ end
 -- [[ 職業資源 ]] --
 
 T.CreateClassPower = function(self, unit)
-	if not F.Multicheck(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROUGE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT") then return end
+	if G.myClass ~= "ROUGE" then return end
 	
 	local ClassPower = {}
 	
 	for i = 1, 6 do
-		-- 創建總體條
 		ClassPower[i] = F.CreateStatusbar(self, G.addon..unit.."_ClassPowerBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 3)
 		ClassPower[i]:SetFrameLevel(self:GetFrameLevel() + 2)
 		
 		if self.mystyle == "VL" then
-			-- 單獨的每個豆子
 			ClassPower[i]:SetOrientation("VERTICAL")
-			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - 5*C.PPOffset)/6)
+			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth-5*C.PPOffset)/6)
 			
 			if i == 1 then
 				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
@@ -274,23 +273,23 @@ T.CreateClassPower = function(self, unit)
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
 		elseif self.mystyle == "PP" then
-			ClassPower[i]:SetSize((C.NPWidth- 5*C.PPOffset)/6, C.PPHeight)
+			ClassPower[i]:SetSize((C.NPWidth-5*C.PPOffset)/6, C.PPHeight)
 			
 			if C.NumberStyle then
 				if i == 1 then
-					ClassPower[i]:SetPoint("TOP", self.HealthText, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -C.PPOffset)  
+					ClassPower[i]:SetPoint("TOP", self.HealthText, "BOTTOM", -(C.NPWidth-3*C.PPOffset)/2, -C.PPOffset)  
 				else
 					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 				end
 			else
 				if i == 1 then
-					ClassPower[i]:SetPoint("TOP", self.Power, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -4)  
+					ClassPower[i]:SetPoint("TOP", self.Power, "BOTTOM", -(C.NPWidth-3*C.PPOffset)/2, -4)  
 				else
 					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 				end
 			end
 		else
-			ClassPower[i]:SetSize((C.PWidth - 5*C.PPOffset)/6, C.PPHeight)
+			ClassPower[i]:SetSize((C.PWidth-5*C.PPOffset)/6, C.PPHeight)
 			
 			if i == 1 then
 				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)  
@@ -298,177 +297,8 @@ T.CreateClassPower = function(self, unit)
 				ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 			end
 		end
-		
-		if G.myClass == "DEATHKNIGHT" then
-			ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
-			ClassPower[i].bg:SetAllPoints()
-			ClassPower[i].bg:SetTexture(G.media.blank)
-			ClassPower[i].bg.multiplier = .4
-			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
-			ClassPower[i].timer:SetPoint("CENTER", 0, 0)
-		end
 	end
 	
-	-- 註冊到ouf並整合符文顯示
-	if G.myClass == "DEATHKNIGHT" then
-		ClassPower.colorSpec = true
-		ClassPower.sortOrder = "asc"
-		self.Runes = ClassPower
-		self.Runes.PostUpdate = T.PostUpdateRunes
-	else
-		self.ClassPower = ClassPower
-		self.ClassPower.PostUpdate = T.PostUpdateClassPower
-	end
+	self.ClassPower = ClassPower
+	self.ClassPower.PostUpdate = T.PostUpdateClassPower
 end
-
--- [[ 額外能量 暗牧鳥德薩滿的法力 ]] --
-
-T.CreateAddPower = function(self, unit)
-	if not F.Multicheck(G.myClass, "DRUID", "SHAMAN", "PRIEST") then return end
-	
-	-- 創建一個條
-	local AddPower = F.CreateStatusbar(self, G.addon..unit.."_AddPowerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
-	AddPower:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	if C.verticalPlayer then
-		AddPower:SetWidth(C.PPHeight)
-		AddPower:SetOrientation("VERTICAL")
-		AddPower:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)  
-		AddPower:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0) 
-	else	
-		AddPower:SetHeight(C.PPHeight)
-		AddPower:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)  
-		AddPower:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset) 
-	end
-	
-	-- 選項
-	AddPower.colorPower = true
-	-- 背景
-	AddPower.bg = AddPower:CreateTexture(nil, "BACKGROUND")
-	AddPower.bg:SetAllPoints()
-	AddPower.bg:SetTexture(G.media.blank)
-	AddPower.bg.multiplier = .3
-	-- 陰影
-	AddPower.border = F.CreateSD(AddPower, AddPower, 3)	
-	-- 註冊到ouf
-	self.AdditionalPower = AddPower
-	self.AdditionalPower.PostUpdate = T.PostUpdateAddPower
-	-- 文本
-	self.AdditionalPower.value = F.CreateText(self.AdditionalPower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
-end
-
--- [[ 特殊能量 ]] --
-
-T.CreateAltPowerBar = function(self, unit)
-	local AltPower = F.CreateStatusbar(self, G.addon..unit.."_AltPowerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
-	AltPower:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	-- 根據樣式創建條
-	if self.mystyle == "H" then
-		AltPower:SetHeight(C.PPHeight)
-		AltPower:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -C.PPOffset)
-		AltPower:SetPoint("TOPRIGHT", self.Power, "BOTTOMRIGHT", 0, -C.PPOffset)
-	else
-		AltPower:SetWidth(C.PPHeight)
-		AltPower:SetOrientation("VERTICAL")
-		-- 垂直模式分別在左右兩側
-		if self.mystyle == "VL" then			
-			AltPower:SetPoint("TOPRIGHT", self.Power, "TOPLEFT", -C.PPOffset, 0)
-			AltPower:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, C.PWidth/2)
-		elseif  self.mystyle == "VR" then
-			AltPower:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", C.PPOffset, 0)
-			AltPower:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, C.PWidth/2)
-		end
-	end
-	
-	-- 背景
-	AltPower.bg = F.CreateBD(AltPower, AltPower, 1, .15, .15, .15, .6)
-	-- 陰影
-	AltPower.border = F.CreateSD(AltPower, AltPower, 3)
-	-- 註冊到ouf
-	self.AlternativePower = AltPower
-	self.AlternativePower.PostUpdate = T.PostUpdateAltPower
-	-- 文本
-	self.AlternativePower.value = F.CreateText(self.AlternativePower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
-	--self:Tag(self.AlternativePower.value, "[altpower]") --不用這個，用postupdate
-end
-
--- [[ 酒池 ]] --
-
-T.CreateStagger = function(self, unit)
-	if G.myClass ~= "MONK" then return end
-	
-	local Stagger = CreateFrame("StatusBar", nil, self)
-	Stagger:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	if C.verticalPlayer then
-		Stagger:SetWidth(C.PPHeight)
-		Stagger:SetOrientation("VERTICAL")
-		Stagger:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)  
-		Stagger:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0) 
-	else	
-		Stagger:SetHeight(C.PPHeight)
-		Stagger:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)  
-		Stagger:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset) 
-	end
-	
-	-- 背景
-	Stagger.bg = Stagger:CreateTexture(nil, "BACKGROUND")
-	Stagger.bg:SetAllPoints()
-	Stagger.bg:SetTexture(G.media.blank)
-	Stagger.bg.multiplier = .3
-	-- 陰影
-	Stagger.border = F.CreateSD(Stagger, Stagger, 3)
-	
-	-- 註冊到ouf	
-	self.Stagger = Stagger
-end
-
--- [[ 預估治療 ]] --
-
-T.CreateHealthPrediction = function(self, unit)
-	local AbsorbBar = F.CreateStatusbar(self, G.addon..unit.."_AbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
-	AbsorbBar:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	if self.mystyle == "VL" then	
-		AbsorbBar:SetSize(C.PHeight, C.PWidth)
-		AbsorbBar:SetOrientation("VERTICAL")
-		AbsorbBar:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
-	else
-		AbsorbBar:SetSize(C.PWidth, C.PHeight)
-		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "LEFT")
-	end
-
-	-- 只做了吸收盾，治療吸收盾跟其他一堆都還沒做
-	self.HealthPrediction = {
-        absorbBar = AbsorbBar,
-        frequentUpdates = true,
-    }
-end
-
--- [[ 圖騰 ]] --
---[[
-T.CreateTotems = function(self, unit)
-    local Totems = {}
-    for i = 1, 5 do
-        -- Position and size of the totem indicator
-        local Totem = CreateFrame('Button', nil, self)
-        Totem:SetSize(40, 40)
-        Totem:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', i * Totem:GetWidth(), 0)
-
-        local Icon = Totem:CreateTexture(nil, 'OVERLAY')
-        Icon:SetAllPoints()
-
-        local Cooldown = CreateFrame('Cooldown', nil, Totem, 'CooldownFrameTemplate')
-        Cooldown:SetAllPoints()
-
-        Totem.Icon = Icon
-        Totem.Cooldown = Cooldown
-
-        Totems[index] = Totem
-    end
-
-    -- Register with oUF
-    self.Totems = Totems
-end
-]]--
