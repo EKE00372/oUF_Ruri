@@ -253,7 +253,7 @@ end
 -- [[ 職業資源 ]] --
 
 T.CreateClassPower = function(self, unit)
-	if not F.Multicheck(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROUGE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT") then return end
+	if not F.Multicheck(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROGUE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT") then return end
 	
 	local ClassPower = {}
 	
