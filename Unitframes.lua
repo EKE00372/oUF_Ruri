@@ -297,9 +297,6 @@ local function CreateTargetStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
-	--[[self.Range = {
-		insideAlpha = 1, outsideAlpha = .5,
-	}]]--
 	
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
@@ -347,9 +344,6 @@ local function CreateVTargetStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.PWidth)	-- 主框體尺寸
-	--[[self.Range = {
-		insideAlpha = 1, outsideAlpha = .5,
-	}]]--
 	
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)

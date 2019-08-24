@@ -330,7 +330,7 @@ T.CreateAddPower = function(self, unit)
 	local AddPower = F.CreateStatusbar(self, G.addon..unit.."_AddPowerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
 	AddPower:SetFrameLevel(self:GetFrameLevel() + 2)
 	
-	if C.verticalPlayer then
+	if C.vertPlayer then
 		AddPower:SetWidth(C.PPHeight)
 		AddPower:SetOrientation("VERTICAL")
 		AddPower:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)  
@@ -401,7 +401,7 @@ T.CreateStagger = function(self, unit)
 	local Stagger = CreateFrame("StatusBar", nil, self)
 	Stagger:SetFrameLevel(self:GetFrameLevel() + 2)
 	
-	if C.verticalPlayer then
+	if C.vertPlayer then
 		Stagger:SetWidth(C.PPHeight)
 		Stagger:SetOrientation("VERTICAL")
 		Stagger:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)  
