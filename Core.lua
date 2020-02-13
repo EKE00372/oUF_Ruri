@@ -477,3 +477,12 @@ T.PostUpdateRunes = function(self, runemap)
 		end
 	end
 end
+
+--[[
+T.PostUpdateTotems = function(self, slot, haveTotem, _, _, _, icon)
+	local macrotext = "/click TotemFrameTotem" .. slot .. " RightButton"
+	--self.icon:SetAttribute("type2", "macro")
+	self.icon:GetParent():SetAttribute("type2", "macro")
+	self.icon:GetParent():SetAttribute("macrotext2", macrotext)
+    --self.icon:SetAttribute("macrotext2", macrotext)
+end]]--
