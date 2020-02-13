@@ -447,7 +447,7 @@ local function CreateNumberPlates(self, unit)
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "CENTER")
 	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 0)
-	self:Tag(self.HealthText, "[np:hp]")	
+	self:Tag(self.HealthText, "[np:hp]")
 	-- 能量
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NameFS, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("LEFT", self.Name, "RIGHT", 2, 0)

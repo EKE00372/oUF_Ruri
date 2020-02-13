@@ -191,6 +191,7 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
+	T.CreateTotems(self, unit)
 	
 	-- 施法條
 	if C.StandaloneCastbar then
@@ -251,6 +252,7 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
+	T.CreateTotems(self, unit)
 	
 	-- 減益
 	if C.PlayerDebuffs then
@@ -351,7 +353,7 @@ local function CreateVTargetStyle(self, unit)
 
 	-- 光環
 	T.CreateAuras(self)
-		
+	
 	-- 施法條
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)

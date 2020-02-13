@@ -133,7 +133,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		
 		VTarget	= {"CENTER", 320, 0},
 		VTOT	= {"TOPLEFT", "oUF_Target", "TOPRIGHT", C.PHeight, 0},
-				
+		
 		-- [[ 橫式 / horizontal ]] --
 		
 		Player	= {"CENTER", -360, -180},
@@ -141,7 +141,6 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		
 		Target	= {"CENTER", 360, -180},
 		TOT		= {"TOPRIGHT", "oUF_Target", "BOTTOMRIGHT", 0, -(C.PHeight + C.PPOffset * 2)},
-		
 		
 		-- [[ 焦點 / focus ]] --
 		
@@ -156,12 +155,10 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		-- 橫式的簡易焦點目標 / simple style focus postion
 		SFOT	= {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset},
 
-
 		-- [[ other / 其他 ]] --
 		
 		Boss	= {"LEFT", 10, 80},
 		Arena	= {"LEFT", 10, 80},
-		
 		
 		-- [[ 玩家個人資源 / player plate ]] --
 		
