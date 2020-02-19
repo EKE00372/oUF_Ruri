@@ -75,9 +75,11 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	C.buSize = 26				-- aura size for all frames except player debuff / 光環大小
 	C.maxAura = 14				-- how many auras show / 顯示光環數量
-	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
 	
-	C.StandaloneCastbar = false	-- independent castbar for player and target / 獨立施法條
+	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
+	C.Totems = true
+	
+	C.StandaloneCastbar = true	-- independent castbar for player and target / 獨立施法條
 	C.CastbarWidth = 200		-- castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
 	
 ------------------------
