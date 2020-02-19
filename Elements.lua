@@ -492,10 +492,18 @@ T.CreateTotems = function(self)
 		tex:SetTexCoord(.08, .92, .08, .92)
 		StyledTotemCooldown(cooldown)
 		
-		if i == 1 then
-			totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -6)
+		if self.mystyle == "H" then
+			if i == 1 then
+				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -C.PPOffset-C.PPHeight*2)
+			else
+				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * totem:GetWidth() + i * C.PPOffset, -C.PPOffset-C.PPHeight*2)
+			end
 		else
-			totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * totem:GetWidth() + i * C.PPOffset, -6)
+			if i == 1 then
+				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -C.PPOffset)
+			else
+				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * totem:GetWidth() + i * C.PPOffset, -C.PPOffset)
+			end
 		end
 	end
 	
