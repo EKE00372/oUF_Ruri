@@ -458,13 +458,12 @@ T.CreateTotems = function(self)
 			_G["TotemFrameTotem" .. slot .. "Background"],
 			_G["TotemFrameTotem" .. slot .. "Duration"],
 			_G["TotemFrameTotem" .. slot .. "Icon"],
-			_G["TotemFrameTotem" .. slot .. "IconTexture"],
 			_G["TotemFrameTotem" .. slot .. "IconCooldown"]
 	end
 	
 	-- 美化一下圖示
 	local function StyledTotemIcon(icon)
-		--_G[icon:GetName() .. "Texture"]:SetTexCoord(.08, .92, .08, .92)
+		_G[icon:GetName() .. "Texture"]:SetTexCoord(.08, .92, .08, .92)
 		icon.Border = F.CreateBD(icon, _G[icon:GetName() .. "Texture"], 1, .6, .6, .6, 1)
 		icon.Shadow = F.CreateSD(icon, icon.Border, 3)
 	end
@@ -479,7 +478,7 @@ T.CreateTotems = function(self)
 	
 	-- 利用Cumstom API統一更改四個圖騰格子
 	for i = 1 , MAX_TOTEMS do
-		local totem, background, duration, icon, tex, cooldown = GetTotemRegion(i)
+		local totem, background, duration, icon, cooldown = GetTotemRegion(i)
 		local _, border = totem:GetChildren()
 		
 		totem:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
@@ -489,7 +488,6 @@ T.CreateTotems = function(self)
 		background:Hide()
 		icon:SetAllPoints(totem)
 		StyledTotemIcon(icon)
-		tex:SetTexCoord(.08, .92, .08, .92)
 		StyledTotemCooldown(cooldown)
 		
 		if self.mystyle == "H" then
