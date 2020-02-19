@@ -446,49 +446,6 @@ T.CreateHealthPrediction = function(self, unit)
     }
 end
 
--- [[ 圖騰 ]] --
-
-T.CreateTotems = function(self, unit)
-	if not F.Multicheck(G.myClass, "SHAMAN", "MONK") then return end
-	
-    local Totems = {}
-	
-    for i = 1, 4 do
-		local Totem = CreateFrame("Button", G.addon .. unit .. "_TotemBar" .. i, self)
-		Totem:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
-		Totem:RegisterForClicks("AnyUp")
-		
-		--local macrotext = "/click TotemFrameTotem" .. i .. " RightButton"
-		--Totem:SetAttribute("type2", "macro")
-		--Totem:SetAttribute("macrotext2", macrotext)
-		
-		if i == 1 then
-			Totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -6)
-		else
-			Totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * Totem:GetWidth() + i * C.PPOffset, -6)
-		end
-		
-		Totem.Icon = Totem:CreateTexture(nil, "OVERLAY", nil, 1)
-		Totem.Icon:SetTexCoord(.08, .92, .08, .92)
-		Totem.Icon:SetAllPoints()
-		Totem.Border = F.CreateBD(Totem, Totem.Icon, 1, .6, .6, .6, 1)
-		Totem.Shadow = F.CreateSD(Totem, Totem.Border, 3)
-		
-		Totem.Cooldown = CreateFrame("Cooldown", nil, Totem, "CooldownFrameTemplate")
-		--Totem.Cooldown:SetReverse(true)	-- 不知道為什麼預設動畫效果是反的，只好再反回來
-		Totem.Cooldown:SetDrawSwipe(false)
-		Totem.Cooldown:SetDrawBling(false)
-		Totem.Cooldown:SetDrawEdge(false) 
-		Totem.Cooldown:SetSwipeColor(0, 0, 0, 0)
-		Totem.Cooldown:SetAllPoints()
-
-		Totems[i] = Totem
-	end
-	
-	self.Totems = Totems
-	--self.Totems.PostUpdate = T.PostUpdateTotems
-end
---[[
 T.CreateTotems = function(self)
 	-- 直接調用暴雪的圖騰條
 	TotemFrame:ClearAllPoints()
@@ -500,38 +457,45 @@ T.CreateTotems = function(self)
 			_G["TotemFrameTotem" .. slot],
 			_G["TotemFrameTotem" .. slot .. "Background"],
 			_G["TotemFrameTotem" .. slot .. "Duration"],
-			_G["TotemFrameTotem" .. slot .. "Icon"]
+			_G["TotemFrameTotem" .. slot .. "Icon"],
+			_G["TotemFrameTotem" .. slot .. "IconTexture"],
+			_G["TotemFrameTotem" .. slot .. "IconCooldown"]
 	end
 	
 	-- 美化一下圖示
 	local function StyledTotemIcon(icon)
-		icon:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
-		_G[icon:GetName() .. "Texture"]:SetTexCoord(.08, .92, .08, .92)
-		icon.Border = F.CreateBD(icon, icon, 1, .6, .6, .6, 1)
+		--_G[icon:GetName() .. "Texture"]:SetTexCoord(.08, .92, .08, .92)
+		icon.Border = F.CreateBD(icon, _G[icon:GetName() .. "Texture"], 1, .6, .6, .6, 1)
 		icon.Shadow = F.CreateSD(icon, icon.Border, 3)
+	end
+	
+	-- 幹掉冷卻動畫
+	local function StyledTotemCooldown(cooldown)
+		cooldown:SetDrawBling(false)
+		cooldown:SetDrawEdge(false) 
+		cooldown:SetDrawSwipe(false)
+		cooldown:SetSwipeColor(0, 0, 0, 0)
 	end
 	
 	-- 利用Cumstom API統一更改四個圖騰格子
 	for i = 1 , MAX_TOTEMS do
-		local totem, background, duration, icon = GetTotemRegion(i)
+		local totem, background, duration, icon, tex, cooldown = GetTotemRegion(i)
 		local _, border = totem:GetChildren()
+		
+		totem:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
 		
 		border:Hide()
 		duration:SetAlpha(0)
 		background:Hide()
+		icon:SetAllPoints(totem)
 		StyledTotemIcon(icon)
-
-		--totem.Cooldown = CreateFrame("Cooldown", nil, totem, "CooldownFrameTemplate")
-		--totem.Cooldown:SetDrawBling(false)
-		--totem.Cooldown:SetDrawEdge(false) 
-		--totem.Cooldown:SetDrawSwipe(false)
-		--totem.Cooldown:SetSwipeColor(0, 0, 0, 0)
-		--totem.Cooldown:SetSwipeTexture("")
+		tex:SetTexCoord(.08, .92, .08, .92)
+		StyledTotemCooldown(cooldown)
 		
 		if i == 1 then
-			totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -4)	-- 暴雪這什麼鬼布局要少2PX.....
+			totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -6)
 		else
-			totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * icon:GetWidth() + i * C.PPOffset, -4)
+			totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * totem:GetWidth() + i * C.PPOffset, -6)
 		end
 	end
 	
@@ -541,4 +505,4 @@ T.CreateTotems = function(self)
 	end
 	
 	hooksecurefunc("TotemFrame_Update", UpdatePos)
-end]]--
+end
