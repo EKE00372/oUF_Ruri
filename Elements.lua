@@ -445,7 +445,44 @@ T.CreateHealthPrediction = function(self, unit)
         frequentUpdates = true,
     }
 end
+--[[
+T.CreateTankResource = function(self, unit)
+	local TankResource = {}
+	--local maxLength = 4
+	
+    for i = 1, 3 do
+		
+		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
+		TankResource[i].border = F.CreateSD(TankResource[i], TankResource[i], 3)
+		TankResource[i]:SetFrameLevel(self:GetFrameLevel() + 2)
 
+		if self.mystyle == "VL" then
+			-- 單獨的每個豆子
+			TankResource[i]:SetOrientation("VERTICAL")
+			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - 2*C.PPOffset)/3)
+			
+			if i == 1 then
+				TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
+			else
+				TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
+			end
+		else
+			TankResource[i]:SetSize((C.PWidth - 2*C.PPOffset)/3, C.PPHeight)
+			
+			if i == 1 then
+				TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)  
+			else
+				TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
+			end
+		end
+
+        TankResource[i] = Bar
+    end
+
+    -- Register with oUF
+    self.TankResource = TankResource
+end
+]]--
 T.CreateTotems = function(self)
 	-- 直接調用暴雪的圖騰條
 	TotemFrame:ClearAllPoints()

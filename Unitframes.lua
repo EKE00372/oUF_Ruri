@@ -12,7 +12,6 @@ local function CreateUnitShared(self, unit)
 	local u = unit:match("[^%d]+") -- boss1 -> boss
 
 	-- [[ 前置作業 ]] --	
-
 	self:RegisterForClicks("AnyUp")	-- Make mouse active
 	
 	-- [[ 高亮 ]] --
@@ -31,7 +30,17 @@ local function CreateUnitShared(self, unit)
 		hl:SetTexCoord(1, 0, 0, 1)
 	end
 	
-	self.Mouseover = hl
+	self.Highlight = hl
+	--self.Mouseover = hl
+	
+	self:HookScript("OnEnter", function()
+		UnitFrame_OnEnter(self)
+		self.Highlight:Show()
+	end)
+	self:HookScript("OnLeave", function()
+		UnitFrame_OnLeave(self)
+		self.Highlight:Hide()
+	end)
 	
 	-- [[ 血量條 ]] --
 	
@@ -164,6 +173,18 @@ local function CreateUnitShared(self, unit)
 	-- 狀態：暫離/忙錄/等級
 	self.Status = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	self:Tag(self.Status, "[afkdnd][difficulty][smartlevel][quest] ")
+	
+	if C.Fade then
+		self.FadeMinAlpha = C.FadeOutAlpha
+		self.FadeInSmooth = 0.4
+		self.FadeOutSmooth = 1.5
+		self.FadeCasting = true
+		self.FadeCombat = true
+		self.FadeTarget = true
+		self.FadeHealth = true
+		self.FadePower = true
+		self.FadeHover = true
+	end
 end
 
 --===================================================--
@@ -255,6 +276,7 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
+	--T.CreateTankResource(self, unit)
 	
 	if C.Totems then
 		T.CreateTotems(self)
@@ -275,8 +297,8 @@ local function CreateVPlayerStyle(self, unit)
 	-- 施法條
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)		
-		--self.Castbar.Icon:SetPoint(unpack(C.Position.VPlayerCastbar))
-		self.Castbar.Icon:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", self.Debuffs:GetWidth() + C.PPOffset*3 + C.PPHeight, 0)
+		self.Castbar.Icon:SetPoint(unpack(C.Position.VPlayerCastbar))
+		--self.Castbar.Icon:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", self.Debuffs:GetWidth() + C.PPOffset*3 + C.PPHeight, 0)
 		self.Castbar:SetPoint("BOTTOM", self.Castbar.Icon, "TOP", 0, C.PPOffset)
 		self.Castbar.Text:SetPoint("BOTTOMLEFT", self.Castbar.Icon, "BOTTOMRIGHT", C.PPOffset, 0)
 		self.Castbar.Text:SetJustifyH("LEFT")
@@ -363,8 +385,8 @@ local function CreateVTargetStyle(self, unit)
 	-- 施法條
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)
-		--self.Castbar.Icon:SetPoint(unpack(C.Position.VTargetCastbar))		
-		self.Castbar.Icon:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -(C.PPOffset*2+self.Auras:GetWidth()), 0)
+		self.Castbar.Icon:SetPoint(unpack(C.Position.VTargetCastbar))
+		--self.Castbar.Icon:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -(C.PPOffset*2+self.Auras:GetWidth()), 0)
 		self.Castbar:SetPoint("BOTTOM", self.Castbar.Icon, "TOP", 0, C.PPOffset)
 		self.Castbar.Text:SetPoint("BOTTOMRIGHT", self.Castbar.Icon, "BOTTOMLEFT", -C.PPOffset, 0)
 		self.Castbar.Text:SetJustifyH("RIGHT")
@@ -463,11 +485,16 @@ local function CreateSFocusStyle(self, unit)
 	hl:SetVertexColor(1, 1, 1, 1)
 	hl:SetBlendMode("ADD")
 	hl:SetTexCoord(1, 0, 0, 1)
-	self.Mouseover = hl
+	self.Highlight = hl
 	
-	--[[self.Range = {
-		insideAlpha = 1, outsideAlpha = .5,
-	}]]--
+	self:HookScript("OnEnter", function()
+		UnitFrame_OnEnter(self)
+		self.Highlight:Show()
+	end)
+	self:HookScript("OnLeave", function()
+		UnitFrame_OnLeave(self)
+		self.Highlight:Hide()
+	end)
 	
 	-- 文本
 	
@@ -503,6 +530,18 @@ local function CreateSFocusStyle(self, unit)
 	RaidIcon:SetTexture(G.media.raidicon)
 	RaidIcon:SetPoint("LEFT", self.Name, "RIGHT", 0, 0)
 	self.RaidTargetIndicator = RaidIcon
+	
+	if C.Fade then
+		self.FadeMinAlpha = C.FadeOutAlpha
+		self.FadeInSmooth = 0.4
+		self.FadeOutSmooth = 1.5
+		self.FadeCasting = true
+		self.FadeCombat = true
+		self.FadeTarget = true
+		self.FadeHealth = true
+		self.FadePower = true
+		self.FadeHover = true
+	end
 end
 
 -- 寵物

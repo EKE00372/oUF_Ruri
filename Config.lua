@@ -19,7 +19,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -- Golbal --
 ------------
 
-	C.UnitFrames = true		-- enable Unitframes / 啟用頭像
+	C.UnitFrames = true		-- enable Unitframes, ture = enable, false = disable / 啟用頭像，enable = 啟用，disable = 停用
 	--C.RaidFrames = false	-- enable Raidframes / 啟用團隊框架
 	C.Nameplates = true		-- enable nameplates/ 啟用名條
 
@@ -79,8 +79,11 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
 	C.Totems = true
 	
-	C.StandaloneCastbar = true	-- independent castbar for player and target / 獨立施法條
+	C.StandaloneCastbar = false	-- independent castbar for player and target / 獨立施法條
 	C.CastbarWidth = 200		-- castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
+	
+	C.Fade = true
+	C.FadeOutAlpha = 0
 	
 ------------------------
 -- RaidFrame settings --
@@ -112,7 +115,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	-- [[ player plate ]] --
 	
 	C.PlayerPlate = false	-- enable player plate / 玩家名條(個人資源)
-	C.NumberstylePP = false	-- number style player plate / 數字模式的玩家名條	
+	C.NumberstylePP = false	-- number style player plate / 數字模式的玩家名條
 	C.PlayerBuffs = true	-- show player buff on player plate / 顯示自身增益
 
 	--[[ nameplates cvar ]] --
@@ -170,8 +173,10 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		
 		PlayerCastbar = {"LEFT", "oUF_Player", "RIGHT", C.PPOffset, 0},
 		TargetCastbar = {"RIGHT", "oUF_Target", "LEFT", -C.PPOffset, 0},
-		
 		FocusCastbar = {"RIGHT", "oUF_Focus", "LEFT", -C.PPOffset, 0},
+		
+		VPlayerCastbar = {"BOTTOMLEFT", "oUF_Player", "BOTTOMRIGHT", C.buSize + C.PPOffset + C.PHeight, 0},
+		VTargetCastbar = {"BOTTOMRIGHT", "oUF_Target", "BOTTOMLEFT", -(C.buSize*2 + C.PPOffset*2 + C.PHeight), 0},
 		VFocusCastbar = {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset * 3}
 	}
 
@@ -204,7 +209,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	-- Infinity Plates by Dawn
 	-- https://www.wowinterface.com/downloads/info19881-InfinityPlates.html
 
-
+	-- SpecialTotemBar by HopeASD
+	
 	-- [oUF] 1.5版 oUF系插件 通用说明 (FD) NGA玩家社区
 	-- https://nga.178.com/read.php?tid=4107042
 
