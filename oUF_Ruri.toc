@@ -5,11 +5,13 @@
 ## Notes: Unitframes with nameplates.
 ## RequiredDeps: oUF
 
-## Credits-to: Siweia, Paopao, Dawn
+## Credits-to: Siweia, Paopao, Dawn, HopeASD
 
 Config.lua
 AuraFilterList.lua
 API.lua
+
+Embeds\oUF_Fader.lua
 
 Tags.lua
 Core.lua
