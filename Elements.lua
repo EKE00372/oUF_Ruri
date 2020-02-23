@@ -52,6 +52,7 @@ T.CreateCastbar = function(self, unit)
 	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
 	self.Castbar.PostChannelStop = T.PostCastStop			-- 引導施法結束
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間	
+	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間	
 	self.Castbar.PostCastFailed = T.PostCastFailed			-- 施法失敗
 	self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 引導施法失敗	
 	-- 當前目標正在施法時，切換目標會重新獲取名字，防止丟失
@@ -475,8 +476,6 @@ T.CreateTankResource = function(self, unit)
 				TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
 			end
 		end
-
-        TankResource[i] = Bar
     end
 
     -- Register with oUF
