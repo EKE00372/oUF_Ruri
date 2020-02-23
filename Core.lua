@@ -60,12 +60,25 @@ end
 --===================================================--
 
 -- [[ 開始施法 ]] --
+--[[
+T.VSafeZone = function(self)
+	local safeZone = self.SafeZone
+	local height = self:GetHeight()
+	local _, _, _, ms = GetNetStats()
+
+	local safeZoneRatio = (ms / 1e3) / self.max
+	if(safeZoneRatio > 1) then
+		safeZoneRatio = 1
+	end
+
+	safeZone:SetHeight(height * safeZoneRatio)
+end]]--
 
 T.PostSCastStart = function(self, unit)
 	local frame = self:GetParent()
 	
 	if frame.mystyle == "NP" then
-		-- 數字模式上移
+		-- 數字模式名條上移
 		frame.Name:SetPoint("BOTTOM", 0, 24)
 	else
 		self.Spark:SetAlpha(.5)
@@ -94,6 +107,14 @@ T.PostCastStart = function(self, unit)
 	if unit == "player" then
 		self:SetStatusBarColor(.6, .6, .6, .5)
 		self.Border:SetBackdropBorderColor(.6, .6, .6)
+		
+		--[[if frame.mystyle ~= "H" then
+			self.SafeZone:ClearAllPoints()
+			self.SafeZone:SetPoint("TOP")
+			self.SafeZone:SetPoint("LEFT")
+			self.SafeZone:SetPoint("RIGHT")
+			T.VSafeZone(self)
+		end]]--
 	else
 		if self.notInterruptible then
 			self:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
@@ -172,11 +193,19 @@ end
 -- [[ 自定格式的施法時間 ]] --
 
 T.CustomTimeText = function(self, duration)
-    if self.casting then
-        self.Time:SetFormattedText("%.1f/%.1f", duration, self.max)
-    elseif self.channeling then
-        self.Time:SetFormattedText("%.1f/%.1f", self.max - duration, self.max)
-    end
+	if self.__owner.unit == "player" and self.delay ~= 0 then
+		if self.casting then
+			self.Time:SetFormattedText("%.1f/%.1f |cffff0000+%.1f|r", duration, self.max, self.delay)
+		elseif self.channeling then
+			self.Time:SetFormattedText("%.1f/%.1f |cffff0000+%.1f|r", self.max - duration, self.max, self.delay)
+		end
+	else
+		if self.casting then
+			self.Time:SetFormattedText("%.1f/%.1f", duration, self.max)
+		elseif self.channeling then
+			self.Time:SetFormattedText("%.1f/%.1f", self.max - duration, self.max)
+		end
+	end
 end
 
 --===================================================--
@@ -477,12 +506,3 @@ T.PostUpdateRunes = function(self, runemap)
 		end
 	end
 end
-
---[[
-T.PostUpdateTotems = function(self, slot, haveTotem, _, _, _, icon)
-	local macrotext = "/click TotemFrameTotem" .. slot .. " RightButton"
-	--self.icon:SetAttribute("type2", "macro")
-	self.icon:GetParent():SetAttribute("type2", "macro")
-	self.icon:GetParent():SetAttribute("macrotext2", macrotext)
-    --self.icon:SetAttribute("macrotext2", macrotext)
-end]]--
