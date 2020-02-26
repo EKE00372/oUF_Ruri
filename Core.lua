@@ -217,7 +217,7 @@ end
 T.CreateAuraTimer = function(self, elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed
 	
-	if self.elapsed >= 0.1 then	
+	if self.elapsed >= 0.1 then
 		local timeLeft = self.timeLeft - GetTime()
 		if timeLeft > 0 then
 			self.time:SetText(F.FormatTime(timeLeft))		
@@ -268,7 +268,7 @@ T.PostUpdateIcon = function(self, unit, button, _, _, duration, expiration, debu
 	if style == "PP" then
 		-- 玩家名條固定灰色
 		button.overlay:SetVertexColor(.6, .6, .6)
-	elseif style == "NP" or style == "BP" then
+	elseif style == "NP" or style == "BP"  or style == "R" then
 		-- 名條上的光環一率按類型染色
 		button.overlay:SetVertexColor(color[1], color[2], color[3])
 	else
@@ -312,6 +312,42 @@ T.PostUpdateGapIcon = function(self, unit, gapButton)
 	
 	if gapButton.time and gapButton.time:IsShown() then
 		gapButton.time:Hide()
+	end
+end
+
+-- [[ 視不同專精的副資源存在與否調整玩家光環的位置 ]] --
+
+T.PostUpdatePlayerDebuffs = function(self, unit)
+	if not unit and UnitIsUnit(unit, "player") then return end
+	
+	local style = self.__owner.mystyle
+	local spec = GetSpecialization() or 0
+	local id = GetSpecializationInfo(spec)
+	
+	if (id == 268 and not C.TankResource) or 
+	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK") or 
+	  (F.Multicheck(id, 581, 66, 73) and C.TankResource) or
+	  F.Multicheck(id, 102, 103, 104, 62, 269, 70, 262, 263) then
+		-- 雙資源專精：死騎、盜賊、術士；復仇、防騎、防戰；鳥貓熊、秘法、御風、懲戒、增元
+		if style == "VL" then
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
+		else
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight + C.PPOffset*2)
+		end
+	elseif (id == 268 and C.TankResource) then
+		-- 三資源專精：釀酒，就你特別
+		if style == "VL" then
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight*2 + C.PPOffset*3), 1)
+		else
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight*2 + C.PPOffset*3)
+		end
+	else
+		-- 單資源專精
+		if style == "VL" then
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPOffset, 1)
+		else
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPOffset)
+		end
 	end
 end
 
@@ -373,7 +409,7 @@ T.BolsterPostUpdate = function(self)
 end
 
 -- 光環過濾
-T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiration, caster, isStealable, _, spellID, _, _, _, nameplateShowAll)
+T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiration, caster, isStealable, _, spellID, _, isBossDebuff, casterIsPlayer, nameplateShowAll)
 	local style = self.__owner.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
@@ -397,6 +433,12 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 		end
 	elseif style == "PP" then					-- 個人資源條顯示30秒(含)以下的光環
 		return duration <= 30 and duration ~= 0
+	elseif style == "R" then
+		if C.RaidBlackList[spellID] then			-- 黑名單
+			return false
+		else
+			return isBossDebuff or ((caster == "player" or caster == "pet" or caster == "vehicle") and button.isDebuff)
+		end
 	else
 		return true
 	end
@@ -437,7 +479,39 @@ T.PostUpdateAltPower = function(self, unit, cur)
 	self.value:SetText(cur)
 end
 
--- [[ 連擊點 ]] --
+-- [[ 酒池文本 ]] --
+
+T.PostUpdateStagger = function(self, cur, max)
+	local perc = cur / max
+	
+	if cur == 0 then
+		self.value:SetText("")
+	else
+		self.value:SetText(F.ShortValue(cur) .. " |cff70C0F5" .. F.ShortValue(perc * 100) .. "|r")
+	end
+end
+
+-- [[ 坦克資源的天賦更新 ]] --
+
+T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
+	if not max or not cur then return end
+	
+	local style = self.__owner.mystyle
+
+	for i = 1, 4 do
+		if MaxChanged then
+			if style == "VL" then
+				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
+			elseif style == "PP" then
+				self[i]:SetWidth((C.NPWidth - (max-1) * C.PPOffset) / max)
+			else
+				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
+			end
+		end
+	end
+end
+
+-- [[ 連擊點的天賦更新 ]] --
 
 T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	if not max or not cur then return end
@@ -460,7 +534,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 			end
 		end
 		
-		if G.myClass == "ROUGE" or G.myClass == "DRUID" then
+		if F.Multicheck(G.myClass, "ROUGE", "DRUID") then
 			if max > 0 and cur == max then
 				self[i]:SetStatusBarColor(unpack(cpColor[2]))
 			else

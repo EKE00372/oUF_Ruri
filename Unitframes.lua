@@ -213,6 +213,10 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
 	
+	if C.TankResource then
+		T.CreateTankResource(self, unit)
+	end
+	
 	if C.Totems then
 		T.CreateTotems(self)
 	end
@@ -236,13 +240,14 @@ local function CreatePlayerStyle(self, unit)
 	-- 減益
 	if C.PlayerDebuffs then
 		T.CreateDebuffs(self)		
-		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
+		--self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
 		self.Debuffs["growth-x"] = "RIGHT"
 		self.Debuffs["growth-y"] = "UP"
 		self.Debuffs.num = 6
 		self.Debuffs.size = C.buSize + 6
 		self.Debuffs.spacing = 6
 		self.Debuffs:SetSize(C.PWidth, C.buSize)
+		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 	end
 	
 	-- 圖示和標記
@@ -276,7 +281,10 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	--T.CreateTankResource(self, unit)
+	
+	if C.TankResource then
+		T.CreateTankResource(self, unit)
+	end
 	
 	if C.Totems then
 		T.CreateTotems(self)
@@ -285,18 +293,19 @@ local function CreateVPlayerStyle(self, unit)
 	-- 減益
 	if C.PlayerDebuffs then
 		T.CreateDebuffs(self)
-		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
+		--self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
 		self.Debuffs["growth-x"] = "UP"
 		self.Debuffs["growth-y"] = "RIGHT"
 		self.Debuffs.num = 6
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs.spacing = 5
 		self.Debuffs:SetSize(C.buSize + 4, C.PWidth)
+		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 	end
 
 	-- 施法條
 	if C.StandaloneCastbar then
-		T.CreateStandaloneCastbar(self, unit)		
+		T.CreateStandaloneCastbar(self, unit)	
 		self.Castbar.Icon:SetPoint(unpack(C.Position.VPlayerCastbar))
 		--self.Castbar.Icon:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", self.Debuffs:GetWidth() + C.PPOffset*3 + C.PPHeight, 0)
 		self.Castbar:SetPoint("BOTTOM", self.Castbar.Icon, "TOP", 0, C.PPOffset)
@@ -311,8 +320,12 @@ local function CreateVPlayerStyle(self, unit)
 		self.Castbar.Text:SetJustifyH("RIGHT")
 		self.Castbar.Time:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*4)
 		self.Castbar.Time:SetJustifyH("RIGHT")
-	end
 		
+		--[[self.Castbar.SafeZone = self.Castbar:CreateTexture(nil, "OVERLAY")
+		self.Castbar.SafeZone:SetTexture(G.media.blank)
+		self.Castbar.SafeZone:SetVertexColor(0, 1, 0, .5)]]--
+	end
+	
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
 	self.AssistantIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 4)
@@ -425,9 +438,6 @@ local function CreateFocusStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式	
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
-	--[[self.Range = {
-		insideAlpha = 1, outsideAlpha = .5,
-	}]]--
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -731,7 +741,7 @@ local function CreateSFoTStyle(self, unit)
 	
 	-- 框體
 	self:SetSize(C.PWidth/2, C.PHeight)	-- 主框體尺寸
-	self:RegisterForClicks("AnyUp")
+	--self:RegisterForClicks("AnyUp")
 	
 	local hl = self:CreateTexture(nil, "HIGHLIGHT")
 	hl:SetAllPoints(self)
@@ -740,10 +750,6 @@ local function CreateSFoTStyle(self, unit)
 	hl:SetBlendMode("ADD")
 	hl:SetTexCoord(1, 0, 0, 1)
 	self.Mouseover = hl
-	
-	--[[self.Range = {
-		insideAlpha = 1, outsideAlpha = .5,
-	}]]--
 	
 	-- 文本
 	
