@@ -20,8 +20,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 ------------
 
 	C.UnitFrames = true		-- enable Unitframes, ture = enable, false = disable / 啟用頭像，enable = 啟用，disable = 停用
-	--C.RaidFrames = false	-- enable Raidframes / 啟用團隊框架
-	C.Nameplates = true		-- enable nameplates/ 啟用名條
+	C.RaidFrames = false	-- enable Raidframes / 啟用團隊框架
+	C.Nameplates = true		-- enable Nameplates/ 啟用名條
 
 -------------
 -- Texture --
@@ -73,26 +73,31 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.PPHeight = 4				-- power bar height / 能量條高度
 	C.PPOffset = 6				-- power bar offset / 能量條向下偏移
 
-	C.buSize = 26				-- aura size for all frames except player debuff / 光環大小
+	C.buSize = 26				-- aura icon size for all frames except player debuff / 光環圖示大小
 	C.maxAura = 14				-- how many auras show / 顯示光環數量
 	
 	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
-	C.Totems = true
+	C.Totems = true				-- show player totems / 顯示玩家圖騰
+	C.TankResource = true		-- show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 	
 	C.StandaloneCastbar = false	-- independent castbar for player and target / 獨立施法條
 	C.CastbarWidth = 200		-- castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
 	
-	C.Fade = true
-	C.FadeOutAlpha = 0
+	C.Fade = true				-- hide UFs when out of combat or not casting / 戰鬥外閒置狀態淡出頭象
+	C.FadeOutAlpha = 0			-- fade out value / 淡出值
 	
 ------------------------
 -- RaidFrame settings --
 ------------------------
-	--[[
-	C.RaidWidth = 90
-	C.RaidHeight = 40
-	C.FadeOutAlpha = 0.5 	-- alpha for out of range units
-	]]--
+	
+	C.RWidth = 90				-- raid frame width
+	C.RHeight = 48				-- raid frame height
+	C.RPHeight = 2				-- raid frame power height
+	
+	C.sAuSize = 18				-- corner small aura size
+	C.bAuSize = 18				-- middle big aura size
+	C.RangeAlpha = 0.5			-- alpha for out of range units
+
 ------------------------
 -- Nameplate settings --
 ------------------------

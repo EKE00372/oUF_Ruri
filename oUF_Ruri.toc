@@ -1,6 +1,6 @@
 ## Interface: 80300
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R1.3
+## Version: R1.4
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## RequiredDeps: oUF
@@ -8,9 +8,10 @@
 ## Credits-to: Siweia, Paopao, Dawn, HopeASD
 
 Config.lua
-AuraFilterList.lua
+FilterList.lua
 API.lua
 
+Embeds\oUF_TankResource.lua
 Embeds\oUF_Fader.lua
 
 Tags.lua
@@ -18,5 +19,5 @@ Core.lua
 Elements.lua
 
 Unitframes.lua
-#Raidframes.lua
+Raidframes.lua
 Nameplates.lua

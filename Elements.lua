@@ -175,7 +175,6 @@ T.CreateBuffs = function(self, button)
 	self.Buffs.CustomFilter = T.CustomFilter
 end
 
-
 -- [[ 光環 ]] --
 
 T.CreateAuras = function(self, button)
@@ -423,6 +422,16 @@ T.CreateStagger = function(self, unit)
 	
 	-- 註冊到ouf	
 	self.Stagger = Stagger
+	self.Stagger.PostUpdate = T.PostUpdateStagger
+	-- 文本
+	self.Stagger.value = F.CreateText(self.Stagger, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
+	if self.mystyle == "VL" then
+		self.Stagger.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS + 2)*2)
+		self.Stagger.value:SetJustifyH("RIGHT")
+	else
+		self.Stagger.value:SetPoint("CENTER", self.Stagger, 0, 0)
+		self.Stagger.value:SetJustifyH("CENTER")
+	end
 end
 
 -- [[ 預估治療 ]] --
@@ -446,42 +455,67 @@ T.CreateHealthPrediction = function(self, unit)
         frequentUpdates = true,
     }
 end
---[[
+
+-- [[ 坦克資源 ]] --
+
 T.CreateTankResource = function(self, unit)
 	local TankResource = {}
-	--local maxLength = 4
-	
-    for i = 1, 3 do
-		
+
+    for i = 1, 4 do
 		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		TankResource[i].border = F.CreateSD(TankResource[i], TankResource[i], 3)
 		TankResource[i]:SetFrameLevel(self:GetFrameLevel() + 2)
+		
+		-- 背景
+		TankResource[i].bg = TankResource[i]:CreateTexture(nil, "BACKGROUND")
+		TankResource[i].bg:SetAllPoints()
+		TankResource[i].bg:SetTexture(G.media.blank)
+		TankResource[i].bg.multiplier = .3
 
 		if self.mystyle == "VL" then
 			-- 單獨的每個豆子
 			TankResource[i]:SetOrientation("VERTICAL")
-			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - 2*C.PPOffset)/3)
+			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - 3*C.PPOffset)/4)
 			
-			if i == 1 then
-				TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
+			if G.myClass == "MONK" then
+				if i == 1 then
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)  
+				else
+					TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
+				end
 			else
-				TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
+				if i == 1 then
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
+				else
+					TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
+				end
 			end
 		else
-			TankResource[i]:SetSize((C.PWidth - 2*C.PPOffset)/3, C.PPHeight)
+			TankResource[i]:SetSize((C.PWidth - 3*C.PPOffset)/4, C.PPHeight)
 			
-			if i == 1 then
-				TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)  
+			if G.myClass == "MONK" then
+				if i == 1 then
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)  
+				else
+					TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
+				end
 			else
-				TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
+				if i == 1 then
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)  
+				else
+					TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
+				end
 			end
 		end
     end
 
     -- Register with oUF
     self.TankResource = TankResource
+    self.TankResource.PostUpdate = T.PostUpdateTankResource
 end
-]]--
+
+-- [[ 圖騰 ]] --
+
 T.CreateTotems = function(self)
 	-- 直接調用暴雪的圖騰條
 	TotemFrame:ClearAllPoints()
