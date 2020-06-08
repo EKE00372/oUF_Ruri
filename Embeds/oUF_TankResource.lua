@@ -67,14 +67,12 @@ local oUF = ns.oUF or oUF
 if not C.TankResource then return end
 
 local _, PlayerClass = UnitClass('player')
-local spec = GetSpecialization() or 0
-
 local SPEC_MONK_BREWMASTER = SPEC_MONK_BREWMASTER or 1
---local SPEC_DEATHKNIGHT_BLOOD = SPEC_DEATHKNIGHT_BLOOD or 1
+local SPEC_DEATHKNIGHT_BLOOD = SPEC_DEATHKNIGHT_BLOOD or 1
 local SPEC_DEMONHUNTER_VENGEANCE = SPEC_DEMONHUNTER_VENGEANCE or 2
 local SPEC_WARRIOR_PROTECTION = SPEC_WARRIOR_PROTECTION or 3
 local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
---local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
+local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
 
 local GetSpellCooldown, GetSpellCharges, GetSpellCount, UnitSpellHaste, GetTime,
 	  UnitIsUnit, GetSpecialization, UnitHasVehicleUI, IsPlayerSpell,
@@ -182,9 +180,12 @@ end
 -- 更新
 local function Update(self, event, unit)
 	if (unit and unit ~= self.unit) then return end
-	local element = self.TankResource
+	if not RequireSpell then return end
+	
 	-- 预留 PreUpdate
+	local element = self.TankResource
 	if element.PreUpdate then element:PreUpdate() end
+	
 	local cur, maxCharges, oldMax, start, duration
 	if event ~= 'TankResourceDisable' then
 
