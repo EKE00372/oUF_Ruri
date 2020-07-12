@@ -10,9 +10,9 @@ if not C.Nameplates then return end
 local function defaultCVar()
 	-- 貼齊邊緣
 	if C.Inset then
-		SetCVar("nameplateOtherTopInset", .06)			-- default: .08
+		SetCVar("nameplateOtherTopInset", .05)			-- default: .08
 		SetCVar("nameplateOtherBottomInset", .09)		-- default: .1
-		SetCVar("nameplateLargeTopInset", .06) 
+		SetCVar("nameplateLargeTopInset", .05)
 		SetCVar("nameplateLargeBottomInset", .09)
 	else
 		SetCVar("nameplateOtherTopInset", -1)
@@ -37,11 +37,11 @@ local function defaultCVar()
 	
 	-- 調整堆疊血條的間距
 	if C.NumberStyle then
-		SetCVar("nameplateOverlapH",  .7)					-- default is 0.8
-		SetCVar("nameplateOverlapV",  .9)					-- default is 1.1
+		SetCVar("nameplateOverlapH",  .7)				-- default is 0.8
+		SetCVar("nameplateOverlapV",  .9)				-- default is 1.1
 	else
-		SetCVar("nameplateOverlapH",  .6)					-- default is 0.8
-		SetCVar("nameplateOverlapV",  .8)					-- default is 1.1
+		SetCVar("nameplateOverlapH",  .6)				-- default is 0.8
+		SetCVar("nameplateOverlapV",  .8)				-- default is 1.1
 	end
 	
 	-- 敵方顯示條件
@@ -58,13 +58,13 @@ local function defaultCVar()
 	SetCVar("nameplateShowFriendlyTotems", 0)			-- 圖騰
 end 
 
-local function eventHandler(self, event, ...)
+local function OnEvent(self, event, ...)
 	defaultCVar()
-end 
+end
 
-local CVAR = CreateFrame("FRAME", "cvars")
+local CVAR = CreateFrame("FRAME", nil)
 	CVAR:RegisterEvent("PLAYER_ENTERING_WORLD")
-	CVAR:SetScript("OnEvent", eventHandler)
+	CVAR:SetScript("OnEvent", OnEvent)
 
 --=====================================================--
 -----------------    [[ NameColor ]]    -----------------
@@ -107,7 +107,7 @@ local function UpdateColor(self, unit)
 			if C.enemyCR then
 				r, g, b =  unpack(ccolor)
 			else						-- 標準pve狀態玩家色
-				r, g, b = .3, .3, 1	
+				r, g, b = .3, .3, 1
 			end
 		elseif tap then					-- 無拾取權
 			r, g, b = .3, .3, .3
@@ -155,20 +155,20 @@ end
 
 local function CreateIconCastbar(self, unit)
 	local Castbar = CreateFrame("StatusBar", nil, self)
-	Castbar:SetSize(32, 32)
+	Castbar:SetSize(C.NPCastIcon, C.NPCastIcon)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 2)
 	Castbar.Border = F.CreateBD(Castbar, Castbar, 1, 0, 0, 0, 1)
 	-- 圖示
 	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY", nil, 1)
-	Castbar.Icon:SetSize(26, 26)
+	Castbar.Icon:SetSize(C.NPCastIcon-6, C.NPCastIcon-6)
 	Castbar.Icon:SetPoint("CENTER")
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
 	-- 圖示邊框
-	Castbar.IconBorder = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
-	Castbar.IconBorder:SetPoint("TOPLEFT", Castbar.Icon, -1, 1)
-	Castbar.IconBorder:SetPoint("BOTTOMRIGHT", Castbar.Icon, 1, -1)
-	Castbar.IconBorder:SetTexture(G.media.blank)
-	Castbar.IconBorder:SetVertexColor(0, 0, 0)
+	Castbar.IconBD = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
+	Castbar.IconBD:SetPoint("TOPLEFT", Castbar.Icon, -1, 1)
+	Castbar.IconBD:SetPoint("BOTTOMRIGHT", Castbar.Icon, 1, -1)
+	Castbar.IconBD:SetTexture(G.media.blank)
+	Castbar.IconBD:SetVertexColor(0, 0, 0)
 	
 	-- 選項
 	Castbar.timeToHold = 0.05
@@ -212,10 +212,10 @@ local function CreateStandaloneCastbar(self, unit)
 	Castbar.Icon:SetPoint("BOTTOMRIGHT", Castbar, "BOTTOMLEFT", -4, 0)
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
 	-- 圖示邊框
-	Castbar.IconShadow = F.CreateSD(Castbar, Castbar.Icon, 3)
-	Castbar.IconBorder = F.CreateBD(Castbar, Castbar.Icon, 1, .15, .15, .15, 1)
+	Castbar.IconSD = F.CreateSD(Castbar, Castbar.Icon, 3)
+	Castbar.IconBD = F.CreateBD(Castbar, Castbar.Icon, 1, .15, .15, .15, 1)
 	-- 法術名
-	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS-4, G.FontFlag, "CENTER")
+	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	Castbar.Text:SetPoint("TOPLEFT", Castbar, "BOTTOMLEFT", -5, 5)
 	Castbar.Text:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 5, -5)
 
@@ -229,7 +229,7 @@ local function CreateStandaloneCastbar(self, unit)
 	self.Castbar.PostCastInterrupted = T.PostSCastFailed	-- 引導施法失敗
 	
 	-- 打斷狀態刷新
-	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	
+	self.Castbar.PostCastInterruptible = T.PostUpdateSCast
 	self.Castbar.PostCastNotInterruptible = T.PostUpdateSCast
 end
 
@@ -247,7 +247,7 @@ end
 
 local function SetPosition(self, from, to)
 	for i = from, to do
-		local button = self[i]		
+		local button = self[i]
 		if not button then break end
 
 		if i == 1 then
@@ -340,7 +340,7 @@ local function TargetIndicator(self)
 	Mark:SetFrameLevel(self:GetFrameLevel() - 2)
 	Mark:EnableMouse(false)
 	Mark:Hide()
-		
+	
 	-- 註冊到ouf
 	self.TargetIndicator = Mark
 	
@@ -434,22 +434,23 @@ local function CreateNumberPlates(self, unit)
 	end
 	
 	-- 框體
-	self:SetSize(C.NPWidth + 10, G.NameFS * 3)
+	self:SetSize(C.NPWidth + 10, G.NPFS * 2)
 	self:SetPoint("CENTER", 0, 0)
 	--self:RegisterForClicks("AnyUp", "AnyDown")
 	--self:EnableMouse(false)
 
 	-- 名字
-	self.Name = F.CreateText(self, "OVERLAY", G.Font, G.NameFS-2, G.FontFlag, "CENTER")
+	self.Name = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", 0, 6)
 	self:Tag(self.Name, "[name]")
 	self.Name.UpdateColor = UpdateColor	
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "CENTER")
 	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 0)
+	self.HealthText.frequentUpdates = .1
 	self:Tag(self.HealthText, "[np:hp]")
 	-- 能量
-	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NameFS, G.FontFlag, "LEFT")
+	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("LEFT", self.Name, "RIGHT", 2, 0)
 	self:Tag(self.PowerText, "[np:pp]")
 
@@ -482,7 +483,6 @@ local function CreateNumberPlates(self, unit)
 	if C.HLTarget then
 		TargetIndicator(self)
 	end
-
 end
 
 -- [[ 條形模式 ]] --
@@ -503,7 +503,7 @@ local function CreateBarPlates(self, unit)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
-	Health.frequentUpdates  = true		-- 更新速率
+	--Health.frequentUpdates  = true		-- 更新速率
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)
 	-- 背景
@@ -515,15 +515,15 @@ local function CreateBarPlates(self, unit)
 	self.Health.UpdateColor = UpdateColor
 	
 	-- 名字
-	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS-4, G.FontFlag, "CENTER")
+	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", self.Health, "TOP",  0, 4)
 	self:Tag(self.Name, "[name]")
 	-- 血量
-	self.Health.value = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS-4, G.FontFlag, "RIGHT")
+	self.Health.value = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, -4)
 	self:Tag(self.Health.value, "[bp:hp]")
 	-- 能量
-	self.PowerText = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS-4, G.FontFlag, "RIGHT")
+	self.PowerText = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
 	self.PowerText:SetPoint("LEFT", self.Health, "RIGHT", 4, 1)
 	self:Tag(self.PowerText, "[np:pp]")
 
@@ -574,14 +574,14 @@ local function CreatePlayerNumberPlate(self, unit)
 	self.mystyle = "PP"
 	
 	-- 框體，因為這其實是創建了一個偽頭像，所以不像名條無視UI縮放，要做大點......吧
-	self:SetSize(C.NPWidth, G.NameFS*3 + C.buSize)
+	self:SetSize(C.NPWidth, G.NPFS*2 + C.buSize)
 	
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS*2, G.FontFlag, "CENTER")
 	self.HealthText:SetPoint("BOTTOMLEFT", self, 0, C.PPOffset*2)
 	self:Tag(self.HealthText, "[perhp]")
 	-- 能量
-	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NameFS, G.FontFlag, "LEFT")
+	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS+2, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("BOTTOMLEFT", self.HealthText, "BOTTOMRIGHT", 0, 0)
 	self:Tag(self.PowerText, "[unit:pp]")
 	
@@ -607,7 +607,7 @@ local function CreatePlayerBarPlate(self, unit)
 	self.mystyle = "PP"
 	
 	-- 框體，因為這其實是創建了一個偽頭像，所以不像名條無視UI縮放，要做大點......吧
-	self:SetSize(C.NPWidth + 40, C.NPHeight*4 + C.buSize)
+	self:SetSize(C.NPWidth + 40, C.NPHeight*2 + C.buSize)
 	self:SetPoint("CENTER", 0, 0)
 
 	-- 創建一個條
@@ -615,7 +615,7 @@ local function CreatePlayerBarPlate(self, unit)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
-	Health.frequentUpdates  = true		-- 更新速率
+	--Health.frequentUpdates  = true		-- 更新速率
 	Health.colorClass   = true			-- 職業染色
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)

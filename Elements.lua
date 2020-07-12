@@ -48,18 +48,18 @@ T.CreateCastbar = function(self, unit)
 	-- 註冊到ouf
 	self.Castbar = Castbar
 	self.Castbar.PostCastStart = T.PostCastStart			-- 開始施法
-	self.Castbar.PostChannelStart = T.PostCastStart			-- 開始引導施法	
+	self.Castbar.PostChannelStart = T.PostCastStart			-- 開始引導施法
 	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
 	self.Castbar.PostChannelStop = T.PostCastStop			-- 引導施法結束
-	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間	
-	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間	
+	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
+	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
 	self.Castbar.PostCastFailed = T.PostCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 引導施法失敗	
+	self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 引導施法失敗
 	-- 當前目標正在施法時，切換目標會重新獲取名字，防止丟失
 	self:RegisterEvent("UNIT_NAME_UPDATE", T.PostCastStopUpdate)
 	table.insert(self.__elements, T.PostCastStopUpdate)
 	-- 打斷狀態刷新
-	self.Castbar.PostCastInterruptible = T.PostUpdateCast	
+	self.Castbar.PostCastInterruptible = T.PostUpdateCast
 	self.Castbar.PostCastNotInterruptible = T.PostUpdateCast
 end
 
@@ -221,7 +221,7 @@ T.CreateAuras = function(self, button)
 	
 			Auras.initialAnchor = "BOTTOMRIGHT"
 			Auras["growth-x"] = "LEFT"
-			Auras["growth-y"] = "UP"	
+			Auras["growth-y"] = "UP"
 			Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
 			Auras:SetWidth(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
 			Auras:SetHeight(self:GetHeight())
@@ -278,13 +278,13 @@ T.CreateClassPower = function(self, unit)
 			
 			if C.NumberStyle then
 				if i == 1 then
-					ClassPower[i]:SetPoint("TOP", self.HealthText, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -C.PPOffset)  
+					ClassPower[i]:SetPoint("TOP", self.HealthText, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -C.PPOffset)
 				else
 					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 				end
 			else
 				if i == 1 then
-					ClassPower[i]:SetPoint("TOP", self.Power, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -4)  
+					ClassPower[i]:SetPoint("TOP", self.Power, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -4)
 				else
 					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 				end
@@ -293,7 +293,7 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i]:SetSize((C.PWidth - 5*C.PPOffset)/6, C.PPHeight)
 			
 			if i == 1 then
-				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)  
+				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
 			else
 				ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 			end
@@ -333,12 +333,12 @@ T.CreateAddPower = function(self, unit)
 	if C.vertPlayer then
 		AddPower:SetWidth(C.PPHeight)
 		AddPower:SetOrientation("VERTICAL")
-		AddPower:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)  
-		AddPower:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0) 
+		AddPower:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)
+		AddPower:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0)
 	else	
 		AddPower:SetHeight(C.PPHeight)
-		AddPower:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)  
-		AddPower:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset) 
+		AddPower:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)
+		AddPower:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset)
 	end
 	
 	-- 選項
@@ -349,7 +349,7 @@ T.CreateAddPower = function(self, unit)
 	AddPower.bg:SetTexture(G.media.blank)
 	AddPower.bg.multiplier = .3
 	-- 陰影
-	AddPower.border = F.CreateSD(AddPower, AddPower, 3)	
+	AddPower.border = F.CreateSD(AddPower, AddPower, 3)
 	-- 註冊到ouf
 	self.AdditionalPower = AddPower
 	self.AdditionalPower.PostUpdate = T.PostUpdateAddPower
@@ -372,7 +372,7 @@ T.CreateAltPowerBar = function(self, unit)
 		AltPower:SetWidth(C.PPHeight)
 		AltPower:SetOrientation("VERTICAL")
 		-- 垂直模式分別在左右兩側
-		if self.mystyle == "VL" then			
+		if self.mystyle == "VL" then
 			AltPower:SetPoint("TOPRIGHT", self.Power, "TOPLEFT", -C.PPOffset, 0)
 			AltPower:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, C.PWidth/2)
 		elseif  self.mystyle == "VR" then
@@ -404,12 +404,12 @@ T.CreateStagger = function(self, unit)
 	if C.vertPlayer then
 		Stagger:SetWidth(C.PPHeight)
 		Stagger:SetOrientation("VERTICAL")
-		Stagger:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)  
-		Stagger:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0) 
+		Stagger:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)
+		Stagger:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0)
 	else	
 		Stagger:SetHeight(C.PPHeight)
-		Stagger:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)  
-		Stagger:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset) 
+		Stagger:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)
+		Stagger:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset)
 	end
 	
 	-- 背景
@@ -440,7 +440,7 @@ T.CreateHealthPrediction = function(self, unit)
 	local AbsorbBar = F.CreateStatusbar(self, G.addon..unit.."_AbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
 	AbsorbBar:SetFrameLevel(self:GetFrameLevel() + 2)
 	
-	if self.mystyle == "VL" then	
+	if self.mystyle == "VL" then
 		AbsorbBar:SetSize(C.PHeight, C.PWidth)
 		AbsorbBar:SetOrientation("VERTICAL")
 		AbsorbBar:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
@@ -479,13 +479,13 @@ T.CreateTankResource = function(self, unit)
 			
 			if G.myClass == "MONK" then
 				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)  
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
 				else
 					TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
 				end
 			else
 				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)
 				else
 					TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
 				end
@@ -495,13 +495,13 @@ T.CreateTankResource = function(self, unit)
 			
 			if G.myClass == "MONK" then
 				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)  
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
 				else
 					TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
 				end
 			else
 				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)  
+					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
 				else
 					TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
 				end
@@ -541,7 +541,7 @@ T.CreateTotems = function(self)
 	-- 幹掉冷卻動畫
 	local function StyledTotemCooldown(cooldown)
 		cooldown:SetDrawBling(false)
-		cooldown:SetDrawEdge(false) 
+		cooldown:SetDrawEdge(false)
 		cooldown:SetDrawSwipe(false)
 		cooldown:SetSwipeColor(0, 0, 0, 0)
 	end

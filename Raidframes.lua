@@ -1,8 +1,12 @@
 local addon, ns = ...
 local C, F, G, T = unpack(ns)
 
-if C.RaidFrames ~= true then return end
-	
+if not C.RaidFrames then return end
+
+--====================================================--
+-----------------    [[ Function ]]    -----------------
+--====================================================--
+
 -- 專用的顏色
 local function UpdateHealthColor(self, unit)
 	local r, g, b, t
@@ -56,6 +60,11 @@ local function UpdateThreat(_, unit)
 	end
 end
 ]]--
+
+--===========================================================--
+-----------------    [[ Create Elements ]]    -----------------
+--===========================================================--
+
 -- 專用的光環
 local function CreateAuras(self)
 	local Auras = CreateFrame("Frame", nil, self)
@@ -80,6 +89,10 @@ local function CreateAuras(self)
 	self.Auras.PostUpdateIcon = T.PostUpdateIcon
 	self.Auras.CustomFilter = T.CustomFilter				-- 光環過濾	
 end
+
+--=========================================================--
+-----------------    [[ Create Frames ]]    -----------------
+--=========================================================--
 
 local function CreateRaid(self, unit)
 
@@ -107,16 +120,16 @@ local function CreateRaid(self, unit)
 	local Health = F.CreateStatusbar(self, G.addon..unit.."_HealthBar", "ARTWORK", nil, nil, 0, 0, 0, 1)
 	Health:SetAllPoints(self)
 	Health:SetFrameLevel(self:GetFrameLevel())
-	
+	-- 選項
 	Health.colorDisconnected = true
 	Health.frequentUpdates = .1
-	
+	-- 背景
 	Health.bg = Health:CreateTexture(nil, "BACKGROUND")
 	Health.bg:SetAllPoints()
 	Health.bg:SetTexture(G.media.blank)
-	
+	-- 陰影和邊框
 	Health.border = F.CreateSD(Health, Health, 3)
-
+	-- 註冊到OUF
 	self.Health = Health
 	self.Health.UpdateColor = UpdateHealthColor
 	--self.Health.PostUpdate = UpdateTarget

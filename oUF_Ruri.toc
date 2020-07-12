@@ -1,6 +1,6 @@
 ## Interface: 80300
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R1.4
+## Version: R1.5
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## RequiredDeps: oUF
