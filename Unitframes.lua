@@ -63,7 +63,7 @@ local function CreateUnitShared(self, unit)
 	Health.colorDisconnected = true		-- 離線
 	Health.colorSmooth = true			-- 血量漸變色
 	Health.smoothGradient = {1, 0, 0, 1, .8, .1, 1, .8, .1}
-	Health.frequentUpdates = .1			-- 更新速率
+	--Health.frequentUpdates = .1			-- 更新速率
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)
 	-- 註冊到ouf
@@ -302,6 +302,16 @@ local function CreateVPlayerStyle(self, unit)
 		self.Debuffs:SetSize(C.buSize + 4, C.PWidth)
 		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 	end
+	
+	-- 增益
+	--[[T.CreateBuffs(self)		
+	self.Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, C.PHeight/2+C.PPOffset)
+	self.Buffs.initialAnchor = "UP"
+	self.Buffs["growth-x"] = "RIGHT"
+	self.Buffs.num = 6
+	self.Buffs.size = C.buSize + 4
+	self.Buffs.spacing = 5
+	self.Buffs:SetSize(C.buSize + 4, C.PWidth)]]--
 
 	-- 施法條
 	if C.StandaloneCastbar then
@@ -436,7 +446,7 @@ local function CreateFocusStyle(self, unit)
 	self.mystyle = "H"
 	
 	-- 框體
-	CreateUnitShared(self, unit)		-- 繼承通用樣式	
+	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
 	
 	-- 文本
@@ -610,7 +620,7 @@ local function CreateToTStyle(self, unit)
 	self.mystyle = "H"
 	
 	-- 框體
-	CreateUnitShared(self, unit)		-- 繼承通用樣式	
+	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
 
 	-- 文本
@@ -650,7 +660,7 @@ local function CreateVToTStyle(self, unit)
 	self.mystyle = "VR"
 	
 	-- 框體
-	CreateUnitShared(self, unit)		-- 繼承通用樣式	
+	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.TOTWidth)	-- 主框體尺寸
 
 	-- 文本
@@ -688,7 +698,7 @@ local function CreateFoTStyle(self, unit)
 	self.mystyle = "H"
 	
 	-- 框體
-	CreateUnitShared(self, unit)		-- 繼承通用樣式	
+	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
 
 	-- 文本
@@ -799,7 +809,7 @@ local function CreateBossStyle(self, unit)
 	self.mystyle = "H"
 	
 	-- 框體
-	CreateUnitShared(self, unit)		-- 繼承通用樣式	
+	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
 
 	-- 文本
@@ -855,7 +865,7 @@ local function CreateArenaStyle(self, unit)
 	self.mystyle = "H"
 	
 	-- 框體
-	CreateUnitShared(self, unit)		-- 繼承通用樣式	
+	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
 
 	-- 文本
@@ -883,7 +893,7 @@ local function CreateArenaStyle(self, unit)
 	self.Castbar.Time:SetJustifyH("RIGHT")
 	
 	-- 減益
-	T.CreateDebuffs(self)		
+	T.CreateDebuffs(self)
 	self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2+C.PPOffset)
 	self.Debuffs.initialAnchor = "LEFT"
 	self.Debuffs["growth-x"] = "RIGHT"

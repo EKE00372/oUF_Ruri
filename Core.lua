@@ -28,7 +28,11 @@ T.OverrideHealthbar = function(self, event, unit)
 		health:SetValue(max)
 	else
 		-- 血量反轉為顯示損失量
-		health:SetValue(max - cur)
+		if max == cur then
+			health:SetValue(0)
+		else
+			health:SetValue(max - cur)
+		end
 	end
 end
 
@@ -40,7 +44,12 @@ T.PostUpdateHealth = function(self, unit, min, max)
 	if disconnected then
 		self:SetValue(max)
 	else
-		self:SetValue(max - min)
+	-- 血量反轉為顯示損失量
+		if max == min then
+			self:SetValue(0)
+		else
+			self:SetValue(max - min)
+		end
 	end
 end
 
@@ -79,7 +88,7 @@ T.PostSCastStart = function(self, unit)
 	
 	if frame.mystyle == "NP" then
 		-- 數字模式名條上移
-		frame.Name:SetPoint("BOTTOM", 0, 24)
+		frame.Name:SetPoint("BOTTOM", 0, 6+G.NPNameFS)
 	else
 		self.Spark:SetAlpha(.5)
 	end
@@ -220,7 +229,7 @@ T.CreateAuraTimer = function(self, elapsed)
 	if self.elapsed >= 0.1 then
 		local timeLeft = self.timeLeft - GetTime()
 		if timeLeft > 0 then
-			self.time:SetText(F.FormatTime(timeLeft))		
+			self.time:SetText(F.FormatTime(timeLeft))
 		else
 			self:SetScript("OnUpdate", nil)
 			self.time:SetText(nil)
@@ -434,7 +443,7 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 	elseif style == "PP" then					-- 個人資源條顯示30秒(含)以下的光環
 		return duration <= 30 and duration ~= 0
 	elseif style == "R" then
-		if C.RaidBlackList[spellID] then			-- 黑名單
+		if C.RaidBlackList[spellID] then		-- 黑名單
 			return false
 		else
 			return isBossDebuff or ((caster == "player" or caster == "pet" or caster == "vehicle") and button.isDebuff)

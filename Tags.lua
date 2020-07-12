@@ -44,7 +44,6 @@ oUF.colors.reaction[6] = {.26, 1, .22}
 oUF.colors.reaction[7] = {.26, 1, .22}
 oUF.colors.reaction[8] = {.26, 1, .22}
 
-
 --[[
 	["HUNTER"] = { r = 0.58, g = 0.86, b = 0.49 },
 	["WARLOCK"] = { r = 0.6, g = 0.47, b = 0.85 },
@@ -82,7 +81,7 @@ oUF.Tags.Methods["afkdnd"] = function(unit)
 	
 	if UnitIsAFK(unit) then
 		-- 暫離
-		return "|cffffffff<AFK>|r " 
+		return "|cffffffff<AFK>|r "
 	elseif UnitIsDND(unit) then
 		-- 忙錄
 		return "|cffffffff<DND>|r "
@@ -123,7 +122,7 @@ oUF.Tags.Methods["unit:hp"] = function(u)
 		return ""
 	end
 end
-oUF.Tags.Events["unit:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION"
+oUF.Tags.Events["unit:hp"] = "UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION"
 
 -- bar style nameplates
 oUF.Tags.Methods["bp:hp"] = function(u)

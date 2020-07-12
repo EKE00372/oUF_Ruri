@@ -16,11 +16,11 @@ local C, F, G, T = unpack(ns)
 local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 ------------
--- Golbal --
+-- Global --
 ------------
 
 	C.UnitFrames = true		-- enable Unitframes, ture = enable, false = disable / 啟用頭像，enable = 啟用，disable = 停用
-	C.RaidFrames = false	-- enable Raidframes / 啟用團隊框架
+	--C.RaidFrames = false	-- enable Raidframes / 啟用團隊框架
 	C.Nameplates = true		-- enable Nameplates/ 啟用名條
 
 -------------
@@ -51,6 +51,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	G.NFont = MediaFolder.."myriadHW.ttf"			-- number font for auras / 光環數字字型
 	G.NumberFS = 14
 	
+	G.NPNameFS = 12									-- nameplate font size / 名條的字型
 	G.NPFont = MediaFolder.."Infinity Gears.ttf"	-- number style nameplate health text font / 數字模式名條的血量字型
 	G.NPFS = 18										-- number style nameplate health text font size / 數字模式名條的血量字型大小
 
@@ -89,7 +90,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 ------------------------
 -- RaidFrame settings --
 ------------------------
-	
+	--[[
 	C.RWidth = 90				-- raid frame width
 	C.RHeight = 48				-- raid frame height
 	C.RPHeight = 2				-- raid frame power height
@@ -97,15 +98,19 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.sAuSize = 18				-- corner small aura size
 	C.bAuSize = 18				-- middle big aura size
 	C.RangeAlpha = 0.5			-- alpha for out of range units
-
+	]]--
 ------------------------
 -- Nameplate settings --
 ------------------------
 
 	C.NumberStyle = true	-- number style nameplates / 數字模式的名條
 	
+	-- Number style nameplate config
+	C.NPCastIcon = 32		-- number style nameplate cast icon size /  數字模式的施法圖示大小
+	
+	-- Bar style nameplate config
 	C.NPWidth = 110			-- nameplate frame width / 名條寬度
-	C.NPHeight = 8			-- nameplate frame height0 / 名條高度
+	C.NPHeight = 8			-- nameplate frame height / 名條高度
 	
 	C.ShowAuras = true		-- show auras / 顯示光環
 	C.Auranum = 5			-- how many aura show / 顯示光環數量
@@ -121,7 +126,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	C.PlayerPlate = false	-- enable player plate / 玩家名條(個人資源)
 	C.NumberstylePP = false	-- number style player plate / 數字模式的玩家名條
-	C.PlayerBuffs = true	-- show player buff on player plate / 顯示自身增益
+	C.PlayerBuffs = false	-- show player buff on player plate / 顯示自身增益
 
 	--[[ nameplates cvar ]] --
 	
@@ -134,7 +139,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -- Position settings --
 -----------------------
 
-	C.Position = {	-- 各元素座標
+	C.Position = {	-- 各元素座標 / Elements positions
 	
 		-- [[ 直式 / vertical ]] --
 		

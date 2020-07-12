@@ -149,9 +149,7 @@ F.CreateBD = function(parent, anchor, size, r, g, b, a)
 		edgeFile = G.media.blank,	-- 邊框
 		edgeSize = size or 1,		-- 邊框大小
 		})
-	--bd:SetTexCoord(0, 1, 0, 1)
 	bd:SetBackdropColor(r or 0, g or 0, b or 0, a or 0)
-	--bd:SetBackdropBorderColor(0, 0, 0, 1)
 	bd:SetBackdropBorderColor(r or 0, g or 0, b or 0, a or 0)
 	
 	return bd
