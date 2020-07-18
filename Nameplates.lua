@@ -326,7 +326,7 @@ end
 
 -- 目標高亮
 local function TargetIndicator(self)
-	local Mark = CreateFrame("Frame", nil, self)	
+	local Mark = CreateFrame("Frame", nil, self, "BackdropTemplate")	
 	
 	if self.mystyle == "NP" then
 		Mark:SetPoint("TOPLEFT", self.Name, -10, 8)
@@ -378,7 +378,7 @@ end
 
 -- 指向高亮
 local function MouseoverIndicator(self)
-	local hl = CreateFrame("Frame", nil, self)
+	local hl = CreateFrame("Frame", nil, self, "BackdropTemplate")
 
 	if self.mystyle == "NP" then
 		hl:SetPoint("TOPLEFT", self.Name, -10, 8)

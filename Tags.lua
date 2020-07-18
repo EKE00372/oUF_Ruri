@@ -122,7 +122,8 @@ oUF.Tags.Methods["unit:hp"] = function(u)
 		return ""
 	end
 end
-oUF.Tags.Events["unit:hp"] = "UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION"
+--oUF.Tags.Events["unit:hp"] = "UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION"
+oUF.Tags.Events["unit:hp"] = "UNIT_MAXHEALTH UNIT_HEALTH UNIT_CONNECTION"
 
 -- bar style nameplates
 oUF.Tags.Methods["bp:hp"] = function(u)
@@ -141,7 +142,8 @@ oUF.Tags.Methods["bp:hp"] = function(u)
 		return per
 	end
 end
-oUF.Tags.Events["bp:hp"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+--oUF.Tags.Events["bp:hp"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["bp:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 -- number style nameplates
 oUF.Tags.Methods["np:hp"] = function(u)
@@ -171,7 +173,8 @@ oUF.Tags.Methods["np:hp"] = function(u)
 		return ""
 	end
 end
-oUF.Tags.Events["np:hp"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+--oUF.Tags.Events["np:hp"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
+oUF.Tags.Events["np:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 -- [[ 能量 ]] --
 
