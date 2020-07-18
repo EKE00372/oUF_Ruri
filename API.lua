@@ -137,7 +137,7 @@ end
 
 -- 格式：父級框體，錨點，大小，紅，綠，藍，透明度
 F.CreateBD = function(parent, anchor, size, r, g, b, a)
-	local bd = CreateFrame("Frame", nil, parent)
+	local bd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	local framelvl = parent:GetFrameLevel()
 	
 	bd:ClearAllPoints()
@@ -159,7 +159,7 @@ end
 
 -- 格式：父級框體，錨點，大小
 F.CreateSD = function(parent, anchor, size)
-	local sd = CreateFrame("Frame", nil, parent)
+	local sd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	local framelvl = parent:GetFrameLevel()
 	
 	sd:ClearAllPoints()
