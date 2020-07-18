@@ -423,7 +423,7 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 	local npc = not UnitIsPlayer(unit)
 	
 	if name and spellID == 209859 then			-- 激勵顯示為層數
-		self.bolster = self.bolster + 1
+		self.bolster = (self.bolster or 0) + 1
 		if not self.bolsterIndex then
 			self.bolsterIndex = button
 			return true
