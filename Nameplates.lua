@@ -264,6 +264,7 @@ end
 
 local function CreeateAuras(self, unit)
 	local style = self.mystyle
+	local reaction = UnitReaction(unit, "player")
 	
 	local Auras = CreateFrame("Frame", nil, self)
 	Auras:SetWidth(self:GetWidth())
@@ -272,8 +273,8 @@ local function CreeateAuras(self, unit)
 		Auras:SetHeight(C.buSize + 6)
 		Auras.size = C.AuraSize + 6
 	else
-		Auras:SetHeight(C.buSize)
-		Auras.size = C.AuraSize
+		Auras:SetHeight((reaction and reaction >= 5 and C.buSize*1.2) or C.buSize)
+		Auras.size = (reaction and reaction >= 5 and C.AuraSize*1.2) or C.AuraSize
 	end
 	
 	Auras.spacing = 5
@@ -527,6 +528,11 @@ local function CreateBarPlates(self, unit)
 	self.PowerText:SetPoint("LEFT", self.Health, "RIGHT", 4, 1)
 	self:Tag(self.PowerText, "[np:pp]")
 
+	-- 威脅值
+	local threat = CreateFrame("Frame", nil, self)
+	self.ThreatIndicator = threat
+	self.ThreatIndicator.Override = UpdateThreatColor
+	
 	-- 團隊標記
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
 	RaidIcon:SetSize(28, 28)
