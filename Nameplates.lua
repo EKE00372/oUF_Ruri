@@ -147,6 +147,31 @@ local function UpdateThreatColor(self, _, unit)
 	end
 end
 
+-- [[ 條形名字調整 ]] --
+
+local function UpdateNameOnly(self, event, unit)
+	if self.mystyle ~= "BP" then return end
+	if unit ~= self.unit then return end
+	
+	local reaction = UnitReaction(unit, "player")
+
+	-- update name only mode or not
+	if (reaction and reaction >=5) then
+		self.TargetIndicator:SetAlpha(0)
+		self.hl:SetAlpha(0)
+		self.Name:Hide()
+		self.NameOnlyeName:Show()
+		self.Auras:SetPoint("BOTTOM", self.NameOnlyeName, "TOP", 0, 0)
+	else
+		UpdateColor(self.Health, unit)
+		self.TargetIndicator:SetAlpha(1)
+		self.hl:SetAlpha(1)
+		self.Name:Show()
+		self.NameOnlyeName:Hide()
+		self.Auras:SetPoint("BOTTOM", self.Name, "TOP", 0, 0)
+	end
+end
+
 --===================================================--
 -----------------    [[ Castbar ]]    -----------------
 --===================================================--
@@ -392,7 +417,7 @@ local function MouseoverIndicator(self)
 	F.CreateBackdrop(hl, 10)
 	hl:SetFrameLevel(self:GetFrameLevel() - 2)
 	hl:SetBackdropColor(1, 1, 0, .8)
-	hl:SetBackdropBorderColor(1, 1, 0, .8)	
+	hl:SetBackdropBorderColor(1, 1, 0, .8)
 	hl:EnableMouse(false)
 	hl:Hide()
 	
@@ -437,8 +462,6 @@ local function CreateNumberPlates(self, unit)
 	-- 框體
 	self:SetSize(C.NPWidth + 10, G.NPFS * 2)
 	self:SetPoint("CENTER", 0, 0)
-	--self:RegisterForClicks("AnyUp", "AnyDown")
-	--self:EnableMouse(false)
 
 	-- 名字
 	self.Name = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
@@ -519,6 +542,13 @@ local function CreateBarPlates(self, unit)
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", self.Health, "TOP",  0, 4)
 	self:Tag(self.Name, "[name]")
+	self.Name:Hide()
+	
+	self.NameOnlyeName = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
+	self.NameOnlyeName:SetPoint("CENTER", self, "BOTTOM",  0, 4)
+	self:Tag(self.NameOnlyeName, "[namecolor][name]")
+	self.NameOnlyeName:Hide()
+	
 	-- 血量
 	self.Health.value = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, -4)
@@ -562,11 +592,33 @@ end
 
 local function PostUpdatePlates(self, event, unit)
 	if not self then return end	
+	local reaction = UnitReaction(unit, "player")
+	
 	-- 目標高亮
 	UpdateHighlight(self)
 	-- 使數字模式的施法條位置能正確隨每個名條的施法狀態重置
 	if C.NumberStyle then
 		T.PostCastStopUpdate(self, event, unit)
+	end
+	
+	if self.mystyle == "BP" then
+		-- 條形友方停用血條和施法條模組
+		if (reaction and reaction >=5) then
+			self:DisableElement("Health")
+			self:DisableElement("Castbar")
+		else
+			self:EnableElement("Health")
+			self:EnableElement("Castbar")
+		end
+		-- 條形友方更新
+		UpdateNameOnly(self, event, unit)
+	else
+		-- 數字友方停用施法條模組
+		if (reaction and reaction >=5) then
+			self:DisableElement("Castbar")
+		else
+			self:EnableElement("Castbar")
+		end
 	end
 end
 
