@@ -148,6 +148,8 @@ oUF.Tags.Events["bp:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 -- number style nameplates
 oUF.Tags.Methods["np:hp"] = function(u)
 	local per = oUF.Tags.Methods["perhp"](u)
+	--local player = UnitIsPlayer(u)
+	local reaction = UnitReaction(u, "player")
 	local color
 	
 	if per < 25 then
@@ -158,19 +160,23 @@ oUF.Tags.Methods["np:hp"] = function(u)
 		color = F.Hex(1, 1, 1)
 	end
 	
-	if UnitIsDead(u) then
-		-- 死亡
+	if reaction and reaction >= 5 then
 		return ""
-	elseif not UnitIsConnected(u) then
-		-- 離線
-		return ""
-	elseif per == 100 then
-		-- 滿血不顯示血量
-		return ""
-	elseif per ~= 100 then
-		return color..per.."|r"
 	else
-		return ""
+		if UnitIsDead(u) then
+			-- 死亡
+			return ""
+		elseif not UnitIsConnected(u) then
+			-- 離線
+			return ""
+		elseif per == 100 then
+			-- 滿血不顯示血量
+			return ""
+		elseif per ~= 100 then
+			return color..per.."|r"
+		else
+			return ""
+		end
 	end
 end
 --oUF.Tags.Events["np:hp"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"

@@ -87,7 +87,7 @@ T.PostSCastStart = function(self, unit)
 	local frame = self:GetParent()
 	
 	if frame.mystyle == "NP" then
-		-- 數字模式名條上移
+		-- 數字模式名條名字上移
 		frame.Name:SetPoint("BOTTOM", 0, 6+G.NPNameFS)
 	else
 		self.Spark:SetAlpha(.5)
@@ -140,6 +140,7 @@ end
 T.PostCastStop = function(self, unit)
 	local frame = self:GetParent()
 	if frame.mystyle == "NP" then
+		-- 使數字模式名條的名字復位
 		frame.Name:SetPoint("BOTTOM", 0, 6)
 	else
 		-- 施法結束時顯示名字
@@ -335,9 +336,9 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	
 	if (id == 268 and not C.TankResource) or 
 	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK") or 
-	  (F.Multicheck(id, 581, 66, 73) and C.TankResource) or
-	  F.Multicheck(id, 102, 103, 104, 62, 269, 70, 262, 263) then
-		-- 雙資源專精：死騎、盜賊、術士；復仇、防騎、防戰；鳥貓熊、秘法、御風、懲戒、增元
+	  (F.Multicheck(id, 581, 73) and C.TankResource) or
+	  F.Multicheck(id, 102, 103, 104, 62, 269, 66, 70, 262, 263) then
+		-- 雙資源專精：死騎、盜賊、術士；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、增元
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
 		else
@@ -431,14 +432,14 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 	elseif style == "NP" or style == "BP" then
 		if UnitIsUnit("player", unit) then		-- 當該單位是自己(自身名條，只是預防有人把個人資源打開搞事)
 			return false
-		elseif self.showStealableBuffs and isStealable and npc then	-- 可驅散
+		elseif self.showStealableBuffs and isStealable and npc then	-- 非玩家，可驅散
 			return true
 		elseif C.BlackList[spellID] then		-- 黑名單
 			return false
 		elseif C.WhiteList[spellID] then		-- 白名單(主要補足暴雪白名單沒有的法術)
 			return true
 		else									-- 暴雪內建的控場白名單和玩家/寵物/載具的法術
-			return nameplateShowAll or (caster == "player" or caster == "pet" or caster == "vehicle")
+			return nameplateShowAll or F.Multicheck(caster, "player", "pet", "vehicle")
 		end
 	elseif style == "PP" then					-- 個人資源條顯示30秒(含)以下的光環
 		return duration <= 30 and duration ~= 0
@@ -446,7 +447,7 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 		if C.RaidBlackList[spellID] then		-- 黑名單
 			return false
 		else
-			return isBossDebuff or ((caster == "player" or caster == "pet" or caster == "vehicle") and button.isDebuff)
+			return isBossDebuff or (F.Multicheck(caster, "player", "pet", "vehicle") and button.isDebuff)
 		end
 	else
 		return true
