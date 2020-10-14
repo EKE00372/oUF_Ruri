@@ -69,20 +69,6 @@ end
 --===================================================--
 
 -- [[ 開始施法 ]] --
---[[
-T.VSafeZone = function(self)
-	local safeZone = self.SafeZone
-	local height = self:GetHeight()
-	local _, _, _, ms = GetNetStats()
-
-	local safeZoneRatio = (ms / 1e3) / self.max
-	if(safeZoneRatio > 1) then
-		safeZoneRatio = 1
-	end
-
-	safeZone:SetHeight(height * safeZoneRatio)
-end]]--
-
 T.PostSCastStart = function(self, unit)
 	local frame = self:GetParent()
 	
