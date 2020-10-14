@@ -147,57 +147,6 @@ local function UpdateThreatColor(self, _, unit)
 	end
 end
 
--- [[ 名字模式調整 ]] --
-
-local DisabledElements = {"Health", "Castbar"}
-local function UpdateNameOnly(self)
-	local name = self.Name
-	local mark = self.TargetIndicator
-	local hl = self.hl
-	local style = self.mystyle
-	
-	if self.isNameOnly then
-		if style == "BP" then
-			for _, element in pairs(DisabledElements) do
-				if self:IsElementEnabled(element) then
-					self:DisableElement(element)
-				end
-			end
-			self:Tag(name, "[namecolor][name]")
-			name:ClearAllPoints()
-			name:SetPoint("CENTER", self, "BOTTOM", 0, 4)
-			name:UpdateTag()
-		else
-			if self:IsElementEnabled("Castbar") then
-				self:DisableElement("Castbar")
-			end
-		end
-		
-		mark:SetAlpha(0)
-		hl:SetAlpha(0)
-	else
-		if style == "BP" then
-			for _, element in pairs(DisabledElements) do
-				if not self:IsElementEnabled(element) then
-					self:EnableElement(element)
-				end
-			end
-			
-			self:Tag(name, "[name]")
-			name:ClearAllPoints()
-			name:SetPoint("BOTTOM", self.Health, "TOP",  0, 4)
-			name:UpdateTag()
-		else
-			if not self:IsElementEnabled("Castbar") then
-				self:EnableElement("Castbar")
-			end
-		end
-		
-		mark:SetAlpha(1)
-		hl:SetAlpha(1)
-	end
-end
-
 --===================================================--
 -----------------    [[ Castbar ]]    -----------------
 --===================================================--
@@ -226,15 +175,9 @@ local function CreateIconCastbar(self, unit)
 	-- 註冊到ouf
 	self.Castbar = Castbar
 	self.Castbar.PostCastStart = T.PostSCastStart			-- 開始施法
-	self.Castbar.PostChannelStart = T.PostSCastStart		-- 開始引導施法
 	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
-	self.Castbar.PostChannelStop = T.PostCastStop			-- 引導施法結束
-	self.Castbar.PostCastFailed = T.PostSCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterrupted = T.PostSCastFailed	-- 引導施法失敗
-	
-	-- 打斷狀態刷新
-	self.Castbar.PostCastInterruptible = T.PostUpdateSCast
-	self.Castbar.PostCastNotInterruptible = T.PostUpdateSCast
+	self.Castbar.PostCastFail = T.PostSCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	-- 打斷狀態刷新
 end
 
 -- [[ 條形施法條 ]]--
@@ -275,13 +218,8 @@ local function CreateStandaloneCastbar(self, unit)
 	-- 註冊到ouf
 	self.Castbar = Castbar
 	self.Castbar.PostCastStart = T.PostSCastStart
-	self.Castbar.PostChannelStart = T.PostSCastStart		-- 開始引導施法
-	self.Castbar.PostCastFailed = T.PostSCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterrupted = T.PostSCastFailed	-- 引導施法失敗
-	
-	-- 打斷狀態刷新
-	self.Castbar.PostCastInterruptible = T.PostUpdateSCast
-	self.Castbar.PostCastNotInterruptible = T.PostUpdateSCast
+	self.Castbar.PostCastFail = T.PostSCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	-- 打斷狀態刷新
 end
 
 --=================================================--
@@ -485,7 +423,7 @@ local function CreateNumberPlates(self, unit)
 	end
 	
 	-- 框體
-	self:SetSize(C.NPWidth, G.NPFS * 2)
+	self:SetSize(C.NPWidth + 10, G.NPFS * 2)
 	self:SetPoint("CENTER", 0, 0)
 
 	-- 名字
@@ -564,10 +502,9 @@ local function CreateBarPlates(self, unit)
 	self.Health.UpdateColor = UpdateColor
 	
 	-- 名字
-	self.Name = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
+	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", self.Health, "TOP",  0, 4)
 	self:Tag(self.Name, "[name]")
-	
 	-- 血量
 	self.Health.value = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, -4)
@@ -577,14 +514,9 @@ local function CreateBarPlates(self, unit)
 	self.PowerText:SetPoint("LEFT", self.Health, "RIGHT", 4, 1)
 	self:Tag(self.PowerText, "[np:pp]")
 
-	-- 威脅值
-	local threat = CreateFrame("Frame", nil, self)
-	self.ThreatIndicator = threat
-	self.ThreatIndicator.Override = UpdateThreatColor
-	
 	-- 團隊標記
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
-	RaidIcon:SetSize(24, 24)
+	RaidIcon:SetSize(28, 28)
 	RaidIcon:SetTexture(G.media.raidicon)
 	RaidIcon:SetPoint("RIGHT", self.Name, "LEFT", 0, 0)
 	self.RaidTargetIndicator = RaidIcon
@@ -611,26 +543,11 @@ end
 
 local function PostUpdatePlates(self, event, unit)
 	if not self then return end	
-	local reaction = UnitReaction(unit, "player")
-	
 	-- 目標高亮
 	UpdateHighlight(self)
 	-- 使數字模式的施法條位置能正確隨每個名條的施法狀態重置
 	if C.NumberStyle then
 		T.PostCastStopUpdate(self, event, unit)
-	end
-	
-	if event == "NAME_PLATE_UNIT_ADDED" then
-		self.unitName = UnitName(unit)
-		self.isPlayer = UnitIsPlayer(unit)
-		self.reaction = UnitReaction(unit, "player")
-		self.isFriendly = self.reaction and self.reaction >= 5
-		self.isNameOnly = self.isFriendly or false
-
-		if self.previousType == nil or self.previousType ~= self.isNameOnly then
-			UpdateNameOnly(self)
-			self.previousType = self.isNameOnly
-		end
 	end
 end
 

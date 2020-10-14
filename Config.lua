@@ -190,6 +190,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		VFocusCastbar = {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset * 3}
 	}
 
+
 -------------
 -- Credits --
 -------------

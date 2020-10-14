@@ -48,19 +48,14 @@ T.CreateCastbar = function(self, unit)
 	-- 註冊到ouf
 	self.Castbar = Castbar
 	self.Castbar.PostCastStart = T.PostCastStart			-- 開始施法
-	self.Castbar.PostChannelStart = T.PostCastStart			-- 開始引導施法
 	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
-	self.Castbar.PostChannelStop = T.PostCastStop			-- 引導施法結束
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
 	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
-	self.Castbar.PostCastFailed = T.PostCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 引導施法失敗
+	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateCast	-- 打斷狀態刷新
 	-- 當前目標正在施法時，切換目標會重新獲取名字，防止丟失
 	self:RegisterEvent("UNIT_NAME_UPDATE", T.PostCastStopUpdate)
 	table.insert(self.__elements, T.PostCastStopUpdate)
-	-- 打斷狀態刷新
-	self.Castbar.PostCastInterruptible = T.PostUpdateCast
-	self.Castbar.PostCastNotInterruptible = T.PostUpdateCast
 end
 
 -- [[ 獨立施法條 ]] --
@@ -129,13 +124,9 @@ T.CreateStandaloneCastbar = function(self, unit)
 	-- 註冊到ouf
 	self.Castbar = Castbar	
 	self.Castbar.PostCastStart = T.PostSCastStart			-- 開始施法
-	self.Castbar.PostChannelStart = T.PostSCastStart		-- 開始引導施法	
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間	
-	self.Castbar.PostCastFailed = T.PostSCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterrupted = T.PostSCastFailed	-- 引導施法失敗	
-	-- 打斷狀態刷新
-	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	
-	self.Castbar.PostCastNotInterruptible = T.PostUpdateSCast
+	self.Castbar.PostCastFail = T.PostSCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	-- 打斷狀態刷新
 end
 
 --===================================================--
@@ -352,7 +343,6 @@ T.CreateAddPower = function(self, unit)
 	AddPower.border = F.CreateSD(AddPower, AddPower, 3)
 	-- 註冊到ouf
 	self.AdditionalPower = AddPower
-	self.AdditionalPower.PostUpdate = T.PostUpdateAddPower
 	-- 文本
 	self.AdditionalPower.value = F.CreateText(self.AdditionalPower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 end
@@ -477,7 +467,7 @@ T.CreateTankResource = function(self, unit)
 			TankResource[i]:SetOrientation("VERTICAL")
 			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - 3*C.PPOffset)/4)
 			
-			if G.myClass == "MONK" then
+			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
 				if i == 1 then
 					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
 				else
@@ -493,7 +483,7 @@ T.CreateTankResource = function(self, unit)
 		else
 			TankResource[i]:SetSize((C.PWidth - 3*C.PPOffset)/4, C.PPHeight)
 			
-			if G.myClass == "MONK" then
+			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
 				if i == 1 then
 					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
 				else
