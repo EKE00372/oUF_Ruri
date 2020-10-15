@@ -11,11 +11,14 @@ oUF.colors.class["SHAMAN"] = {0, .6, 1}
 oUF.colors.class["DEATHKNIGHT"] = {1, .23, .23}
 oUF.colors.class["DEMONHUNTER"] = {.74, .35, .95}
 
--- [[ 光環 ]] --
+-- [[ 威脅 ]] --
+
 oUF.colors.threat[0] = {.1, .7, .9} -- 非當前仇恨，低威脅值
 oUF.colors.threat[1] = {.4, .1, .9} -- 非當前仇恨，但已OT即將獲得仇恨，或坦克正在獲得仇恨
 oUF.colors.threat[2] = {.9, .1, .9} -- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨
 oUF.colors.threat[3] = {.9, .1, .4} -- 當前仇恨，威脅值穩定
+
+-- [[ 光環 ]] --
 
 --oUF.colors.debuff.none = {.6, .6, .6}
 

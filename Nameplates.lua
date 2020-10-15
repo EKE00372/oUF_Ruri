@@ -588,6 +588,18 @@ local function CreatePlayerNumberPlate(self, unit)
 		self.Auras.numDebuffs = 0
 		self.Auras:SetPoint("BOTTOM", self.HealthText, "TOP", 0, 0)
 	end
+	
+	if C.Fade then
+		self.FadeMinAlpha = C.FadeOutAlpha
+		self.FadeInSmooth = 0.4
+		self.FadeOutSmooth = 1.5
+		self.FadeCasting = true
+		self.FadeCombat = true
+		self.FadeTarget = true
+		self.FadeHealth = true
+		self.FadePower = true
+		self.FadeHover = true
+	end
 end
 
 local function CreatePlayerBarPlate(self, unit)
@@ -598,11 +610,10 @@ local function CreatePlayerBarPlate(self, unit)
 	self:SetPoint("CENTER", 0, 0)
 
 	-- 創建一個條
-	local Health = F.CreateStatusbar(self, G.addon..unit, "ARTWORK", C.NPHeight+4, C.NPWidth+40, 0, 0, 0, 1)	-- 透明的
+	local Health = F.CreateStatusbar(self, G.addon..unit, "ARTWORK", C.NPHeight+4, C.NPWidth+40, 0, 0, 0, 1)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
-	--Health.frequentUpdates  = true		-- 更新速率
 	Health.colorClass   = true			-- 職業染色
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)
@@ -648,6 +659,18 @@ local function CreatePlayerBarPlate(self, unit)
 	T.CreateClassPower(self, unit)
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
+	
+	if C.Fade then
+		self.FadeMinAlpha = C.FadeOutAlpha
+		self.FadeInSmooth = 0.4
+		self.FadeOutSmooth = 1.5
+		self.FadeCasting = true
+		self.FadeCombat = true
+		self.FadeTarget = true
+		self.FadeHealth = true
+		self.FadePower = true
+		self.FadeHover = true
+	end
 end
 
 --===================================================--
