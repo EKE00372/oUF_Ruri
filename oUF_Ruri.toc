@@ -1,6 +1,6 @@
 ## Interface: 90001
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R2
+## Version: R2.1
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## RequiredDeps: oUF
