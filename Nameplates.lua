@@ -76,8 +76,9 @@ local function UpdateColor(self, unit)
 	local style = self:GetParent().mystyle
 	
 	local npcID = F.GetNPCID(UnitGUID(unit))
-	--local name = GetUnitName(unit, false)
-	local customUnit = C.CustomUnits and (C.CustomUnits[name] or C.CustomUnits[npcID])
+	--local npcName = GetUnitName(unit, false)
+	--local customUnit = C.CustomUnits and (C.CustomUnits[npcName] or C.CustomUnits[npcID])
+	local customUnit = C.CustomUnits and C.CustomUnits[npcID]
 
 	local tap = UnitIsTapDenied(unit) and not UnitPlayerControlled(unit)
 	local disconnected = not UnitIsConnected(unit)
@@ -87,6 +88,8 @@ local function UpdateColor(self, unit)
 	local ccolor = oUF.colors.class[class] or 1, 1, 1
 	
 	local status = UnitThreatSituation("player", unit) or false		-- just in case
+	local tcolor = oUF.colors.threat[status] or 1, 1, 1
+	
 	local reaction = UnitReaction(unit, "player")
 	local rcolor = oUF.colors.reaction[reaction] or 1, 1, 1
 
@@ -111,16 +114,8 @@ local function UpdateColor(self, unit)
 			end
 		elseif tap then					-- 無拾取權
 			r, g, b = .3, .3, .3
-		elseif status then
-			if status == 3 then			-- 當前仇恨，威脅值穩定
-				r, g, b = .9, .1, .4
-			elseif status == 2 then		-- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨
-				r, g, b = .9, .1, .9
-			elseif status == 1 then		-- 非當前仇恨，但已OT即將獲得仇恨，或坦克正在獲得仇恨
-				r, g, b = .4, .1, .9
-			elseif status == 0 then		-- 非當前仇恨，低威脅值
-				r, g, b = .1, .7, .9
-			end
+		elseif status then				-- 威脅值
+			r, g, b = unpack(tcolor)
 		else							-- 陣營染色
 			r, g, b = unpack(rcolor)
 		end
@@ -490,16 +485,21 @@ local function CreateBarPlates(self, unit)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
-	--Health.frequentUpdates  = true		-- 更新速率
+	-- Health.colorTapping	= true
+	-- Health.colorClass	= true
+	-- Health.colorReaction	= true
+	-- Health.colorThreat	= true
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)
 	-- 背景
 	Health.bg = Health:CreateTexture(nil, "BACKGROUND")
 	Health.bg:SetAllPoints()
 	Health.bg:SetTexture(G.media.blank)
+	Health.bg.multiplier = .3
+	
 	-- 註冊到ouf
 	self.Health = Health
-	self.Health.UpdateColor = UpdateColor
+	self.Health.UpdateColor = UpdateThreatColor
 	
 	-- 名字
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")

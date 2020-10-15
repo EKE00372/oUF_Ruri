@@ -12,6 +12,10 @@ oUF.colors.class["DEATHKNIGHT"] = {1, .23, .23}
 oUF.colors.class["DEMONHUNTER"] = {.74, .35, .95}
 
 -- [[ 光環 ]] --
+oUF.colors.threat[0] = {.1, .7, .9} -- 非當前仇恨，低威脅值
+oUF.colors.threat[1] = {.4, .1, .9} -- 非當前仇恨，但已OT即將獲得仇恨，或坦克正在獲得仇恨
+oUF.colors.threat[2] = {.9, .1, .9} -- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨
+oUF.colors.threat[3] = {.9, .1, .4} -- 當前仇恨，威脅值穩定
 
 --oUF.colors.debuff.none = {.6, .6, .6}
 
@@ -19,6 +23,7 @@ oUF.colors.class["DEMONHUNTER"] = {.74, .35, .95}
 
 -- 資源類型
 oUF.colors.power["MANA"] = {0, .8, 1}						-- 0 法力
+oUF.colors.power[0] = oUF.colors.power["MANA"]
 oUF.colors.power["RAGE"] = {.9, .1, .1}						-- 1 戰士熊德 怒氣
 oUF.colors.power["FOCUS"] = {.9, .5, .1}					-- 2 獵人 集中值
 oUF.colors.power["ENERGY"] = {.9, .9, .1}					-- 3 盜賊武僧貓德 能量
