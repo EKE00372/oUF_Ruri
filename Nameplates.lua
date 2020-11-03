@@ -7,7 +7,7 @@ if not C.Nameplates then return end
 -----------------    [[ CVAR ]]    -----------------
 --================================================--
 
-local function defaultCVar()
+local function OnEvent()
 	-- 貼齊邊緣
 	if C.Inset then
 		SetCVar("nameplateOtherTopInset", .05)			-- default: .08
@@ -21,17 +21,23 @@ local function defaultCVar()
 		SetCVar("nameplateLargeBottomInset", -1)
 	end
 	
-	SetCVar("nameplateShowAll", 1)						-- 總是顯示名條，1開
-	SetCVar("nameplateMotion", 1)						-- 名條排列，1=堆疊，0=重疊
-	SetCVar("nameplateShowSelf", 0)						-- 顯示個人資源
-	SetCVar("nameplateResourceOnTarget", 0)				-- 在目標名條上顯示職業資源
-	SetCVar("nameplateMaxDistance", C.MaxDistance)		-- 最大視距, default: 60
-	SetCVar("nameplateLargerScale", 1)					-- boss nameplate scale, default: 1.2
-	SetCVar("nameplateSelectedScale", C.SelectedScale)	-- 當前目標大小
-	SetCVar("nameplateMinAlpha", C.MinAlpha)			-- 非當前目標透明度, default: 0.8
-	SetCVar("nameplateOccludedAlphaMult", 0.2)			-- 障礙物後的名條透名度, default: 0.4
+	SetCVar("nameplateShowAll", 1)						-- always show / 總是顯示名條，1開
+	SetCVar("nameplateMotion", 1)						-- motion style / 名條排列，1=堆疊，0=重疊
+	SetCVar("nameplateMotionSpeed", .01)				-- motion speed / 名條位移速度，預設0.025
 	
-	-- fix fps drop (距離縮放與描邊功能可能引起掉幀)
+	SetCVar("nameplateShowSelf", 0)						-- force disable blizzard self nameplate / 顯示個人資源
+	SetCVar("nameplateResourceOnTarget", 0)				-- 在目標名條上顯示職業資源
+	
+	SetCVar("nameplateMaxDistance", C.MaxDistance)		-- max show distance / 最大視距, default: 60
+	SetCVar("nameplateSelectedScale", C.SelectedScale)	-- target scale / 當前目標大小
+	SetCVar("nameplateMinAlpha", C.MinAlpha)			-- non-target alpha / 非當前目標透明度, default: 0.8
+	SetCVar("nameplateOccludedAlphaMult", 0.2)			-- Occluded nameplate alpha / 障礙物後的名條透名度, default: 0.4
+	
+	SetCVar("nameplateLargerScale", 1)					-- boss nameplate scale, default: 1.2
+	SetCVar("nameplateLargeTopInset", .08) 				-- boss nameplate top inset
+	SetCVar("nameplateLargeBottomInset", .1)			-- boss nameplate bottom inset
+	
+	-- avoid fps drop (距離縮放與描邊功能可能引起掉幀)
 	SetCVar("namePlateMinScale", 1)						-- default is 0.8
 	SetCVar("namePlateMaxScale", 1)
 	
@@ -58,13 +64,10 @@ local function defaultCVar()
 	SetCVar("nameplateShowFriendlyTotems", 0)			-- 圖騰
 end 
 
-local function OnEvent(self, event, ...)
-	defaultCVar()
-end
+local defaultCVar = CreateFrame("FRAME", nil)
+	defaultCVar:RegisterEvent("PLAYER_ENTERING_WORLD")
+	defaultCVar:SetScript("OnEvent", OnEvent)
 
-local CVAR = CreateFrame("FRAME", nil)
-	CVAR:RegisterEvent("PLAYER_ENTERING_WORLD")
-	CVAR:SetScript("OnEvent", OnEvent)
 
 --=====================================================--
 -----------------    [[ NameColor ]]    -----------------
@@ -253,10 +256,10 @@ local function CreeateAuras(self, unit)
 	Auras:SetWidth(self:GetWidth())
 	
 	if style == "PP" then
-		Auras:SetHeight(C.buSize + 6)
+		Auras:SetHeight(C.AuraSize + 6)
 		Auras.size = C.AuraSize + 6
 	else
-		Auras:SetHeight(C.buSize)
+		Auras:SetHeight(C.AuraSize)
 		Auras.size = C.AuraSize
 	end
 	
@@ -428,8 +431,8 @@ local function CreateNumberPlates(self, unit)
 	self.Name.UpdateColor = UpdateColor	
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "CENTER")
-	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 0)
-	self.HealthText.frequentUpdates = .1
+	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 2)
+	--self.HealthText.frequentUpdates = .1
 	self:Tag(self.HealthText, "[np:hp]")
 	-- 能量
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS, G.FontFlag, "LEFT")
@@ -455,7 +458,7 @@ local function CreateNumberPlates(self, unit)
 	-- 光環
 	if C.ShowAuras then
 		CreeateAuras(self, unit)
-		self.Auras:SetPoint("BOTTOM", self.HealthText, "TOP", 0, -2)
+		self.Auras:SetPoint("BOTTOM", self.HealthText, "TOP", 0, 2)
 	end
 	-- 指向高亮
 	if C.HLMouseover then
@@ -477,7 +480,7 @@ local function CreateBarPlates(self, unit)
 	end
 	
 	-- 框體
-	self:SetSize(C.NPWidth, C.NPHeight*2 + C.buSize)
+	self:SetSize(C.NPWidth, C.NPHeight*5)
 	self:SetPoint("CENTER", 0, 0)
 
 	-- 創建一個條
@@ -518,7 +521,7 @@ local function CreateBarPlates(self, unit)
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
 	RaidIcon:SetSize(28, 28)
 	RaidIcon:SetTexture(G.media.raidicon)
-	RaidIcon:SetPoint("RIGHT", self.Name, "LEFT", 0, 0)
+	RaidIcon:SetPoint("RIGHT", self.Name, "LEFT", -2, 0)
 	self.RaidTargetIndicator = RaidIcon
 
 	-- 施法條
@@ -527,7 +530,7 @@ local function CreateBarPlates(self, unit)
 	-- 光環
 	if C.ShowAuras then
 		CreeateAuras(self, unit)
-		self.Auras:SetPoint("BOTTOM", self.Name, "TOP", 0, 0)
+		self.Auras:SetPoint("BOTTOM", self.Name, "TOP", 0, 4)
 	end
 	-- 指向高亮
 	if C.HLMouseover then
@@ -561,7 +564,7 @@ local function CreatePlayerNumberPlate(self, unit)
 	self.mystyle = "PP"
 	
 	-- 框體，因為這其實是創建了一個偽頭像，所以不像名條無視UI縮放，要做大點......吧
-	self:SetSize(C.NPWidth, G.NPFS*2 + C.buSize)
+	self:SetSize(C.NPWidth, G.NPFS*2 + C.AuraSize)
 	
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS*2, G.FontFlag, "CENTER")
@@ -606,11 +609,11 @@ local function CreatePlayerBarPlate(self, unit)
 	self.mystyle = "PP"
 	
 	-- 框體，因為這其實是創建了一個偽頭像，所以不像名條無視UI縮放，要做大點......吧
-	self:SetSize(C.NPWidth + 40, C.NPHeight*2 + C.buSize)
+	self:SetSize(C.PlayerNPWidth, C.NPHeight*5)
 	self:SetPoint("CENTER", 0, 0)
 
 	-- 創建一個條
-	local Health = F.CreateStatusbar(self, G.addon..unit, "ARTWORK", C.NPHeight+4, C.NPWidth+40, 0, 0, 0, 1)
+	local Health = F.CreateStatusbar(self, G.addon..unit, "ARTWORK", C.NPHeight+4, C.PlayerNPWidth, 0, 0, 0, 1)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
@@ -625,7 +628,7 @@ local function CreatePlayerBarPlate(self, unit)
 	-- 註冊到ouf
 	self.Health = Health
 	
-	local Power = F.CreateStatusbar(self, G.addon..unit, "ARTWORK", (C.NPHeight+4)/2, C.NPWidth+40, 0, 0, 0, 1)
+	local Power = F.CreateStatusbar(self, G.addon..unit, "ARTWORK", (C.NPHeight+4)/2, C.PlayerNPWidth, 0, 0, 0, 1)
 	Power:SetPoint("TOP", self.Health, "BOTTOM",  0, -1)
 	Power:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
@@ -652,7 +655,7 @@ local function CreatePlayerBarPlate(self, unit)
 	if C.PlayerBuffs then
 		CreeateAuras(self, unit)
 		self.Auras.numDebuffs = 0
-		self.Auras:SetPoint("BOTTOM", self.Health, "TOP", 0, 4)
+		self.Auras:SetPoint("BOTTOM", self.Health, "TOP", 0, 8)
 	end
 	
 	-- 副資源

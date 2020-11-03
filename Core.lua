@@ -80,12 +80,12 @@ T.PostSCastStart = function(self, unit)
 	end
 
 	if unit == "player" then
-		self:SetStatusBarColor(.6, .6, .6)
+		self:SetStatusBarColor(unpack(C.CastNormal))
 	else
 		if self.notInterruptible then
-			self:SetStatusBarColor(.9, 0, 1)			-- 紫色條
+			self:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
 		else
-			self:SetStatusBarColor(.6, .6, .6)
+			self:SetStatusBarColor(unpack(C.CastNormal))
 		end
 	end
 end
@@ -156,7 +156,7 @@ end
 T.PostSCastFailed = function(self, unit)
 	local frame = self:GetParent()
 	-- 一閃而過的施法失敗紅色條
-	self:SetStatusBarColor(.5, .2, .2)
+	self:SetStatusBarColor(unpack(C.CastFailed))
 	self:SetValue(self.max)
 	if frame.mystyle ~= "NP" then
 		self.Spark:SetAlpha(0)
@@ -180,9 +180,9 @@ end
 -- 例子：燃燒王座三王小怪
 T.PostUpdateSCast = function(self, unit)
 	if not UnitIsUnit(unit, "player") and self.notInterruptible then
-		self:SetStatusBarColor(.9, 0, 1)				-- 紫色條
+		self:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
 	else
-		self:SetStatusBarColor(.6, .6, .6)
+		self:SetStatusBarColor(unpack(C.CastNormal))
 	end
 end
 
@@ -428,13 +428,19 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 			return nameplateShowAll or F.Multicheck(caster, "player", "pet", "vehicle")
 		end
 	elseif style == "PP" then					-- 個人資源條顯示30秒(含)以下的光環
-		return duration <= 30 and duration ~= 0
-	elseif style == "R" then
+		if C.PlayerBlackList[spellID] then
+			return false
+		elseif C.PlayerWhiteList[spellID] then
+			return true
+		else
+			return F.Multicheck(caster, "player", "pet", "vehicle") and duration <= 30 and duration ~= 0
+		end
+	--[[elseif style == "R" then
 		if C.RaidBlackList[spellID] then		-- 黑名單
 			return false
 		else
 			return isBossDebuff or (F.Multicheck(caster, "player", "pet", "vehicle") and button.isDebuff)
-		end
+		end]]--
 	else
 		return true
 	end
@@ -524,7 +530,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 			if style == "VL" then
 				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
 			elseif style == "PP" then
-				self[i]:SetWidth((C.NPWidth - (max-1) * C.PPOffset) / max)
+				self[i]:SetWidth((C.PlayerNPWidth - (max-1) * C.PPOffset) / max)
 			else
 				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
 			end
