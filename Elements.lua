@@ -265,17 +265,17 @@ T.CreateClassPower = function(self, unit)
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
 		elseif self.mystyle == "PP" then
-			ClassPower[i]:SetSize((C.NPWidth- 5*C.PPOffset)/6, C.PPHeight)
+			ClassPower[i]:SetSize((C.PlayerNPWidth - 5*C.PPOffset)/6, C.PPHeight)
 			
-			if C.NumberStyle then
+			if C.NumberStylePP then
 				if i == 1 then
-					ClassPower[i]:SetPoint("TOP", self.HealthText, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -C.PPOffset)
+					ClassPower[i]:SetPoint("TOP", self.HealthText, "BOTTOM", -(C.PlayerNPWidth - 3*C.PPOffset)/2, -C.PPOffset)
 				else
 					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 				end
 			else
 				if i == 1 then
-					ClassPower[i]:SetPoint("TOP", self.Power, "BOTTOM", -(C.NPWidth - 3*C.PPOffset)/2, -4)
+					ClassPower[i]:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -4)
 				else
 					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 				end

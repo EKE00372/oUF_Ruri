@@ -59,6 +59,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -- UnitFrame settings --
 ------------------------
 
+	-- [[ UnitFrames ]] --
+	
 	C.vertPlayer = true			-- vertical player and pet frame / 直式玩家頭像
 	C.vertTarget = true			-- vertical target and tot frame / 直式目標頭像	
 	C.SimpleFocus = true		-- simply show fucos as simple number style / 簡易的數字模式焦點框體
@@ -66,6 +68,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.Boss = true				-- enable boss frame
 	C.Arena = true				-- enable arena frame
 	
+	-- size
 	C.PWidth = 220				-- player/target/focus frame width / 主框體(血量條)寬度(玩家/目標/焦點)
 	C.TOTWidth = 120			-- targettarget/focusetarget/pet frame width / 副框體寬度(寵物/目標的目標/焦點目標)
 	C.BWidth = 160				-- arena/boss frame width / 首領和競技場寬度
@@ -77,16 +80,25 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.buSize = 26				-- aura icon size for all frames except player debuff / 光環圖示大小
 	C.maxAura = 14				-- how many auras show / 顯示光環數量
 	
+	-- options
 	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
 	C.Totems = true				-- show player totems / 顯示玩家圖騰
 	C.TankResource = true		-- show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
+
+	C.Fade = true				-- hide UFs when out of combat or not casting / 戰鬥外閒置狀態淡出頭象
+	C.FadeOutAlpha = 0			-- fade out value / 淡出值
+	
+	--[[ castbar ]] --
 	
 	C.StandaloneCastbar = false	-- independent castbar for player and target / 獨立施法條
 	C.CastbarWidth = 200		-- castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
 	
-	C.Fade = true				-- hide UFs when out of combat or not casting / 戰鬥外閒置狀態淡出頭象
-	C.FadeOutAlpha = 0			-- fade out value / 淡出值
-	
+	-- castbar color
+	-- NOTICE: this effect on BOTH unitframe standalone castbar and nameplates castbar.
+	C.CastNormal = {.6, .6, .6}	-- 一般施法條顏色 / normal castbar color
+	C.CastFailed = {.5, .2, .2}	-- 施法失敗顏色 / cast failed color
+	C.CastShield = {.9, 0, 1}	-- 不可打斷施法條顏色 / non-InterruptibleColor castbar color
+
 ------------------------
 -- RaidFrame settings --
 ------------------------
@@ -112,13 +124,15 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.NPWidth = 110			-- nameplate frame width / 名條寬度
 	C.NPHeight = 8			-- nameplate frame height / 名條高度
 	
+	-- auras
 	C.ShowAuras = true		-- show auras / 顯示光環
 	C.Auranum = 5			-- how many aura show / 顯示光環數量
 	C.AuraSize = 20			-- aura icon size / 光環大小
 
+	-- colors
 	C.friendlyCR = true		-- friendly unit class color / 友方職業染色
 	C.enemyCR = true		-- enemy unit class color / 敵方職業染色
-
+	
 	C.HLTarget = true		-- highlight target and focus / 高亮目標和焦點
 	C.HLMouseover = true	-- highlight mouseover / 高亮滑鼠指向
 	
@@ -126,7 +140,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	C.PlayerPlate = false	-- enable player plate / 玩家名條(個人資源)
 	C.NumberstylePP = false	-- number style player plate / 數字模式的玩家名條
-	C.PlayerBuffs = false	-- show player buff on player plate / 顯示自身增益
+	C.PlayerBuffs = true	-- show player buff on player plate / 顯示自身增益
+	C.PlayerNPWidth = 180	-- player plate width
 
 	--[[ nameplates cvar ]] --
 	
