@@ -152,10 +152,10 @@ end
 -- [[ 方塊施法條 ]] --
 
 local function CreateIconCastbar(self, unit)
-	local Castbar = CreateFrame("StatusBar", nil, self)
-	Castbar:SetSize(C.NPCastIcon, C.NPCastIcon)
+	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", C.NPCastIcon, C.NPCastIcon, .6, .6, .6, 1)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 2)
-	Castbar.Border = F.CreateBD(Castbar, Castbar, 1, 0, 0, 0, 1)
+	Castbar.BD = F.CreateBD(Castbar, Castbar, 1, 0, 0, 0, 1)
+	
 	-- 圖示
 	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY", nil, 1)
 	Castbar.Icon:SetSize(C.NPCastIcon-6, C.NPCastIcon-6)
@@ -432,7 +432,7 @@ local function CreateNumberPlates(self, unit)
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "CENTER")
 	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 2)
-	--self.HealthText.frequentUpdates = .1
+	self.HealthText.frequentUpdates = .1
 	self:Tag(self.HealthText, "[np:hp]")
 	-- 能量
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS, G.FontFlag, "LEFT")
