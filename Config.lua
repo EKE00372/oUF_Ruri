@@ -235,7 +235,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	-- Infinity Plates by Dawn
 	-- https://www.wowinterface.com/downloads/info19881-InfinityPlates.html
 
-	-- SpecialTotemBar by HopeASD
+	-- SpecialTotemBar and oUF_TankResource by HopeASD
 	
 	-- [oUF] 1.5版 oUF系插件 通用说明 (FD) NGA玩家社区
 	-- https://nga.178.com/read.php?tid=4107042

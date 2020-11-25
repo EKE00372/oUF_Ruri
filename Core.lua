@@ -317,8 +317,8 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	if not unit and UnitIsUnit(unit, "player") then return end
 	
 	local style = self.__owner.mystyle
-	local spec = GetSpecialization() or 0
-	local id = GetSpecializationInfo(spec)
+	local index = GetSpecialization() or 0
+	local id = GetSpecializationInfo(index)
 	
 	if (id == 268 and not C.TankResource) or 
 	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK") or 
