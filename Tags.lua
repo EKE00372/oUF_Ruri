@@ -130,7 +130,6 @@ oUF.Tags.Methods["unit:hp"] = function(u)
 		return ""
 	end
 end
---oUF.Tags.Events["unit:hp"] = "UNIT_MAXHEALTH UNIT_HEALTH_FREQUENT UNIT_CONNECTION"
 oUF.Tags.Events["unit:hp"] = "UNIT_MAXHEALTH UNIT_HEALTH UNIT_CONNECTION"
 
 -- bar style nameplates
@@ -150,7 +149,6 @@ oUF.Tags.Methods["bp:hp"] = function(u)
 		return per
 	end
 end
---oUF.Tags.Events["bp:hp"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
 oUF.Tags.Events["bp:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 -- number style nameplates
@@ -187,7 +185,6 @@ oUF.Tags.Methods["np:hp"] = function(u)
 		end
 	end
 end
---oUF.Tags.Events["np:hp"] = "UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH UNIT_CONNECTION"
 oUF.Tags.Events["np:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 -- [[ 能量 ]] --
@@ -236,6 +233,21 @@ oUF.Tags.Methods["np:pp"] = function(unit)
 end
 oUF.Tags.Events["np:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
 
+-- [[ 吸收量 ]] --
+
+-- nameplates
+oUF.Tags.Methods["np:ab"] = function(u)
+	local max = UnitHealthMax(u)
+	local absorb = UnitGetTotalAbsorbs(u) or 0
+	
+	if absorb ~= 0 then
+		return F.Hex(1, .9, .4).."+"..math.floor((absorb / max * 100) + .5)
+	else
+		return ""
+	end
+end
+oUF.Tags.Events["np:ab"] = "UNIT_ABSORB_AMOUNT_CHANGED"
+
 -- [[ 名字顏色 ]] --
 
 oUF.Tags.Methods["namecolor"] = function(u, r)
@@ -253,6 +265,25 @@ oUF.Tags.Methods["namecolor"] = function(u, r)
 	end
 end
 oUF.Tags.Events["namecolor"] = "UNIT_FACTION"
+
+--[[
+oUF.Tags.Methods["npcast"] = function(unit)
+	local unitTarget = unit.."target"
+	
+	if UnitExists(unitTarget) and UnitIsPlayer(unitTarget) then
+		local nameString
+		--if UnitIsUnit(unitTarget, "player") then
+			nameString = format("|cffff0000%s|r", ">"..strupper(YOU).."<")
+		--else
+			local _, class = UnitClass(unitTarget)
+			nameString = F.Hex(oUF.colors.class[class])..">>"..UnitName(unitTarget)
+		--end
+		
+		return nameString
+	end
+end
+oUF.Tags.Events["npcast"] = "UNIT_SPELLCAST_START UNIT_SPELLCAST_CHANNEL_START"
+]]--
 --[[
 oUF.Tags.Methods["np:name"] = function(u)
 	local name = GetUnitName(u) or UNKNOWN
