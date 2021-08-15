@@ -158,10 +158,10 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 		-- [[ 直式 / vertical ]] --
 		
-		VPlayer	= {"CENTER", -320, 0},
+		VPlayer	= {"CENTER", -340, 0},
 		VPet	= {"TOPRIGHT", "oUF_Player", "TOPLEFT", -C.PHeight, 0},
 		
-		VTarget	= {"CENTER", 320, 0},
+		VTarget	= {"CENTER", 340, 0},
 		VTOT	= {"TOPLEFT", "oUF_Target", "TOPRIGHT", C.PHeight, 0},
 		
 		-- [[ 橫式 / horizontal ]] --

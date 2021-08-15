@@ -264,7 +264,7 @@ T.CreateClassPower = function(self, unit)
 			else
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
-		elseif self.mystyle == "PP" then
+		elseif self.mystyle == "NPP" or self.mystyle == "BPP" then
 			ClassPower[i]:SetSize((C.PlayerNPWidth - 5*C.PPOffset)/6, C.PPHeight)
 			
 			if C.NumberStylePP then
@@ -434,17 +434,27 @@ T.CreateHealthPrediction = function(self, unit)
 		AbsorbBar:SetSize(C.PHeight, C.PWidth)
 		AbsorbBar:SetOrientation("VERTICAL")
 		AbsorbBar:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
+	elseif self.mystyle == "BP" then
+		AbsorbBar:SetSize(C.NPWidth, C.NPHeight)
+		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
+	elseif self.mystyle == "BPP" then
+		AbsorbBar:SetSize(C.PlayerNPWidth, C.NPHeight+4)
+		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
 	else
 		AbsorbBar:SetSize(C.PWidth, C.PHeight)
-		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "LEFT")
+		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
 	end
 
 	-- 只做了吸收盾，治療吸收盾跟其他一堆都還沒做
 	self.HealthPrediction = {
         absorbBar = AbsorbBar,
+        -- healAbsorbBar
+		-- overAbsorb
+		-- overHealAbsorb
         frequentUpdates = true,
     }
 end
+
 
 -- [[ 坦克資源 ]] --
 

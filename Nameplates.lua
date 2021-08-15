@@ -167,6 +167,12 @@ local function CreateIconCastbar(self, unit)
 	Castbar.IconBD:SetPoint("BOTTOMRIGHT", Castbar.Icon, 1, -1)
 	Castbar.IconBD:SetTexture(G.media.blank)
 	Castbar.IconBD:SetVertexColor(0, 0, 0)
+	-- 法術名
+	--Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "CENTER")
+	--Castbar.Text:SetPoint("CENTER", Castbar, 0, 5)
+	--Castbar.Text:SetPoint("BOTTOMLEFT", Castbar, "TOPLEFT", -5, 5)
+	--Castbar.Text:SetPoint("BOTTOMRIGHT", Castbar, "TOPRIGHT", 5, -5)
+	--Castbar.Text:SetText("")
 	
 	-- 選項
 	Castbar.timeToHold = 0.05
@@ -255,7 +261,7 @@ local function CreeateAuras(self, unit)
 	local Auras = CreateFrame("Frame", nil, self)
 	Auras:SetWidth(self:GetWidth())
 	
-	if style == "PP" then
+	if style == "NPP" or style == "BPP" then
 		Auras:SetHeight(C.AuraSize + 6)
 		Auras.size = C.AuraSize + 6
 	else
@@ -428,7 +434,8 @@ local function CreateNumberPlates(self, unit)
 	self.Name = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", 0, 6)
 	self:Tag(self.Name, "[name]")
-	self.Name.UpdateColor = UpdateColor	
+	-- 使數字模式的狀態顏色在名字上更新
+	self.Name.UpdateColor = UpdateColor
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "CENTER")
 	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 2)
@@ -438,8 +445,12 @@ local function CreateNumberPlates(self, unit)
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("LEFT", self.Name, "RIGHT", 2, 0)
 	self:Tag(self.PowerText, "[np:pp]")
-
-	-- 威脅值
+	-- 吸收量，文字型tag
+	self.AbsorbText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS-2, G.FontFlag, "LEFT")
+	self.AbsorbText:SetPoint("BOTTOMLEFT", self.HealthText, "BOTTOMRIGHT", 0, 0)
+	self:Tag(self.AbsorbText, "[np:ab]")
+	
+	-- 威脅值，使狀態顏色在名字上更新
 	local threat = CreateFrame("Frame", nil, self)
 	self.ThreatIndicator = threat
 	self.ThreatIndicator.Override = UpdateThreatColor
@@ -454,6 +465,10 @@ local function CreateNumberPlates(self, unit)
 	-- 施法條
 	CreateIconCastbar(self, unit)
 	self.Castbar:SetPoint("TOP", self.Name, "BOTTOM", 0, -4)
+	-- 施法目標
+	--self.CastTargetText = F.CreateText(self.Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
+	--self.CastTargetText:SetPoint("TOPRIGHT", self.Name, "BOTTOMRIGHT", 0, -2)
+	--self:Tag(self.CastTargetText, "[npcast]")
 	
 	-- 光環
 	if C.ShowAuras then
@@ -473,7 +488,7 @@ end
 -- [[ 條形模式 ]] --
 
 local function CreateBarPlates(self, unit)
-	self.mystyle = "BP"
+	self.mystyle = "BP" -- Bar style Nameplates
 	
 	if not unit:match("nameplate") then
 		return
@@ -502,7 +517,13 @@ local function CreateBarPlates(self, unit)
 	
 	-- 註冊到ouf
 	self.Health = Health
-	self.Health.UpdateColor = UpdateThreatColor
+	-- 取代ouf本身對名條顏色的設定
+	self.Health.PostUpdateColor = UpdateColor
+	
+	-- 威脅值，取代ouf本身對名條顏色的設定
+	local threat = CreateFrame("Frame", nil, self)
+	self.ThreatIndicator = threat
+	self.ThreatIndicator.Override = UpdateThreatColor
 	
 	-- 名字
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
@@ -526,6 +547,8 @@ local function CreateBarPlates(self, unit)
 
 	-- 施法條
 	CreateStandaloneCastbar(self, unit)
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
 	
 	-- 光環
 	if C.ShowAuras then
@@ -558,10 +581,10 @@ end
 -----------------    [[ PlayerPlate ]]    -----------------
 --=======================================================--
 
--- [[ 模仿ndui關閉暴雪的個人資源條，自己創建一個玩家名條 ]] --
+-- [[ 關閉暴雪的個人資源條，自己創建一個玩家名條，因為暴雪的資源條有很多衍生問題比如污染 ]] --
 
 local function CreatePlayerNumberPlate(self, unit)
-	self.mystyle = "PP"
+	self.mystyle = "NPP" -- Number style Player Plate
 	
 	-- 框體，因為這其實是創建了一個偽頭像，所以不像名條無視UI縮放，要做大點......吧
 	self:SetSize(C.NPWidth, G.NPFS*2 + C.AuraSize)
@@ -574,6 +597,10 @@ local function CreatePlayerNumberPlate(self, unit)
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS+2, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("BOTTOMLEFT", self.HealthText, "BOTTOMRIGHT", 0, 0)
 	self:Tag(self.PowerText, "[unit:pp]")
+	-- 吸收量
+	self.AbsorbText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS+2, G.FontFlag, "LEFT")
+	self.AbsorbText:SetPoint("BOTTOMLEFT", self.PowerText, "TOPLEFT", 0, 0)
+	self:Tag(self.AbsorbText, "[np:ab]")
 	
 	-- 團隊標記
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
@@ -606,7 +633,7 @@ local function CreatePlayerNumberPlate(self, unit)
 end
 
 local function CreatePlayerBarPlate(self, unit)
-	self.mystyle = "PP"
+	self.mystyle = "BPP" -- Bar style Player Plate
 	
 	-- 框體，因為這其實是創建了一個偽頭像，所以不像名條無視UI縮放，要做大點......吧
 	self:SetSize(C.PlayerNPWidth, C.NPHeight*5)
@@ -617,7 +644,7 @@ local function CreatePlayerBarPlate(self, unit)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
-	Health.colorClass   = true			-- 職業染色
+	Health.colorClass = true			-- 職業染色
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)
 	-- 背景

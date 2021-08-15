@@ -12,7 +12,7 @@ local C, F, G, T = unpack(ns)
 --==================================================--
 
 -- [[ 重寫PreUpdate，為透明模式的反轉血量漸變色打造一個專用的顯示方式 ]] --
-	
+
 T.OverrideHealthbar = function(self, event, unit)
 	if (not unit or self.unit ~= unit) then return end
 	
@@ -71,7 +71,7 @@ end
 -- [[ 開始施法 ]] --
 T.PostSCastStart = function(self, unit)
 	local frame = self:GetParent()
-	
+
 	if frame.mystyle == "NP" then
 		-- 數字模式名條名字上移
 		frame.Name:SetPoint("BOTTOM", 0, 6+G.NPNameFS)
@@ -102,14 +102,6 @@ T.PostCastStart = function(self, unit)
 	if unit == "player" then
 		self:SetStatusBarColor(.6, .6, .6, .5)
 		self.Border:SetBackdropBorderColor(.6, .6, .6)
-		
-		--[[if frame.mystyle ~= "H" then
-			self.SafeZone:ClearAllPoints()
-			self.SafeZone:SetPoint("TOP")
-			self.SafeZone:SetPoint("LEFT")
-			self.SafeZone:SetPoint("RIGHT")
-			T.VSafeZone(self)
-		end]]--
 	else
 		if self.notInterruptible then
 			self:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
@@ -164,7 +156,7 @@ T.PostSCastFailed = function(self, unit)
 	self:Show()
 end
 
--- [[ 施法過程中更新打斷狀態 ]] --
+-- [[ 施法過程中更新(打斷)狀態 ]] --
 
 -- 例子：燃燒王座三王小怪
 T.PostUpdateCast = function(self, unit)
@@ -243,7 +235,7 @@ T.PostCreateIcon = function(self, button)
 	-- 層數
 	button.count = F.CreateText(button, "OVERLAY", G.NFont, G.NumberFS, G.FontFlag, "RIGHT")
 	button.count:ClearAllPoints()
-	button.count:SetPoint("BOTTOMRIGHT", button, 0, 0)
+	button.count:SetPoint("BOTTOMRIGHT", button, 0, -2)
 	button.count:SetTextColor(.9, .9, .1)
 	-- 陰影
 	button.shadow = F.CreateSD(button, button.overlay, 3)
@@ -261,7 +253,7 @@ T.PostUpdateIcon = function(self, unit, button, _, _, duration, expiration, debu
 	end
 	
 	-- 更新overlay
-	if style == "PP" then
+	if style == "NPP" or style == "BPP" then
 		-- 玩家名條固定灰色
 		button.overlay:SetVertexColor(.6, .6, .6)
 	elseif style == "NP" or style == "BP"  or style == "R" then
@@ -326,21 +318,21 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	  F.Multicheck(id, 102, 103, 104, 62, 269, 66, 70, 262, 263) then
 		-- 雙資源專精：死騎、盜賊、術士；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、增元
 		if style == "VL" then
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2) + 1, 1)
 		else
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight + C.PPOffset*2)
 		end
 	elseif (id == 268 and C.TankResource) then
 		-- 三資源專精：釀酒，就你特別
 		if style == "VL" then
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight*2 + C.PPOffset*3), 1)
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight*2 + C.PPOffset*3) + 1, 1)
 		else
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight*2 + C.PPOffset*3)
 		end
 	else
 		-- 單資源專精
 		if style == "VL" then
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPOffset, 1)
+			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPOffset + 1, 1)
 		else
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPOffset)
 		end
@@ -416,18 +408,18 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 			return true
 		end
 	elseif style == "NP" or style == "BP" then
-		if UnitIsUnit("player", unit) then		-- 當該單位是自己(自身名條，只是預防有人把個人資源打開搞事)
+		if UnitIsUnit("player", unit) then			-- 當該單位是自己(自身名條，只是預防有人把個人資源打開搞事)
 			return false
 		elseif self.showStealableBuffs and isStealable and npc then	-- 非玩家，可驅散
 			return true
-		elseif C.BlackList[spellID] then		-- 黑名單
+		elseif C.BlackList[spellID] then			-- 黑名單
 			return false
-		elseif C.WhiteList[spellID] then		-- 白名單(主要補足暴雪白名單沒有的法術)
+		elseif C.WhiteList[spellID] then			-- 白名單(主要補足暴雪白名單沒有的法術)
 			return true
-		else									-- 暴雪內建的控場白名單和玩家/寵物/載具的法術
+		else										-- 暴雪內建的控場白名單和玩家/寵物/載具的法術
 			return nameplateShowAll or F.Multicheck(caster, "player", "pet", "vehicle")
 		end
-	elseif style == "PP" then					-- 個人資源條顯示30秒(含)以下的光環
+	elseif style == "NPP" or style == "BPP" then	-- 個人資源條顯示30秒(含)以下的光環
 		if C.PlayerBlackList[spellID] then
 			return false
 		elseif C.PlayerWhiteList[spellID] then
@@ -504,7 +496,7 @@ T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
 		if MaxChanged then
 			if style == "VL" then
 				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
-			elseif style == "PP" then
+			elseif style == "NPP" or style == "BPP" then
 				self[i]:SetWidth((C.NPWidth - (max-1) * C.PPOffset) / max)
 			else
 				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
@@ -529,7 +521,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 		if MaxChanged then
 			if style == "VL" then
 				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
-			elseif style == "PP" then
+			elseif style == "NPP" or style == "BPP" then
 				self[i]:SetWidth((C.PlayerNPWidth - (max-1) * C.PPOffset) / max)
 			else
 				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)

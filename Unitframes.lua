@@ -174,6 +174,7 @@ local function CreateUnitShared(self, unit)
 	self.Status = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	self:Tag(self.Status, "[afkdnd][difficulty][smartlevel][quest] ")
 	
+	-- 似乎不該放在通用...
 	if C.Fade then
 		self.FadeMinAlpha = C.FadeOutAlpha
 		self.FadeInSmooth = 0.4
@@ -434,7 +435,6 @@ local function CreateVTargetStyle(self, unit)
 	self.Power.value:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, G.NameFS+2)
 	self.Power.value:SetJustifyH("LEFT")
 	
-	
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
 	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, 0, -4)
@@ -541,7 +541,7 @@ local function CreateSFocusStyle(self, unit)
 	
 	-- 施法條
 	T.CreateStandaloneCastbar(self, unit)
-	self.Castbar.Icon:SetPoint("RIGHT", self, "LEFT", 2, -2)
+	self.Castbar.Icon:SetPoint("RIGHT", self, "LEFT", -2, -2)
 	self.Castbar:SetPoint("RIGHT", self.Castbar.Icon, "LEFT", -1, 0)
 
 	-- 團隊標記
@@ -604,7 +604,7 @@ local function CreateVPetStyle(self, unit)
 	
 	-- 光環
 	T.CreateDebuffs(self)
-	self.Debuffs:SetPoint("TOPRIGHT", self.Power, "TOPLEFT", -6, -2)
+	self.Debuffs:SetPoint("TOPRIGHT", self.Power, "TOPLEFT", -C.PPOffset - 1, -2)
 	self.Debuffs.initialAnchor = "TOP"
 	self.Debuffs["growth-y"] = "DOWN"
 	self.Debuffs.num = 2
@@ -670,7 +670,7 @@ local function CreateVToTStyle(self, unit)
 	if UnitCanAttack("player", unit) then
 		-- 敵方顯示增益
 		T.CreateBuffs(self)
-		self.Buffs:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", 6, -2)
+		self.Buffs:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", C.PPOffset + 1, -2)
 		self.Buffs.initialAnchor = "TOP"
 		self.Buffs["growth-y"] = "DOWN"
 		self.Buffs.num = 2
@@ -680,7 +680,7 @@ local function CreateVToTStyle(self, unit)
 	else
 		-- 友方顯示減益
 		T.CreateDebuffs(self)
-		self.Debuffs:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", 6, -2)
+		self.Debuffs:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", C.PPOffset + 1, -2)
 		self.Debuffs.initialAnchor = "TOP"
 		self.Debuffs["growth-y"] = "DOWN"
 		self.Debuffs.num = 2
