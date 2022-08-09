@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 90200
 ## Title: oUF_|cff00ffffRuri|r
 ## Version: R2.6
 ## Author: EK (Linodas@Illidan-US)
