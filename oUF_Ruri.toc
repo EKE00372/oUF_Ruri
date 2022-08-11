@@ -1,6 +1,6 @@
-## Interface: 90200
+## Interface: 90205
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R2.7
+## Version: R2.8
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## RequiredDeps: oUF
