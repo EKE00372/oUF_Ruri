@@ -138,6 +138,7 @@ end
 
 local function UpdateThreatColor(self, _, unit)
 	if unit ~= self.unit then return end
+	
 	if self.mystyle == "BP" then
 		UpdateColor(self.Health, unit)
 	else
@@ -178,10 +179,10 @@ local function CreateIconCastbar(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostSCastStart			-- 開始施法
-	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
-	self.Castbar.PostCastFail = T.PostSCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	-- 打斷狀態刷新
+	self.Castbar.PostCastStart = T.PostStandaloneCastStart			-- 開始施法
+	self.Castbar.PostCastStop = T.PostCastStop						-- 施法結束
+	self.Castbar.PostCastFail = T.PostStandaloneCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateStandaloneCast	-- 打斷狀態刷新
 end
 
 -- [[ 條形施法條 ]]--
@@ -216,14 +217,25 @@ local function CreateStandaloneCastbar(self, unit)
 	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	Castbar.Text:SetPoint("TOPLEFT", Castbar, "BOTTOMLEFT", -5, 5)
 	Castbar.Text:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 5, -5)
+	
+	Castbar.spellTarget = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
+	Castbar.spellTarget:ClearAllPoints()
+	Castbar.spellTarget:SetJustifyH("LEFT")
+	Castbar.spellTarget:SetPoint("TOP", Castbar.Text, "BOTTOM", 0, -2)
 
 	-- 選項
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostSCastStart
-	self.Castbar.PostCastFail = T.PostSCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	-- 打斷狀態刷新
+	self.Castbar.PostCastStart = T.PostStandaloneCastStart			-- 施法開始
+	self.Castbar.PostCastStop = T.PostCastStop						-- 施法中斷
+	self.Castbar.PostCastFail = T.PostStandaloneCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateStandaloneCast	-- 打斷狀態更新
+	self.Castbar.PostCastUpdate = T.PostCastUpdate					-- 施法目標更新
+	-- 根據UNIT_TARGET檢測名條單位的目標變更
+	self:RegisterEvent("UNIT_TARGET", function(_, _, unit)
+		T.UpdateSpellTarget(self.Castbar, unit)
+	end)
 end
 
 --=================================================--
@@ -298,7 +310,7 @@ end
 
 -- [[ 目標高亮 ]] --
 
--- 判斷目標
+-- 判斷目標，更新顏色
 local function UpdateHighlight(self, unit)
 	local mark = self.TargetIndicator
 		
@@ -317,7 +329,7 @@ local function UpdateHighlight(self, unit)
 	end
 end
 
--- 目標高亮
+-- 創建目標高亮
 local function TargetIndicator(self)
 	local Mark = CreateFrame("Frame", nil, self, "BackdropTemplate")	
 	
@@ -332,7 +344,7 @@ local function TargetIndicator(self)
 	F.CreateBackdrop(Mark, 10)
 	Mark:SetFrameLevel(self:GetFrameLevel() - 2)
 	Mark:EnableMouse(false)
-	Mark:Hide()
+	Mark:Hide()	-- 預設隱藏
 	
 	-- 註冊到ouf
 	self.TargetIndicator = Mark
@@ -386,16 +398,17 @@ local function MouseoverIndicator(self)
 	hl:SetBackdropColor(1, 1, 0, .8)
 	hl:SetBackdropBorderColor(1, 1, 0, .8)
 	hl:EnableMouse(false)
-	hl:Hide()
+	hl:Hide()	-- 預設隱藏
 	
 	self:RegisterEvent("UPDATE_MOUSEOVER_UNIT", OnUpdateMouseover, true)
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", OnUpdateMouseover, true)
 	self:RegisterEvent("PLAYER_FOCUS_CHANGED", OnUpdateMouseover, true)
 	
 	local update = CreateFrame("Frame", nil, self)
-	-- 指向高亮的EVENT只有移入時觸發，必需用OnUpdate來代替移出檢測
+	-- 指向高亮的事件只在移入時觸發，必需用OnUpdate來代替移出檢測
 	update:SetScript("OnUpdate", function(_, elapsed)
 		update.elapsed = (update.elapsed or 0) + elapsed
+		-- 限制更新頻率
 		if update.elapsed > .1 then
 			if not isMouseoverUnit(self) then
 				update:Hide()
@@ -445,10 +458,16 @@ local function CreateNumberPlates(self, unit)
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("LEFT", self.Name, "RIGHT", 2, 0)
 	self:Tag(self.PowerText, "[np:pp]")
-	-- 吸收量，文字型tag
+	-- 吸收量，血量百分比形式
 	self.AbsorbText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS-2, G.FontFlag, "LEFT")
 	self.AbsorbText:SetPoint("BOTTOMLEFT", self.HealthText, "BOTTOMRIGHT", 0, 0)
 	self:Tag(self.AbsorbText, "[np:ab]")
+	-- 目標名字，用於惡意詞綴的怨毒幽影
+	self.TargetName = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
+	self.TargetName:ClearAllPoints()
+	self.TargetName:SetPoint("TOPRIGHT", self.Name, "BOTTOMRIGHT", 0, 0)
+	self.TargetName:Hide()
+	self:Tag(self.TargetName, "[np:tar]")
 	
 	-- 威脅值，使狀態顏色在名字上更新
 	local threat = CreateFrame("Frame", nil, self)
@@ -490,9 +509,7 @@ end
 local function CreateBarPlates(self, unit)
 	self.mystyle = "BP" -- Bar style Nameplates
 	
-	if not unit:match("nameplate") then
-		return
-	end
+	if not unit:match("nameplate") then return end
 	
 	-- 框體
 	self:SetSize(C.NPWidth, C.NPHeight*5)
@@ -537,7 +554,13 @@ local function CreateBarPlates(self, unit)
 	self.PowerText = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
 	self.PowerText:SetPoint("LEFT", self.Health, "RIGHT", 4, 1)
 	self:Tag(self.PowerText, "[np:pp]")
-
+	-- 目標名字，用於惡意詞綴的怨毒幽影
+	self.TargetName = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
+	self.TargetName:ClearAllPoints()
+	self.TargetName:SetPoint("TOP", self.Health, "BOTTOM", 0, -4)
+	self.TargetName:Hide()
+	self:Tag(self.TargetName, "[np:tar]")
+	
 	-- 團隊標記
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
 	RaidIcon:SetSize(28, 28)
@@ -574,6 +597,17 @@ local function PostUpdatePlates(self, event, unit)
 	-- 使數字模式的施法條位置能正確隨每個名條的施法狀態重置
 	if C.NumberStyle then
 		T.PostCastStopUpdate(self, event, unit)
+	end
+
+	-- 每個名條創建時獲取該單位的npc id，在名條消失時清空
+	if event == "NAME_PLATE_UNIT_ADDED" then
+		self.npcID = F.GetNPCID(UnitGUID(unit))
+	elseif event == "NAME_PLATE_UNIT_REMOVED" then
+		self.npcID = nil
+	end
+	-- 顯示特定目標的目標：將判斷置於PostUpdatePlates中，只在觸發更新時檢測一次
+	if event ~= "NAME_PLATE_UNIT_REMOVED" then
+		self.TargetName:SetShown(C.UnitTarget[self.npcID])
 	end
 end
 

@@ -123,10 +123,10 @@ T.CreateStandaloneCastbar = function(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar	
-	self.Castbar.PostCastStart = T.PostSCastStart			-- 開始施法
-	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間	
-	self.Castbar.PostCastFail = T.PostSCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterruptible = T.PostUpdateSCast	-- 打斷狀態刷新
+	self.Castbar.PostCastStart = T.PostStandaloneCastStart			-- 施法開始
+	self.Castbar.CustomTimeText = T.CustomTimeText					-- 施法時間	
+	self.Castbar.PostCastFail = T.PostStandaloneCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateStandaloneCast	-- 打斷狀態更新
 end
 
 --===================================================--
@@ -326,7 +326,7 @@ T.CreateAddPower = function(self, unit)
 		AddPower:SetOrientation("VERTICAL")
 		AddPower:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)
 		AddPower:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0)
-	else	
+	else
 		AddPower:SetHeight(C.PPHeight)
 		AddPower:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)
 		AddPower:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset)
@@ -455,7 +455,6 @@ T.CreateHealthPrediction = function(self, unit)
     }
 end
 
-
 -- [[ 坦克資源 ]] --
 
 T.CreateTankResource = function(self, unit)
@@ -577,7 +576,7 @@ T.CreateTotems = function(self)
 	
 	local function UpdatePos()
 		TotemFrame:ClearAllPoints()
-		TotemFrame:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -4)
+		TotemFrame:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -6)
 	end
 	
 	hooksecurefunc("TotemFrame_Update", UpdatePos)
