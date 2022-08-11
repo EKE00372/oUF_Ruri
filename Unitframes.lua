@@ -230,7 +230,7 @@ local function CreatePlayerStyle(self, unit)
 		self.Castbar:SetPoint("LEFT", self.Castbar.Icon, "RIGHT", C.PPOffset, 0)
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0)
+		self.Castbar.Icon:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 6, -1)
 		self.Castbar.Text:SetPoint("CENTER", self.Health, 0, 2)
 		self.Castbar.Text:SetJustifyH("CENTER")
 		self.Castbar.Text:SetWidth(self:GetWidth())
@@ -326,7 +326,7 @@ local function CreateVPlayerStyle(self, unit)
 		self.Castbar.Time:SetJustifyH("LEFT")
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOP", self.Health, "BOTTOM", -C.PPHeight, -6)
+		self.Castbar.Icon:SetPoint("TOP", self.Health, "BOTTOM", -(C.PPHeight + 1), -6)
 		self.Castbar.Text:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*3)
 		self.Castbar.Text:SetJustifyH("RIGHT")
 		self.Castbar.Time:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*4)
@@ -373,7 +373,7 @@ local function CreateTargetStyle(self, unit)
 		self.Castbar:SetPoint("RIGHT", self.Castbar.Icon, "LEFT", -C.PPOffset, 0)
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, 0)
+		self.Castbar.Icon:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, -1)
 		self.Castbar.Text:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2+C.PPHeight)
 		self.Castbar.Text:SetJustifyH("RIGHT")
 		self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
@@ -418,7 +418,7 @@ local function CreateVTargetStyle(self, unit)
 		self.Castbar.Time:SetJustifyH("RIGHT")
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOP", self.Health, "BOTTOM", C.PPHeight, -6)
+		self.Castbar.Icon:SetPoint("TOP", self.Health, "BOTTOM", C.PPHeight + 1, -6)
 		self.Castbar.Text:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*3)
 		self.Castbar.Text:SetJustifyH("LEFT")
 		self.Castbar.Time:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*4)
@@ -968,6 +968,8 @@ end
 -- 生成
 
 oUF:Factory(function(self)
+	-- Should not disable it, may cause refresh delay issue
+	SetCVar("predictedHealth", 1)
 	
 	if C.vertPlayer then
 		-- 玩家

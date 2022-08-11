@@ -68,13 +68,44 @@ end
 -----------------    [[ Castbar ]]    -----------------
 --===================================================--
 
+-- [[ 更新施法目標 ]] --
+
+T.UpdateSpellTarget = function(self, unit)
+	if not unit then return end
+
+	local unitTarget = unit.."target"
+	if UnitExists(unitTarget) then
+		local nameString
+		if UnitIsUnit(unitTarget, "player") then
+			nameString = format("|cffff0000%s|r", ">"..strupper(YOU).."<")
+		else
+			local class = select(2, UnitClass(unitTarget))
+			nameString = F.Hex(oUF.colors.class[class])..UnitName(unitTarget)
+		end
+		self.Text:SetText(nameString)
+	end
+end
+
+-- [[ 重置施法目標 ]] --
+
+T.ResetSpellTarget = function(self)
+	if self.Text then
+		self.Text:SetText("")
+	end
+end
+
 -- [[ 開始施法 ]] --
-T.PostSCastStart = function(self, unit)
+
+T.PostStandaloneCastStart = function(self, unit)
 	local frame = self:GetParent()
 
 	if frame.mystyle == "NP" then
 		-- 數字模式名條名字上移
 		frame.Name:SetPoint("BOTTOM", 0, 6+G.NPNameFS)
+	elseif frame.mystyle == "BP" then
+		-- 條形模式施法目標
+		--T.ResetSpellTarget(self)
+		T.UpdateSpellTarget(self, unit)
 	else
 		self.Spark:SetAlpha(.5)
 	end
@@ -120,6 +151,9 @@ T.PostCastStop = function(self, unit)
 	if frame.mystyle == "NP" then
 		-- 使數字模式名條的名字復位
 		frame.Name:SetPoint("BOTTOM", 0, 6)
+	elseif frame.mystyle == "BP" then
+		-- 清空施法目標
+		T.ResetSpellTarget(self)
 	else
 		-- 施法結束時顯示名字
 		frame.Name:Show()
@@ -130,10 +164,20 @@ end
 -- [[ 狀態更新 ]] --
 
 T.PostCastStopUpdate = function(self, event, unit)
+	-- 用於頭像上的依附型施法條
 	-- 施法過程中切換目標、新生成的名條，按施法結束處理
 	if unit ~= self.unit then return end
 	return T.PostCastStop(self.Castbar, unit)
 end
+
+-- [[ 施法目標更新 ]] --
+
+T.PostCastUpdate = function(self, unit)
+	T.ResetSpellTarget(self)
+	T.UpdateSpellTarget(self, unit)
+end
+
+-- [[ 施法失敗 ]] --
 
 T.PostCastFailed = function(self, unit)
 	-- 一閃而過的施法失敗紅色條
@@ -145,7 +189,7 @@ T.PostCastFailed = function(self, unit)
 	self:Show()
 end
 
-T.PostSCastFailed = function(self, unit)
+T.PostStandaloneCastFailed = function(self, unit)
 	local frame = self:GetParent()
 	-- 一閃而過的施法失敗紅色條
 	self:SetStatusBarColor(unpack(C.CastFailed))
@@ -154,9 +198,11 @@ T.PostSCastFailed = function(self, unit)
 		self.Spark:SetAlpha(0)
 	end
 	self:Show()
+	-- 清空施法目標
+	T.ResetSpellTarget(self)
 end
 
--- [[ 施法過程中更新(打斷)狀態 ]] --
+-- [[ 施法過程中打斷狀態更新 ]] --
 
 -- 例子：燃燒王座三王小怪
 T.PostUpdateCast = function(self, unit)
@@ -170,7 +216,7 @@ T.PostUpdateCast = function(self, unit)
 end
 
 -- 例子：燃燒王座三王小怪
-T.PostUpdateSCast = function(self, unit)
+T.PostUpdateStandaloneCast = function(self, unit)
 	if not UnitIsUnit(unit, "player") and self.notInterruptible then
 		self:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
 	else
@@ -408,23 +454,31 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 			return true
 		end
 	elseif style == "NP" or style == "BP" then
-		if UnitIsUnit("player", unit) then			-- 當該單位是自己(自身名條，只是預防有人把個人資源打開搞事)
+		if UnitIsUnit("player", unit) then
+			-- 當該單位是自己時隱藏，預防有人把系統的個人資源打開搞事情
 			return false
-		elseif self.showStealableBuffs and isStealable and npc then	-- 非玩家，可驅散
+		elseif self.showStealableBuffs and isStealable and npc then	
+			-- 非玩家，可驅散，則顯示
 			return true
-		elseif C.BlackList[spellID] then			-- 黑名單
+		elseif C.BlackList[spellID] then
+			-- 黑名單，則隱藏
 			return false
-		elseif C.WhiteList[spellID] then			-- 白名單(主要補足暴雪白名單沒有的法術)
-			return true
-		else										-- 暴雪內建的控場白名單和玩家/寵物/載具的法術
-			return nameplateShowAll or F.Multicheck(caster, "player", "pet", "vehicle")
-		end
-	elseif style == "NPP" or style == "BPP" then	-- 個人資源條顯示30秒(含)以下的光環
-		if C.PlayerBlackList[spellID] then
-			return false
-		elseif C.PlayerWhiteList[spellID] then
+		elseif C.WhiteList[spellID] then
+			-- 白名單，補足預設白名單沒有的法術，額外顯示
 			return true
 		else
+			-- 預設的控場白名單和玩家/寵物/載具的法術
+			return nameplateShowAll or F.Multicheck(caster, "player", "pet", "vehicle")
+		end
+	elseif style == "NPP" or style == "BPP" then
+		if C.PlayerBlackList[spellID] then
+			-- 黑名單，則隱藏
+			return false
+		elseif C.PlayerWhiteList[spellID] then
+			-- 白名單，補足會超出30秒但需監控的法術，額外顯示
+			return true
+		else
+			-- 個人資源條顯示30秒(含)以下的光環
 			return F.Multicheck(caster, "player", "pet", "vehicle") and duration <= 30 and duration ~= 0
 		end
 	--[[elseif style == "R" then
