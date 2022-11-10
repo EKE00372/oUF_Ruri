@@ -20,8 +20,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 ------------
 
 	C.UnitFrames = true		-- enable Unitframes, ture = enable, false = disable / 啟用頭像，enable = 啟用，disable = 停用
-	C.RaidFrames = false		-- enable Raidframes / 啟用團隊框架
-	C.PartyFrames = false
+	C.RaidFrames = true		-- enable Raidframes / 啟用團隊框架
+	C.PartyFrames = true
 	C.Nameplates = true		-- enable Nameplates/ 啟用名條
 
 -------------
@@ -89,7 +89,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	-- options
 	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
-	C.Totems = false				-- show player totems / 顯示玩家圖騰
+	--C.Totems = false			-- show player totems / 顯示玩家圖騰
 	C.TankResource = true		-- show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 
 	C.Fade = true				-- hide UFs when out of combat or not casting / 戰鬥外閒置狀態淡出頭象

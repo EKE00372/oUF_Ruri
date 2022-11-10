@@ -88,6 +88,7 @@ C.WhiteList = {
 }
 
 C.BlackList = {
+	--[116189] = true,	-- 嘲心嘯
 	[15407]	 = true,	-- 精神鞭笞
 	[51714]	 = true,	-- 锋锐之霜
 	[199721] = true,	-- 腐烂光环
@@ -170,8 +171,8 @@ C.RaidBlackList = {
 	[206151] = true,		-- 挑戰者的重擔
 	--[25163] = true,
 	[271544] = true,		-- 消蝕防護
-	[296847] = true,
-	[338906] = true,
+	[296847] = true,		-- 压迫光环
+	[338906] = true,		-- 典狱长之链
 }
 
 C.RaidAuraList = {
