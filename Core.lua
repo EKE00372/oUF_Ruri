@@ -44,7 +44,7 @@ T.PostUpdateHealth = function(self, unit, min, max)
 	if disconnected then
 		self:SetValue(max)
 	else
-	-- 血量反轉為顯示損失量
+		-- 血量反轉為顯示損失量
 		if max == min then
 			self:SetValue(0)
 		else
@@ -72,7 +72,8 @@ end
 
 T.UpdateSpellTarget = function(self, unit)
 	if not unit then return end
-
+	if (F.GetNPCID(UnitGUID(unit)) ~= C.UnitSpellTarget[self.npcID]) then return end
+	
 	local unitTarget = unit.."target"
 	if UnitExists(unitTarget) then
 		local nameString
@@ -263,6 +264,21 @@ T.CreateAuraTimer = function(self, elapsed)
 	end
 end
 
+T.CreateRaidAuraTimer = function(self, elapsed)
+	self.elapsed = (self.elapsed or 0) + elapsed
+	
+	if self.elapsed >= 0.1 then
+		local timeLeft = self.timeLeft - GetTime()
+		if timeLeft > 0 and timeLeft <= 60 then
+			self.time:SetText(F.FormatTime(timeLeft))
+		else
+			self:SetScript("OnUpdate", nil)
+			self.time:SetText(nil)
+		end
+	self.elapsed = 0
+	end
+end
+
 -- [[ 獲得光環時創建光環 ]] --
 
 T.PostCreateIcon = function(self, button)
@@ -319,13 +335,13 @@ T.PostUpdateIcon = function(self, unit, button, _, _, duration, expiration, debu
 			end
 		else
 			button.overlay:Hide()
-		end	
+		end
 	end
 	
 	-- 更新時間
 	if duration and duration > 0 then
 		button.timeLeft = expiration
-		button:SetScript("OnUpdate", T.CreateAuraTimer)
+		button:SetScript("OnUpdate", (style== "R" and T.CreateRaidAuraTimer) or T.CreateAuraTimer)
 		button.time:Show()
 	else
 		button:SetScript("OnUpdate", nil)
@@ -481,12 +497,22 @@ T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiratio
 			-- 個人資源條顯示30秒(含)以下的光環
 			return F.Multicheck(caster, "player", "pet", "vehicle") and duration <= 30 and duration ~= 0
 		end
-	--[[elseif style == "R" then
-		if C.RaidBlackList[spellID] then		-- 黑名單
+	elseif style == "R" then
+		if C.RaidBlackList[spellID] then
+			-- 黑名單，則隱藏
 			return false
+		elseif isBossAura or SpellIsPriorityAura(spellID) then
+			-- 暴雪內建的首領光環和優先顯示等等
+			return true
 		else
-			return isBossDebuff or (F.Multicheck(caster, "player", "pet", "vehicle") and button.isDebuff)
-		end]]--
+			-- 暴雪內建的其他
+			local hasCustom, alwaysShowMine, showForMySpec = SpellGetVisibilityInfo(spellID, UnitAffectingCombat("player") and "RAID_INCOMBAT" or "RAID_OUTOFCOMBAT")
+			if hasCustom then
+				return showForMySpec or (alwaysShowMine and (caster == "player" or caster == "pet" or caster == "vehicle"))
+			else
+				return true
+			end
+		end
 	else
 		return true
 	end

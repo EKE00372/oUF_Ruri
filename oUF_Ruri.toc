@@ -1,6 +1,6 @@
-## Interface: 90205
+## Interface: 100002
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R2.8
+## Version: R2.9
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## RequiredDeps: oUF
@@ -11,13 +11,15 @@ Config.lua
 FilterList.lua
 API.lua
 
-Embeds\oUF_TankResource.lua
-Embeds\oUF_Fader.lua
+Libs\oUF_TankResource.lua
+Libs\oUF_Fader.lua
+Embeds\Crosshairs.lua
+#Embeds\FloatingCombatFeedback.lua
 
 Tags.lua
 Core.lua
 Elements.lua
 
 Unitframes.lua
-#Raidframes.lua
+Raidframes.lua
 Nameplates.lua

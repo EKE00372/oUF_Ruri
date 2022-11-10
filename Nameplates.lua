@@ -169,11 +169,11 @@ local function CreateIconCastbar(self, unit)
 	Castbar.IconBD:SetTexture(G.media.blank)
 	Castbar.IconBD:SetVertexColor(0, 0, 0)
 	-- 法術名
-	--Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "CENTER")
-	--Castbar.Text:SetPoint("CENTER", Castbar, 0, 5)
-	--Castbar.Text:SetPoint("BOTTOMLEFT", Castbar, "TOPLEFT", -5, 5)
-	--Castbar.Text:SetPoint("BOTTOMRIGHT", Castbar, "TOPRIGHT", 5, -5)
-	--Castbar.Text:SetText("")
+	--[[Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "CENTER")
+	Castbar.Text:SetPoint("CENTER", Castbar, 0, 5)
+	Castbar.Text:SetPoint("BOTTOMLEFT", Castbar, "TOPLEFT", -5, 5)
+	Castbar.Text:SetPoint("BOTTOMRIGHT", Castbar, "TOPRIGHT", 5, -5)
+	Castbar.Text:SetText("")]]--
 	
 	-- 選項
 	Castbar.timeToHold = 0.05
@@ -454,6 +454,7 @@ local function CreateNumberPlates(self, unit)
 	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 2)
 	self.HealthText.frequentUpdates = .1
 	self:Tag(self.HealthText, "[np:hp]")
+	
 	-- 能量
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("LEFT", self.Name, "RIGHT", 2, 0)
@@ -462,8 +463,17 @@ local function CreateNumberPlates(self, unit)
 	self.AbsorbText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS-2, G.FontFlag, "LEFT")
 	self.AbsorbText:SetPoint("BOTTOMLEFT", self.HealthText, "BOTTOMRIGHT", 0, 0)
 	self:Tag(self.AbsorbText, "[np:ab]")
+	
+	-- 施法條
+	CreateIconCastbar(self, unit)
+	self.Castbar:SetPoint("TOP", self.Name, "BOTTOM", 0, -4)
+	-- 施法目標
+	--self.CastTargetText = F.CreateText(self.Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
+	--self.CastTargetText:SetPoint("TOPRIGHT", self.Name, "BOTTOMRIGHT", 0, -2)
+	--self:Tag(self.CastTargetText, "[npcast]")
+	
 	-- 目標名字，用於惡意詞綴的怨毒幽影
-	self.TargetName = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
+	self.TargetName = F.CreateText(self.Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
 	self.TargetName:ClearAllPoints()
 	self.TargetName:SetPoint("TOPRIGHT", self.Name, "BOTTOMRIGHT", 0, 0)
 	self.TargetName:Hide()
@@ -480,14 +490,6 @@ local function CreateNumberPlates(self, unit)
 	RaidIcon:SetTexture(G.media.raidicon)
 	RaidIcon:SetPoint("RIGHT", self.Name, "LEFT", 0, 0)
 	self.RaidTargetIndicator = RaidIcon
-	
-	-- 施法條
-	CreateIconCastbar(self, unit)
-	self.Castbar:SetPoint("TOP", self.Name, "BOTTOM", 0, -4)
-	-- 施法目標
-	--self.CastTargetText = F.CreateText(self.Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
-	--self.CastTargetText:SetPoint("TOPRIGHT", self.Name, "BOTTOMRIGHT", 0, -2)
-	--self:Tag(self.CastTargetText, "[npcast]")
 	
 	-- 光環
 	if C.ShowAuras then
@@ -605,6 +607,11 @@ local function PostUpdatePlates(self, event, unit)
 	elseif event == "NAME_PLATE_UNIT_REMOVED" then
 		self.npcID = nil
 	end
+	
+	--[[if event == "UNIT_SPELLCAST_START" then
+		T.UpdateSpellTarget(self, event, unit)
+	end]]--
+	
 	-- 顯示特定目標的目標：將判斷置於PostUpdatePlates中，只在觸發更新時檢測一次
 	if event ~= "NAME_PLATE_UNIT_REMOVED" then
 		self.TargetName:SetShown(C.UnitTarget[self.npcID])

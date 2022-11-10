@@ -9,11 +9,11 @@ local C, F, G, T = unpack(ns)
 --======================================================--
 --[[
 C.StackList = {
-
+	-- we dont need this because only bolster at now
 	}
 ]]--
 C.WhiteList = {
-	-- [[ 補足暴雪的白名單裡缺少的控場法術 ]] --
+	-- [[ 補足暴雪的白名單裡缺少的控場法術 / Show auras not in blizzard default list ]] --
 	
 	-- Buffs
 	--[1459] = true,	-- 秘法智力test
@@ -96,6 +96,7 @@ C.BlackList = {
 	[273977] = true,	-- 亡者之握
 	[276919] = true,	-- 承受压力
 	[206930] = true,	-- 心脏打击
+	[385723] = true,	-- 十字軍聖印
 }
 
 C.CustomUnits = {
@@ -124,14 +125,20 @@ C.CustomUnits = {
 }
 
 C.UnitTarget = {
+	-- Show fixed target: NPC IDs
 	[165251] = true,	-- 迷霧的追人狐狸
 	[174773] = true,	-- 惡意詞綴，憎恨幽影
 	[190174] = true,	-- 惡意詞綴，憎恨幽影
 	[190174] = true,	-- 隱蔽詞綴，催眠蝙蝠
 }
 
+C.UnitSpellTarget = {
+	-- Show Spell target: NPC IDs
+	[61672] = true,	-- 隱蔽詞綴，催眠蝙蝠
+}
+
 C.ShowPower = {
-	-- NPC IDs
+	-- show power: NPC IDs
 	[133944] = true,	-- 神廟，艾斯匹
 	[133379] = true,	-- 神廟，阿德利斯
 	[165556] = true,	-- 血紅深淵，瞬息具象
@@ -160,11 +167,124 @@ C.PlayerBlackList = {
 --======================================================--
 
 C.RaidBlackList = {
-	[57723]	 = true,		-- 嗜血
-	[57724]	 = true,
-	[80354]	 = true,
-	[264689] = true,
 	[206151] = true,		-- 挑戰者的重擔
-	
+	--[25163] = true,
 	[271544] = true,		-- 消蝕防護
+	[296847] = true,
+	[338906] = true,
+}
+
+C.RaidAuraList = {
+-- Death Knight
+    [48707] = true, --Anti-Magic Shell
+    [48792] = true, --Icebound Fortitude
+    [287081] = true, --Lichborne
+    [55233] = true, --Vampiric Blood
+    [194679] = true, --Rune Tap
+    [145629] = true, --Anti-Magic Zone
+    [81256] = true, --Dancing Rune Weapon
+
+    -- Demon Hunter
+    [196555] = true, --Netherwalk
+    [206804] = true, --Rain from Above
+    [187827] = true, --Metamorphosis (Vengeance)
+    [212800] = true, --Blur
+    [263648] = true, --Soul Barrier
+
+    -- Druid
+    [203554] = true, --Focused Growth
+    [362486] = true, --Tranquility (Druid PVP)
+    [102342] = true, --Ironbark
+    [22812] = true, --Barkskin
+    [61336] = true, --Survival Instincts
+    [5215] = true, --Prowl
+
+    -- Hunter
+    [186265] = true, --Aspect of the Turtle
+    [53480] = true, --Roar of Sacrifice
+    [264735] = true, --Survival of the Fittest (Pet Ability)
+    [281195] = true, --Survival of the Fittest (Lone Wolf)
+    [199483] = true, --Camouflage
+
+    -- Mage
+    [45438] = true, --Ice Block
+    [66] = true, --Invisibility
+    [198111] = true, --Temporal Shield
+    [113862] = true, --Greater Invisibility
+    [342246] = true, --Alter Time
+    [110909] = true,
+    [108978] = true,
+
+    -- Monk
+    [125174] = true, --Touch of Karma
+    [120954] = true, --Fortifying Brew (Brewmaster)
+    [243435] = true, --Fortifying Brew (Mistweaver)
+    [201318] = true, --Fortifying Brew (Windwalker)
+    [115176] = true, --Zen Meditation
+    [116849] = true, --Life Cocoon
+    [122278] = true, --Dampen Harm
+    [122783] = true, --Diffuse Magic
+
+    -- Paladin
+    [204018] = true, --Blessing of Spellwarding
+    [642] = true, --Divine Shield
+    [228050] = true, --Divine Shield (Protection)
+    [1022] = true, --Blessing of Protection
+    [6940] = true, --Blessing of Sacrifice
+    [199448] = true, --Blessing of Ultimate Sacrifice
+    [498] = true, --Divine Protection
+    [31850] = true, --Ardent Defender
+    [86659] = true, --Guardian of Ancient Kings
+    [205191] = true, --Eye for an Eye
+
+    -- Priest
+    [47788] = true, --Guardian Spirit
+    [47585] = true, --Dispersion
+    [33206] = true, --Pain Suppression
+    [213602] = true, --Greater Fade
+    [81782] = true, --Power Word: Barrier
+    [271466] = true, --Luminous Barrier
+    [20711] = true, --Spirit of Redemption
+
+    -- Rogue
+    [31224] = true, --Cloak of Shadows
+    [45182] = true, --Cheating Death
+    [5277] = true, --Evasion
+    [199754] = true, --Riposte
+    [1966] = true, --Feint
+    [1784] = true, --Stealth
+
+    -- Shaman
+    [210918] = true, --Ethereal Form
+    [108271] = true, --Astral Shift
+    [118337] = true, --Harden Skin
+    [201633] = true, --Earthen Wall Totem
+
+    -- Warlock
+    [212295] = true, --Nether Ward
+    [104773] = true, --Unending Resolve
+    [108416] = true, --Dark Pact
+
+    -- Warrior
+    [871] = true, --Shield Wall
+    [118038] = true, --Die by the Sword
+    [147833] = true, --Intervene
+    [213915] = true, --Mass Spell Reflection
+    [23920] = true, --Spell Reflection (Prot)
+    [216890] = true, --Spell Reflection (Arms/Fury)
+    [184364] = true, --Enraged Regeneration
+    [97463] = true, --Rallying Cry
+    [12975] = true, --Last Stand
+    [190456] = true, --Ignore Pain
+
+    -- Misc
+    ["Eating/Drinking"] = true, -- Food umbrella
+    ["Food & Drink"] = true, --Food & Drink
+    ["Food"] = true, --Food
+    ["Drink"] = true, --Drink
+    ["Refreshment"] = true, --Refreshment
+    [185710] = true, --Sugar-Crusted Fish Feast
+    [320224] = true, -- Podtender
+    [363522] = true, -- Gladiator's Eternal Aegis
+    [345231] = true, -- Gladiator's Emblem
 }

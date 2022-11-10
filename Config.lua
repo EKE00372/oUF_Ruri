@@ -20,7 +20,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 ------------
 
 	C.UnitFrames = true		-- enable Unitframes, ture = enable, false = disable / 啟用頭像，enable = 啟用，disable = 停用
-	--C.RaidFrames = false	-- enable Raidframes / 啟用團隊框架
+	C.RaidFrames = false		-- enable Raidframes / 啟用團隊框架
+	C.PartyFrames = false
 	C.Nameplates = true		-- enable Nameplates/ 啟用名條
 
 -------------
@@ -29,6 +30,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	G.media = {
 		blank = MediaFolder.."dM3",		-- "Interface\\Buttons\\WHITE8x8",
+		raidbar = MediaFolder.."Inner-Shadow.blp",
 		glow = MediaFolder.."glow.tga",
 		barhightlight = MediaFolder.."highlight.tga",
 		
@@ -38,6 +40,11 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		resting = MediaFolder.."resting.blp",
 		combat = MediaFolder.."combat.blp",
 		raidicon = MediaFolder.."raidicons.blp",
+		
+		circle = MediaFolder.."crosshair_circle.blp",
+		arrows = MediaFolder.."crosshair_arrows.blp",
+		
+		role = MediaFolder.."UI-LFG-ICON-PORTRAITROLES.blp", -- from matty texture
 	}
 
 -----------
@@ -82,7 +89,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	-- options
 	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
-	C.Totems = true				-- show player totems / 顯示玩家圖騰
+	C.Totems = false				-- show player totems / 顯示玩家圖騰
 	C.TankResource = true		-- show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 
 	C.Fade = true				-- hide UFs when out of combat or not casting / 戰鬥外閒置狀態淡出頭象
@@ -90,27 +97,37 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	--[[ castbar ]] --
 	
+	-- options
 	C.StandaloneCastbar = false	-- independent castbar for player and target / 獨立施法條
 	C.CastbarWidth = 200		-- castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
 	
-	-- castbar color
+	-- colors
 	-- NOTICE: this effect on BOTH unitframe standalone castbar and nameplates castbar.
 	C.CastNormal = {.6, .6, .6}	-- 一般施法條顏色 / normal castbar color
 	C.CastFailed = {.5, .2, .2}	-- 施法失敗顏色 / cast failed color
 	C.CastShield = {.9, 0, 1}	-- 不可打斷施法條顏色 / non-InterruptibleColor castbar color
 
+	--[[C.CombatText = true
+	C.ScrollingCT = true
+	C.AutoAttack = false
+	C.HotsDots = false
+	C.FCTOverHealing = true
+	C.FCTFontSize = 16
+	C.PetCombatText = false]]--
+	
 ------------------------
 -- RaidFrame settings --
 ------------------------
-	--[[
-	C.RWidth = 90				-- raid frame width
-	C.RHeight = 48				-- raid frame height
-	C.RPHeight = 2				-- raid frame power height
 	
+	C.RWidth = 128				-- raid frame width
+	C.RHeight = 46				-- raid frame height
+	
+	C.RPHeight = 2				-- raid frame power height
+	C.RSpace = 6
 	C.sAuSize = 18				-- corner small aura size
-	C.bAuSize = 18				-- middle big aura size
-	C.RangeAlpha = 0.5			-- alpha for out of range units
-	]]--
+	--C.bAuSize = 20				-- middle big aura size
+	C.RangeAlpha = 0.4			-- alpha for out of range units
+	
 ------------------------
 -- Nameplate settings --
 ------------------------
@@ -135,6 +152,9 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	C.HLTarget = true		-- highlight target and focus / 高亮目標和焦點
 	C.HLMouseover = true	-- highlight mouseover / 高亮滑鼠指向
+	
+	-- options
+	C.Crosshairs = true
 	
 	-- [[ player plate ]] --
 	
@@ -237,11 +257,11 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- SpecialTotemBar and oUF_TankResource by HopeASD
 	
-	-- [oUF] 1.5版 oUF系插件 通用说明 (FD) NGA玩家社区
+	-- [oUF] 1.5版 oUF系插件 通用说明 (FD)
 	-- https://nga.178.com/read.php?tid=4107042
 
 	-- [oUF][最基础扫盲][初稿完工！]以Ouf_viv5为例，不完全不专业注释
 	-- https://nga.178.com/read.php?tid=4184224
 
-	-- [未完成]oUF系列头像编写教程 NGA玩家社区
+	-- [未完成]oUF系列头像编写教程
 	-- https://bbs.nga.cn/read.php?tid=7212677

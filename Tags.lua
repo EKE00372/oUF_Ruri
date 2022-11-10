@@ -8,6 +8,7 @@ local C, F, G, T = unpack(ns)
 -- [[ 職業 ]] --
 
 oUF.colors.class["SHAMAN"] = {0, .6, 1}
+oUF.colors.class["MAGE"] = {.48, .84, .94}
 oUF.colors.class["DEATHKNIGHT"] = {1, .23, .23}
 oUF.colors.class["DEMONHUNTER"] = {.74, .35, .95}
 
@@ -89,13 +90,16 @@ oUF.Tags.Methods["afkdnd"] = function(unit)
 	
 	if UnitIsAFK(unit) then
 		-- 暫離
-		return "|cffffffff<AFK>|r "
+		return "|T"..FRIENDS_TEXTURE_AFK..":14:14:0:0:16:16:1:15:1:15|t"
 	elseif UnitIsDND(unit) then
 		-- 忙錄
-		return "|cffffffff<DND>|r "
+		return "|T"..FRIENDS_TEXTURE_DND..":14:14:0:0:16:16:1:15:1:15|t"
+	elseif (not UnitIsConnected(unit)) then
+		-- 離線
+		return "|T"..FRIENDS_TEXTURE_OFFLINE..":14:14:0:0:16:16:1:15:1:15|t"
 	end
 end
-oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED"
+oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED UNIT_CONNECTION"
 
 --==================================================--
 -----------------    [[ Values ]]    -----------------
@@ -264,7 +268,22 @@ oUF.Tags.Methods["namecolor"] = function(u, r)
 		return F.Hex(1, 1, 1)
 	end
 end
-oUF.Tags.Events["namecolor"] = "UNIT_FACTION"
+oUF.Tags.Events["namecolor"] = "UNIT_NAME_UPDATE UNIT_FACTION"
+
+-- [[ 單位的目標 ]] --
+
+oUF.Tags.Methods["np:tar"] = function(unit)
+	local targetUnit = unit.."target"
+
+	if UnitExists(targetUnit) then
+		local targetClass = select(2, UnitClass(targetUnit))
+		return F.Hex(oUF.colors.class[targetClass])..UnitName(targetUnit)
+	else
+		return ""
+	end
+end
+oUF.Tags.Events["np:tar"] = "UNIT_NAME_UPDATE UNIT_THREAT_SITUATION_UPDATE UNIT_HEALTH"
+
 
 --[[
 oUF.Tags.Methods["npcast"] = function(unit)
@@ -284,6 +303,7 @@ oUF.Tags.Methods["npcast"] = function(unit)
 end
 oUF.Tags.Events["npcast"] = "UNIT_SPELLCAST_START UNIT_SPELLCAST_CHANNEL_START"
 ]]--
+
 --[[
 oUF.Tags.Methods["np:name"] = function(u)
 	local name = GetUnitName(u) or UNKNOWN
