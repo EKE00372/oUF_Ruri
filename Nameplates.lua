@@ -297,9 +297,9 @@ local function CreeateAuras(self, unit)
 	self.Auras.PreSetPosition = PreSetPosition
 	self.Auras.SetPosition = SetPosition
 	
-	self.Auras.PostCreateIcon = T.PostCreateIcon
-	self.Auras.PostUpdateIcon = T.PostUpdateIcon
-	self.Auras.CustomFilter = T.CustomFilter				-- 光環過濾	
+	self.Auras.PostCreateButton = T.PostCreateIcon
+	self.Auras.PostUpdateButton = T.PostUpdateIcon
+	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾	
 	self.Auras.PreUpdate = T.BolsterPreUpdate				-- 激勵
 	self.Auras.PostUpdate = T.BolsterPostUpdate				-- 激勵計數
 end

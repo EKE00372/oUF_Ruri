@@ -145,9 +145,9 @@ T.CreateDebuffs = function(self, button)
 	Debuffs.showDebuffType = true
 	-- 註冊到ouf
 	self.Debuffs = Debuffs
-	self.Debuffs.PostCreateIcon = T.PostCreateIcon
-	self.Debuffs.PostUpdateIcon = T.PostUpdateIcon
-	self.Debuffs.CustomFilter = T.CustomFilter
+	self.Debuffs.PostCreateButton = T.PostCreateIcon
+	self.Debuffs.PostUpdateButton = T.PostUpdateIcon
+	self.Debuffs.FilterAura = T.CustomFilter
 end
 
 -- [[ 增益 ]] --
@@ -161,9 +161,9 @@ T.CreateBuffs = function(self, button)
 	Buffs.disableCooldown = true
 	-- 註冊到ouf
 	self.Buffs = Buffs
-	self.Buffs.PostCreateIcon = T.PostCreateIcon
-	self.Buffs.PostUpdateIcon = T.PostUpdateIcon
-	self.Buffs.CustomFilter = T.CustomFilter
+	self.Buffs.PostCreateButton = T.PostCreateIcon
+	self.Buffs.PostUpdateButton = T.PostUpdateIcon
+	self.Buffs.FilterAura = T.CustomFilter
 end
 
 -- [[ 光環 ]] --
@@ -225,14 +225,14 @@ T.CreateAuras = function(self, button)
 	-- 註冊到ouf
 	self.Auras = Auras
 	self.Auras.SetPosition = T.SetPosition					-- 為垂直排列重寫set position
-	self.Auras.PostCreateIcon = T.PostCreateIcon
-	self.Auras.PostUpdateIcon = T.PostUpdateIcon
+	self.Auras.PostCreateButton = T.PostCreateIcon
+	self.Auras.PostUpdateButton = T.PostUpdateIcon
 	
 	if self.mystyle ~= "S" then
-		self.Auras.PostUpdateGapIcon = T.PostUpdateGapIcon	-- 間隔圖示
+		self.Auras.PostUpdateGapButton = T.PostUpdateGapIcon	-- 間隔圖示
 	end
 	
-	self.Auras.CustomFilter = T.CustomFilter				-- 光環過濾	
+	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾	
 	self.Auras.PreUpdate = T.BolsterPreUpdate				-- 激勵
 	self.Auras.PostUpdate = T.BolsterPostUpdate				-- 激勵計數
 end
@@ -582,7 +582,6 @@ T.CreateTotems = function(self)
 	hooksecurefunc("TotemFrame_Update", UpdatePos)
 end
 
---[[
 T.CreateFCT = function(self)
 	if not C.CombatText then return end
 
@@ -618,4 +617,3 @@ T.CreateFCT = function(self)
 	-- Default CombatText
 	SetCVar("enableFloatingCombatText", 0)
 end
-]]--

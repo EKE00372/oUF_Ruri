@@ -284,8 +284,8 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateStagger(self, unit)
 	
 	if C.TankResource then T.CreateTankResource(self, unit) end
-	if C.Totems then T.CreateTotems(self) end
-	if C.CombatText then T.CreateFCT(self) end
+	--if C.Totems then T.CreateTotems(self) end
+	--if C.CombatText then T.CreateFCT(self) end
 	
 	-- 減益
 	if C.PlayerDebuffs then
