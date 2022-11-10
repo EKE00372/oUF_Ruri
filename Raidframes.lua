@@ -1,26 +1,56 @@
 local addon, ns = ...
 local C, F, G, T = unpack(ns)
 
-if not C.RaidFrames then return end
+if not (C.RaidFrames or C.PartyFrames) then return end
 
+-- Hide Default RaidFrame
+do
+	local HiddenFrame = CreateFrame("Frame")
+	HiddenFrame:Hide()
+	
+	if CompactRaidFrameManager_SetSetting then
+		CompactRaidFrameManager_SetSetting("IsShown", "0")
+		UIParent:UnregisterEvent("GROUP_ROSTER_UPDATE")
+		CompactRaidFrameManager:UnregisterAllEvents()
+		CompactRaidFrameManager:SetParent(HiddenFrame)
+	end
+end
+
+--[[
+local function DisableBlizzard()
+    local hider = CreateFrame("Frame")
+    hider:Hide()
+
+    if _G.CompactUnitFrameProfiles then
+        _G.CompactUnitFrameProfiles:UnregisterAllEvents()
+    end
+
+    if _G.CompactRaidFrameManager and (_G.CompactRaidFrameManager:GetParent() ~= hider) then
+        _G.CompactRaidFrameManager:SetParent(hider)
+    end
+
+    InterfaceOptionsFrameCategoriesButton10:SetScale(0.00001)
+    InterfaceOptionsFrameCategoriesButton10:SetAlpha(0)
+end
+]]--
 --====================================================--
 -----------------    [[ Function ]]    -----------------
 --====================================================--
 
--- 專用的顏色
-local function UpdateHealthColor(self, unit)
-	local r, g, b, t
-	local bg = self.bg
-	
-	local colors = setmetatable({
-		power = setmetatable({
-			['MANA'] = {.31,.45,.63},
-		}, {__index = oUF.colors.power}),
-		}, {__index = oUF.colors})
+-- 離線等同超距
+local function UpdateOffline(self, parent, inRange, checkedRange, isConnected)
+	if not isConnected then
+		parent:SetAlpha(self.outsideAlpha)
+	end
+end
 
+-- 職業顏色映射至背景
+local function PostUpdateColor(self, unit, r, g, b)
+	local r, g, b, t
+	
 	if UnitIsPlayer(unit) then
-		local _, class = UnitClass(unit)
-		t = colors.class[class]
+		local class = select(2, UnitClass(unit))
+		t = oUF.colors.class[class]
 	else		
 		r, g, b = .2, .9, .1
 	end
@@ -30,36 +60,35 @@ local function UpdateHealthColor(self, unit)
 	end
 
 	if(b) then
-		self:SetStatusBarColor(r*.2, g*.2, b*.2, 1)
 		self.bg:SetVertexColor(r, g, b, 1)
 	end
 end
 
--- 邊框變化
-
-local function UpdateTarget(self, event, unit)
+-- 目標高亮
+local function UpdateTargetBorder(self, event, unit)
+	-- 使優先級低於仇恨高亮
+	local status = UnitThreatSituation(self.unit)
+	if status and status ~= 0 then return end
+	
 	if UnitIsUnit("target", self.unit) then
-		self.Target:Show()
+		self.Health.border:SetBackdropBorderColor(.9, .9, .9)
 	else
-		self.Target:Hide()
+		self.Health.border:SetBackdropBorderColor(0, 0, 0)
 	end
 end
---[[
-local function UpdateThreat(_, unit)
+
+-- 仇恨高亮
+local function UpdateThreatBorder(self, event, unit)
 	if unit ~= self.unit then return end
-
-	local element = self.ThreatIndicator
+	
 	local status = UnitThreatSituation(unit)
-
 	if status and status > 1 then
-		local r, g, b = GetThreatStatusColor(status)
-		element:SetBackdropBorderColor(r, g, b)
-		element:Show()
+		local r, g, b = unpack(oUF.colors.threat[status])
+		self.Health.border:SetBackdropBorderColor(r, g, b)
 	else
-		element:Hide()
+		self.Health.border:SetBackdropBorderColor(0, 0, 0)
 	end
 end
-]]--
 
 --===========================================================--
 -----------------    [[ Create Elements ]]    -----------------
@@ -72,17 +101,18 @@ local function CreateAuras(self)
 	Auras.spacing = 4
 	
 	Auras:SetFrameLevel(self:GetFrameLevel() + 2)
-	Auras.numBuffs = 1
-	Auras.numDebuffs = 3
-	Auras.numTotal = 3
+	Auras.numBuffs = 0
+	Auras.numDebuffs = 4
+	Auras.numTotal = 4
 
 	Auras:SetPoint("BOTTOMLEFT", self, 4, 6)
-	Auras:SetWidth(C.sAuSize*3 + Auras.spacing * 2)
-	Auras:SetHeight(self:GetHeight())
+	Auras:SetWidth(C.sAuSize*4 + Auras.spacing * 3)
+	Auras:SetHeight(C.sAuSize+Auras.spacing*2)
 	
 	-- 選項
 	Auras.disableCooldown = true
 	Auras.showDebuffType = true
+	Auras.disableMouse = true
 	-- 註冊到ouf
 	self.Auras = Auras
 	self.Auras.PostCreateIcon = T.PostCreateIcon
@@ -100,55 +130,67 @@ local function CreateRaid(self, unit)
 	
 	-- Make mouse active
 	self:SetScript("OnEnter", UnitFrame_OnEnter)	-- mouseover
-    self:SetScript("OnLeave", UnitFrame_OnLeave)
+	self:SetScript("OnLeave", UnitFrame_OnLeave)
 	self:RegisterForClicks("AnyUp")
 	
 	-- Highlight
-	self.hl = self:CreateTexture(nil, "HIGHLIGHT")
-    self.hl:SetAllPoints(self)
-    self.hl:SetTexture(G.media.barhightlight)
-    self.hl:SetVertexColor(1, 1, 1, 0.3)
-    self.hl:SetTexCoord(0, 1, 1, 0)
-    self.hl:SetBlendMode("ADD")
-	self.Mouseover = hl
-	
-	--self.Target = F.CreateBD(self, self, 2, 1, 1, 0, 1)
-	--self.Target:SetOutside(self, 3, 3)
-	--self.Target:RegisterEvent("PLAYER_TARGET_CHANGED", UpdateTarget, true)
+	local hl = self:CreateTexture(nil, "HIGHLIGHT")
+	hl:SetAllPoints(self)
+	hl:SetTexture(G.media.barhightlight)
+	hl:SetVertexColor(1, 1, 1, .5)
+	hl:SetTexCoord(0, 1, 1, 0)
+	hl:SetBlendMode("ADD")
+	self.Highlight = hl
 	
 	-- 創建一個條
-	local Health = F.CreateStatusbar(self, G.addon..unit.."_HealthBar", "ARTWORK", nil, nil, 0, 0, 0, 1)
+	local Health = F.CreateStatusbar(self, G.addon..unit.."_HealthBar", "ARTWORK", nil, nil, 1, 0, 0, 1)
 	Health:SetAllPoints(self)
 	Health:SetFrameLevel(self:GetFrameLevel())
+	Health:SetReverseFill(true)
 	-- 選項
 	Health.colorDisconnected = true
-	Health.frequentUpdates = .1
+	Health.colorSmooth = true			-- 血量漸變色
+	Health.smoothGradient = {1, 0, 0, 1, .8, .1, 1, .8, .1}
 	-- 背景
 	Health.bg = Health:CreateTexture(nil, "BACKGROUND")
 	Health.bg:SetAllPoints()
-	Health.bg:SetTexture(G.media.blank)
+	Health.bg:SetTexture(G.media.raidbar)
 	-- 陰影和邊框
 	Health.border = F.CreateSD(Health, Health, 3)
 	-- 註冊到OUF
 	self.Health = Health
-	self.Health.UpdateColor = UpdateHealthColor
-	--self.Health.PostUpdate = UpdateTarget
-	--self.Health:RegisterEvent("PLAYER_TARGET_CHANGED", UpdateTarget, true)
+	self.Health.PreUpdate = T.OverrideHealthbar		-- 更新機制：損血量
+	self.Health.PostUpdate = T.PostUpdateHealth		-- 更新機制：顯示損血量，使血量漸變色和透明度隨損血量改變
+	self.Health.PostUpdateColor = PostUpdateColor	-- 職業顏色映射至背景
+	-- 目標高亮
+	self:RegisterEvent("PLAYER_TARGET_CHANGED", UpdateTargetBorder, true)
+	self:RegisterEvent("GROUP_ROSTER_UPDATE", UpdateTargetBorder, true)
+	-- 仇恨高亮
+	local threat = CreateFrame("Frame", nil, self)
+	self.ThreatIndicator = threat
+	self.ThreatIndicator.Override = UpdateThreatBorder
 	
 	local Power = F.CreateStatusbar(self, G.addon..unit.."_PowerBar", "ARTWORK", nil, nil, 1, 1, 1, 1)
 	Power:SetHeight(C.RPHeight)
 	Power:SetPoint("BOTTOMLEFT", self.Health, 0, 0)	-- 與血量條等寬
 	Power:SetPoint("BOTTOMRIGHT", self.Health, 0, 0)
-	Power:SetFrameLevel(self:GetFrameLevel() + 2)
-	
+	Power:SetFrameLevel(self:GetFrameLevel()+3)
+	-- 選項
 	Power.frequentUpdates = true
 	Power.colorPower = true
-	
+	-- 背景
 	Power.bg = Power:CreateTexture(nil, "BACKGROUND")
 	Power.bg:SetAllPoints()
 	Power.bg:SetTexture(G.media.blank)
 	Power.bg.multiplier = .3
-	
+	-- 邊框，只需要上方一條1px，CreateBD會創建四面的
+	Power.border = Power:CreateTexture(nil, "BACKGROUND")
+	Power.border:SetHeight(1)	-- 與血量條等寬
+	Power.border:SetPoint("TOPLEFT", Power, 0, 1)	-- 與血量條等寬
+	Power.border:SetPoint("TOPRIGHT", Power, 0, 2)	-- 1px高度
+	Power.border:SetTexture(G.media.blank)
+	Power.border:SetVertexColor(0, 0, 0, 1)
+	-- 註冊到OUF
 	self.Power = Power
 	
 	-- [[ 圖示 ]] --
@@ -174,16 +216,29 @@ local function CreateRaid(self, unit)
 	-- 異位面
 	local phase = StringParent:CreateTexture(nil, "OVERLAY")
 	phase:SetSize(20, 20)
-	phase:SetPoint("CENTER", self.Health, 0, 0)
+	phase:SetPoint("CENTER", self.Health, 0, -3)
 	self.PhaseIndicator = phase
 	-- 召喚
+	local Summon = StringParent:CreateTexture(nil, "OVERLAY")
+    Summon:SetSize(28, 28)
+    Summon:SetPoint("CENTER", self.Health, 0, -3)
+    self.SummonIndicator = Summon
 	-- 復活
+    local Res = StringParent:CreateTexture(nil, "OVERLAY")
+    Res:SetSize(20, 20)
+    Res:SetPoint("CENTER", self.Health, 0, -3)
+    self.ResurrectIndicator = Res
+	-- 職責
+    local Role = StringParent:CreateTexture(nil, "OVERLAY")
+    Role:SetSize(20, 20)
+    Role:SetPoint("TOPLEFT", self.Health, 3, 6)
+    Role:SetTexture(G.media.role)
+    --Role:SetDesaturation(true)
+    self.GroupRoleIndicator = Role
 end
 
-
--- 右下 ICON ROLE等等
-
-local function CreateRaidStyle(self, unit)
+--[[
+local function CreatePartyStyle(self, unit)
 	self.mystyle = "R"
 	self.Range = {
 		insideAlpha = 1, outsideAlpha = .5,
@@ -202,61 +257,117 @@ local function CreateRaidStyle(self, unit)
 	CreateAuras(self)
 	
 	-- 狀態：暫離/忙錄/等級
-	--[[self.StatusR = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
+	self.StatusR = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	self:Tag(self.StatusR, "[afkdnd] ")
-	self.StatusR:SetPoint("TOPRIGHT", 0, 0)]]--
+	self.StatusR:SetPoint("TOPRIGHT", 0, 0)
 	
 	self.RaidTargetIndicator:SetPoint("TOP", self.Health, 0, 12)
 	self.AssistantIndicator:SetPoint("TOPLEFT", self.Health, 0, 8)
 	self.LeaderIndicator:SetPoint("TOPLEFT", self.Health, 0, 8)
 end
+]]--
+local function CreateRaidStyle(self, unit)
+	self.mystyle = "R"
+	self.Range = {
+		insideAlpha = 1, outsideAlpha = .4,
+	}
+	self.Range.PostUpdate = UpdateOffline
 
+	-- 框體
+	CreateRaid(self, unit)				-- 繼承通用樣式	
+	self:SetSize(C.RWidth, C.RHeight)	-- 主框體尺寸
+	-- 文本
+	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
+	self.Name:SetPoint("TOPRIGHT", -2, -3)
+	self.Name:SetJustifyH("RIGHT")
+	self.Name:SetWidth(self:GetWidth()-4)
+	self.Name.frequentUpdates = 60
+	self:Tag(self.Name, "[namecolor][name][afkdnd]")
+	-- 減益
+	CreateAuras(self)
 
-oUF:RegisterStyle("Raid", CreateRaidStyle)
+	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
+	self.AssistantIndicator:SetPoint("BOTTOMRIGHT", self.Health, 0, 0)
+	self.LeaderIndicator:SetPoint("BOTTOMRIGHT", self.Health, 0, 0)
+end
+
+--===================================================--
+--------------    [[ RegisterStyle ]]     -------------
+--===================================================--
+-- 註冊樣式
+if C.RaidFrames then
+	oUF:RegisterStyle("Raid", CreateRaidStyle)
+end
+--[[
+if C.PartyFrames then
+	oUF:RegisterStyle("Party", CreatePartyStyle)
+end
+]]--
+--===================================================--
+-----------------    [[ Spawn ]]     ------------------
+--===================================================--
+-- 生成
+
 oUF:Factory(function(self)
 	self:SetActiveStyle("Raid")
-	local raid = {}
-		for i = 1, 6 do
-			local header = oUF:SpawnHeader(
-				"Ruri_Raid"..i,
-				nil,
-				"solo, party, raid",
-				
-				"showPlayer",		true,
-				"showSolo",			false,
-				"showParty",		true,
-				"showRaid",         true,
-				
-				"xoffset",			5,
-				"yOffset",			-(C.PPHeight*2+5),
-				
-				"groupFilter",		tostring(i),
-				"groupingOrder",	"1,2,3,4,5,6,7,8",
-				"groupBy",			"GROUP",
-				"sortMethod",		"INDEX", -- or "NAME"
-				"startingIndex",	1,
-				
-				"unitsPerColumn",	5,
-				"maxColumns",		8,
-				"columnSpacing",	5,
-				
-				"point",              RIGHT,
-				"columnAnchorPoint",  "RIGHT",
-				
-				"oUF-initialConfigFunction", ([[
-					self:SetWidth(%d)
-					self:SetHeight(%d)
-					]]):format(C.RaidWidth, C.RaidHeight)
-			)
-			if i == 1 then
-				header:SetAttribute("showSolo", true)
-				header:SetAttribute("showPlayer", true)
-				header:SetAttribute("showParty", true)
-
-				header:SetPoint("CENTER", UIParent, 580, 0)
-			else
-				header:SetPoint("TOPLEFT",raid[i-1],"TOPRIGHT", 4, 0)
-			end
-			raid[i] = header
+	
+	local raidAnchor = CreateFrame("Frame", nil, UIParent)
+	raidAnchor:SetSize(20, 20)
+	raidAnchor:ClearAllPoints()
+	raidAnchor:SetPoint("CENTER", UIParent, 570, 120)
+	
+	--[[
+	local party = {}
+	for i = 1, 5 do
+		local unit = self:Spawn("party"..i, "oUF_Party"..i)
+		if i == 1 then
+			unit:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
+		else
+			unit:SetPoint("TOP", party[i-1], "BOTTOM", 0, -4)
 		end
+		party[i] = unit
+	end
+	]]--
+	
+	local raid = {}
+	for i = 1, 8 do
+		raid[i] = self:SpawnHeader("oUF_Raid"..i, nil, "party,raid,solo",
+			"showSolo",			false,
+			"showParty",		C.PartyFrames,
+			"showRaid",			C.RaidFrames,
+			"showPlayer",		true,
+
+			"point",			"TOP",
+			"columnAnchorPoint","LEFT",
+
+			"groupFilter",		tostring(i),
+			"groupingOrder",	tostring(i),
+			"groupBy",			"GROUP",
+			"sortMethod",		"INDEX", -- or "NAME"
+			"startingIndex",	1,
+			
+			"maxColumns",		8,
+			"unitsPerColumn",	5,
+			"columnSpacing",	C.RSpace,
+			"xoffset",			C.RSpace,
+			"yOffset",			-C.RSpace,
+			
+			"templateType", "Button",
+			"oUF-initialConfigFunction", ([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+			]]):format(C.RWidth, C.RHeight)
+		)
+		
+		if i == 1 then
+			raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
+		elseif i >= 2 and i <= 4 then
+			raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
+		elseif i == 5 then
+			--raid[i]:SetPoint("TOP", raid[i-4], "BOTTOM", 0, -C.RSpace)
+			raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, -(C.RHeight+C.RSpace)*5)
+		elseif i >= 6 then
+			raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
+		end
+	end
 end)

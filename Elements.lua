@@ -581,3 +581,41 @@ T.CreateTotems = function(self)
 	
 	hooksecurefunc("TotemFrame_Update", UpdatePos)
 end
+
+--[[
+T.CreateFCT = function(self)
+	if not C.CombatText then return end
+
+	local parentFrame = CreateFrame("Frame", nil, UIParent)
+	local parentName = self:GetName()
+	local fcf = CreateFrame("Frame", parentName.."CombatTextFrame", parentFrame)
+	fcf:SetSize(32, 32)
+	--[[if self.mystyle == "player" then
+		B.Mover(fcf, L["CombatText"], "PlayerCombatText", {"BOTTOM", self, "TOPLEFT", 0, 120})
+	else
+		B.Mover(fcf, L["CombatText"], "TargetCombatText", {"BOTTOM", self, "TOPRIGHT", 0, 120})
+	end]]--
+
+	for i = 1, 36 do
+		fcf[i] = parentFrame:CreateFontString("$parentText", "OVERLAY")
+	end
+
+	local scrolling = CreateFrame("ScrollingMessageFrame", parentName.."CombatTextScrollingFrame", parentFrame)
+	scrolling:SetSpacing(3)
+	scrolling:SetMaxLines(20)
+	scrolling:SetFadeDuration(.2)
+	scrolling:SetTimeVisible(3)
+	scrolling:SetJustifyH("CENTER")
+	scrolling:SetPoint("BOTTOM", fcf)
+	fcf.Scrolling = scrolling
+	--tinsert(scrolls, scrolling)
+
+	fcf.font = G.Font
+	fcf.fontFlags = G.FontFlag
+	fcf.abbreviateNumbers = true
+	self.FloatingCombatFeedback = fcf
+
+	-- Default CombatText
+	SetCVar("enableFloatingCombatText", 0)
+end
+]]--

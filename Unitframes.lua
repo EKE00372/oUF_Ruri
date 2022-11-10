@@ -266,7 +266,7 @@ local function CreateVPlayerStyle(self, unit)
 	-- 框體
     CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.PWidth)	-- 主框體尺寸
-	T.CreateHealthPrediction(self, unit)-- 吸收盾
+	--T.CreateHealthPrediction(self, unit)-- 吸收盾
 	
 	-- 文本
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, 0)
@@ -283,13 +283,9 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
 	
-	if C.TankResource then
-		T.CreateTankResource(self, unit)
-	end
-	
-	if C.Totems then
-		T.CreateTotems(self)
-	end
+	if C.TankResource then T.CreateTankResource(self, unit) end
+	if C.Totems then T.CreateTotems(self) end
+	if C.CombatText then T.CreateFCT(self) end
 	
 	-- 減益
 	if C.PlayerDebuffs then
@@ -926,7 +922,7 @@ end
 --===================================================--
 -- 註冊樣式
 
-oUF:RegisterStyle(G.addon, CreateUnitShared)
+--oUF:RegisterStyle(G.addon, CreateUnitShared)
 
 if C.vertPlayer then
 	oUF:RegisterStyle("Player", CreateVPlayerStyle)
