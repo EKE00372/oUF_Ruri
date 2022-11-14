@@ -115,9 +115,9 @@ local function CreateAuras(self)
 	Auras.disableMouse = true
 	-- 註冊到ouf
 	self.Auras = Auras
-	self.Auras.PostCreateIcon = T.PostCreateIcon
-	self.Auras.PostUpdateIcon = T.PostUpdateIcon
-	self.Auras.CustomFilter = T.CustomFilter				-- 光環過濾	
+	self.Auras.PostCreateButton = T.PostCreateIcon
+	self.Auras.PostUpdateButton = T.PostUpdateIcon
+	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
 end
 
 --=========================================================--

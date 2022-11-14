@@ -214,13 +214,7 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
 	
-	if C.TankResource then
-		T.CreateTankResource(self, unit)
-	end
-	
-	if C.Totems then
-		T.CreateTotems(self)
-	end
+	if C.TankResource then T.CreateTankResource(self, unit) end
 	
 	-- 施法條
 	if C.StandaloneCastbar then

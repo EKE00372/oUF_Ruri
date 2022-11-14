@@ -1,11 +1,13 @@
 local addon, ns = ...
 local C, F, G, T = unpack(ns)
 
+-- elements: create elements
+
 --===================================================--
 -----------------    [[ Castbar ]]    -----------------
 --===================================================--
 
--- [[ 施法條 ]] --
+-- [[ 嵌入施法條 ]] --
 
 T.CreateCastbar = function(self, unit)
 	-- 創建一個條
@@ -31,6 +33,10 @@ T.CreateCastbar = function(self, unit)
 	Castbar.Spark:SetTexture(G.media.spark)
 	Castbar.Spark:SetBlendMode("ADD")
 	Castbar.Spark:SetVertexColor(1, 1, .85, .8)
+	
+	-- 隊列
+	--Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
+	--Castbar.SafeZone:SetAlpha(.6)
 	
 	-- 橫豎的spark不一樣
 	if self.mystyle ~= "H" then
@@ -232,7 +238,7 @@ T.CreateAuras = function(self, button)
 		self.Auras.PostUpdateGapButton = T.PostUpdateGapIcon	-- 間隔圖示
 	end
 	
-	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾	
+	self.Auras.FilterAura = T.CustomFilter					-- 光環過濾	
 	self.Auras.PreUpdate = T.BolsterPreUpdate				-- 激勵
 	self.Auras.PostUpdate = T.BolsterPostUpdate				-- 激勵計數
 end

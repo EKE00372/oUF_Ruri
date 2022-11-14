@@ -242,29 +242,6 @@ end
 -----------------    [[ Auras ]]    -----------------
 --=================================================--
 
--- [[ 在光環圖示定位前，重置光環index，以更新位置 ]] --
-
-local function PreSetPosition(self, max)
-	return 1, self.visibleAuras
-end
-
--- [[ 自訂光環位置 ]] --
-
-local function SetPosition(self, from, to)
-	for i = from, to do
-		local button = self[i]
-		if not button then break end
-
-		if i == 1 then
-			-- 第一個aura向左位移的格數是總數-1，所以是to(=last aura)-1
-			button:SetPoint("CENTER", -(((self.size + self.spacing) * (to - 1)) / 2), 0)
-		else
-			-- 每一個aura都要anchor到前一個光環 所以是i-1
-			button:SetPoint("LEFT", self[i-1], "RIGHT", self.spacing, 0)
-		end
-	end
-end
-
 -- [[ 光環 ]] --
 
 local function CreeateAuras(self, unit)
@@ -294,14 +271,16 @@ local function CreeateAuras(self, unit)
 	-- 註冊到ouf
 	self.Auras = Auras
 	
-	self.Auras.PreSetPosition = PreSetPosition
-	self.Auras.SetPosition = SetPosition
+	-- 不SetPosition就會BOTTOMLEFT所以還是得SetPosition不能只PostUpdate
+	--self.Auras.SetPosition = T.SetNamePlatesPosition
+	-- 直接禁用算了
+	self.Auras.SetPosition = function() end
 	
 	self.Auras.PostCreateButton = T.PostCreateIcon
 	self.Auras.PostUpdateButton = T.PostUpdateIcon
-	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾	
-	self.Auras.PreUpdate = T.BolsterPreUpdate				-- 激勵
-	self.Auras.PostUpdate = T.BolsterPostUpdate				-- 激勵計數
+	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
+	self.Auras.PreUpdate = T.BolsterPreUpdate			-- 激勵
+	self.Auras.PostUpdate = T.BolsterPostUpdate			-- 激勵計數和錨點更新
 end
 
 --=====================================================--
