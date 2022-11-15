@@ -244,6 +244,25 @@ end
 
 -- [[ 光環 ]] --
 
+-- [[ 替名條重做光環排列方式為置中對齊 ]] --
+
+local function SetPosition(self, from, to)
+	local num = #self.sortedBuffs + #self.sortedDebuffs
+	
+	for i = 1, num do
+		local button = self[i]
+		if not button then break end
+		
+		if i == 1 then
+			-- 第一個aura向左位移的格數是總數-1，所以是to(=last aura)-1
+			button:SetPoint("CENTER", -(((self.size + self.spacing) * (num - 1)) / 2), 0)
+		else
+			-- 每一個aura都要anchor到前一個光環，所以是i-1
+			button:SetPoint("LEFT", self[i-1], "RIGHT", self.spacing, 0)
+		end
+	end
+end
+
 local function CreeateAuras(self, unit)
 	local style = self.mystyle
 	
@@ -272,11 +291,7 @@ local function CreeateAuras(self, unit)
 	-- 註冊到ouf
 	self.Auras = Auras
 	
-	-- 不SetPosition就會BOTTOMLEFT所以還是得SetPosition不能只PostUpdate
-	self.Auras.SetPosition = T.SetNamePlatesPosition
-	-- 直接禁用算了
-	--self.Auras.SetPosition = function() end
-	
+	self.Auras.SetPosition = SetPosition
 	self.Auras.PostCreateButton = T.PostCreateIcon
 	self.Auras.PostUpdateButton = T.PostUpdateIcon
 	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
