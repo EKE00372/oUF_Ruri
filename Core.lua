@@ -480,9 +480,9 @@ T.BolsterPostUpdate = function(self, unit)
 	--if(self.unit ~= unit) then return end
 	local style = self.__owner.mystyle
 	--local auras = self.Auras
-	if style == "NP" or style == "BP" then
+	--[[if style == "NP" or style == "BP" then
 		T.SetNamePlatesPosition(self)
-	end
+	end]]--
 	
 	
 	--[[if not self.bolsterIndex then return end
@@ -527,7 +527,7 @@ T.CustomFilter = function(self, unit, data)
 			return true
 		else
 			-- 預設的控場白名單和玩家/寵物/載具的法術
-			return data.nameplateShowAll or F.Multicheck(data.sourceUnit, "player", "pet", "vehicle")
+			return data.nameplateShowAll or data.isPlayerAura
 		end
 	elseif style == "NPP" or style == "BPP" then
 		if C.PlayerBlackList[data.spellId] then
@@ -538,7 +538,7 @@ T.CustomFilter = function(self, unit, data)
 			return true
 		else
 			-- 個人資源條顯示30秒(含)以下的光環
-			return F.Multicheck(data.sourceUnit, "player", "pet", "vehicle") and data.duration <= 30 and data.duration ~= 0
+			return data.isPlayerAura and data.duration <= 30 and data.duration ~= 0
 		end
 	elseif style == "R" then
 		if C.RaidBlackList[data.spellId] then
@@ -552,7 +552,8 @@ T.CustomFilter = function(self, unit, data)
 			-- 暴雪內建的其他，直接調用原生團隊框架的規則
 			local hasCustom, alwaysShowMine, showForMySpec = SpellGetVisibilityInfo(data.spellId, UnitAffectingCombat("player") and "RAID_INCOMBAT" or "RAID_OUTOFCOMBAT")
 			if hasCustom then
-				return showForMySpec or (alwaysShowMine and F.Multicheck(data.sourceUnit, "player", "pet", "vehicle"))
+				-- 監視自身所有
+				return showForMySpec or (alwaysShowMine and data.isPlayerAura)
 			else
 				return true
 			end

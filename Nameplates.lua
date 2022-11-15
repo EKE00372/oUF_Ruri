@@ -268,13 +268,14 @@ local function CreeateAuras(self, unit)
 	Auras.showDebuffType = true
 	Auras.showBuffType = true
 	Auras.showStealableBuffs = true
+	Auras.reanchorIfVisibleChanged = true
 	-- 註冊到ouf
 	self.Auras = Auras
 	
 	-- 不SetPosition就會BOTTOMLEFT所以還是得SetPosition不能只PostUpdate
-	--self.Auras.SetPosition = T.SetNamePlatesPosition
+	self.Auras.SetPosition = T.SetNamePlatesPosition
 	-- 直接禁用算了
-	self.Auras.SetPosition = function() end
+	--self.Auras.SetPosition = function() end
 	
 	self.Auras.PostCreateButton = T.PostCreateIcon
 	self.Auras.PostUpdateButton = T.PostUpdateIcon

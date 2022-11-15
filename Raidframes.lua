@@ -233,7 +233,7 @@ local function CreateRaid(self, unit)
     Role:SetSize(20, 20)
     Role:SetPoint("TOPLEFT", self.Health, 3, 6)
     Role:SetTexture(G.media.role)
-    --Role:SetDesaturation(true)
+    Role:SetDesaturated(true)
     self.GroupRoleIndicator = Role
 end
 
