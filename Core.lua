@@ -148,7 +148,7 @@ T.PostCastStart = function(self, unit)
 	end
 end
 
--- [[ 嵌入施法條：停止施法 ]] --
+-- [[ 施法條：停止施法 ]] --
 
 T.PostCastStop = function(self, unit)
 	local frame = self:GetParent()
@@ -316,7 +316,7 @@ end
 
 T.PostUpdateIcon = function(self, button, unit, data)
 	local style = self.__owner.mystyle
-	local color = oUF.colors.debuff[debuffType] or oUF.colors.debuff.none
+	local color = oUF.colors.debuff[data.dispelName] or oUF.colors.debuff.none
 	
 	-- 更新陰影
 	if data.duration then
@@ -337,7 +337,6 @@ T.PostUpdateIcon = function(self, button, unit, data)
 			button.Overlay:Show()
 			-- 頭像上減益效果按類型染色，增益效果固定灰色
 			if data.isHarmful then
-				local color = oUF.colors.debuff[debuffType] or oUF.colors.debuff.none
 				button.Overlay:SetVertexColor(color[1], color[2], color[3])
 			else
 				button.Overlay:SetVertexColor(.6, .6, .6)
@@ -357,7 +356,10 @@ T.PostUpdateIcon = function(self, button, unit, data)
 		button.Cooldown:Hide()
 	end
 	
-	button.first = true
+	-- 更新激勵層數
+	if self.bolsterInstanceID and self.bolsterInstanceID == button.auraInstanceID then
+		button.Count:SetText(self.bolsterStacks)
+	end
 end
 
 --[[ 隱藏gap的文字和陰影 ]] --
@@ -452,71 +454,27 @@ end
 
 -- 替激勵設一個初始層數並用於重置
 T.BolsterPreUpdate = function(self)
-	self.bolster = 0
-	self.bolsterIndex = nil
-end
-
--- [[ 替名條重做光環排列方式為置中對齊 ]] --
-
-T.SetNamePlatesPosition = function(self, from, to)
-	--for i = from, to do
-	for i = 1, (#self.sortedBuffs + #self.sortedDebuffs) do
-		local button = self[i]
-		if not button then break end
-		
-		if i == 1 then
-			-- 第一個aura向左位移的格數是總數-1，所以是to(=last aura)-1
-			button:SetPoint("CENTER", -(((self.size + self.spacing) * ((#self.sortedBuffs + #self.sortedDebuffs) - 1)) / 2), 0)
-		else
-			-- 每一個aura都要anchor到前一個光環 所以是i-1
-			button:SetPoint("LEFT", self[i-1], "RIGHT", self.spacing, 0)
-		end
-	end
-end
-
--- 更新激勵層數
---T.BolsterPostUpdate = function(self)
-T.BolsterPostUpdate = function(self, unit)
-	--if(self.unit ~= unit) then return end
-	local style = self.__owner.mystyle
-	--local auras = self.Auras
-	--[[if style == "NP" or style == "BP" then
-		T.SetNamePlatesPosition(self)
-	end]]--
-	
-	
-	--[[if not self.bolsterIndex then return end
-	for _, button in pairs(self) do
-		if button == self.bolsterIndex then
-			button.Count:SetText(self.bolster)
-			return
-		end
-	end]]--
-	
-	local button = self.bolsterIndex
-	if button then
-		button.Count:SetText(self.bolster)
-	end
+	self.bolsterStacks = 0
+	self.bolsterInstanceID = nil
 end
 
 -- 光環過濾
---T.CustomFilter = function(self, unit, button, name, _, _, _, duration, expiration, caster, isStealable, _, spellID, _, isBossDebuff, casterIsPlayer, nameplateShowAll)
 T.CustomFilter = function(self, unit, data)
 	local style = self.__owner.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
-	if data.icon and data.spellId == 209859 then
+	if data.name and data.spellId == 209859 then
 		-- 激勵顯示為層數
-		self.bolster = (self.bolster or 0) + 1
-		if not self.bolsterIndex then
-			self.bolsterIndex = button
-			return true
+		if not self.bolsterInstanceID then
+			self.bolsterInstanceID = data.auraInstanceID
 		end
+		self.bolsterStacks = self.bolsterStacks + 1
+		return self.bolsterStacks == 1
 	elseif style == "NP" or style == "BP" then
 		if UnitIsUnit("player", unit) then
 			-- 當該名條單位是玩家自己時隱藏，預防有人把系統的個人資源打開搞事情
 			return false
-		elseif self.showStealableBuffs and data.isStealable and npc then	
+		elseif self.showStealableBuffs and data.isStealable and npc then
 			-- 非玩家，可驅散，則顯示
 			return true
 		elseif C.BlackList[data.spellId] then
@@ -547,7 +505,6 @@ T.CustomFilter = function(self, unit, data)
 		elseif data.isBossAura or SpellIsPriorityAura(data.spellId) then
 			-- 暴雪內建的首領光環和優先顯示等等
 			return true
-		-- elseif data.spellId == 57723 then return true
 		else
 			-- 暴雪內建的其他，直接調用原生團隊框架的規則
 			local hasCustom, alwaysShowMine, showForMySpec = SpellGetVisibilityInfo(data.spellId, UnitAffectingCombat("player") and "RAID_INCOMBAT" or "RAID_OUTOFCOMBAT")
@@ -642,7 +599,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	{1, .95, .4},		-- 滿星
 	}
 	
-	for i = 1, 6 do
+	for i = 1, 7 do
 		if MaxChanged then
 			if style == "VL" then
 				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
