@@ -388,8 +388,8 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	if (id == 268 and not C.TankResource) or 
 	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK") or 
 	  (F.Multicheck(id, 581, 73) and C.TankResource) or
-	  F.Multicheck(id, 102, 103, 104, 62, 269, 66, 70, 262, 263) then
-		-- 雙資源專精：死騎、盜賊、術士；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、增元
+	  F.Multicheck(id, 102, 103, 104, 62, 269, 66, 70, 262) then
+		-- 雙資源專精：死騎、盜賊、術士；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、元素
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2) + 1, 1)
 		else
@@ -599,7 +599,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	{1, .95, .4},		-- 滿星
 	}
 	
-	for i = 1, 7 do
+	for i = 1, 6 do
 		if MaxChanged then
 			if style == "VL" then
 				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
@@ -656,3 +656,22 @@ T.PostUpdateRunes = function(self, runemap)
 		end
 	end
 end
+
+-- [[ 圖騰 ]] --
+
+--[[
+T.PostUpdateTotem = function(self, slot, haveTotem, name, start, duration, icon)
+	local totem = self[slot]
+	local haveTotem, name, start, duration, icon = GetTotemInfo(slot)
+	if (haveTotem and duration > 0) then
+		if(totem.Icon) then
+			totem.Icon.Border = F.CreateBD(totem, totem.Icon, 1, .6, .6, .6, 1)
+			totem.Icon.Shadow = F.CreateSD(totem, totem.Icon.Border, 3)
+		end
+
+		totem:Show()
+	else
+		totem:Hide()
+	end
+end
+]]--

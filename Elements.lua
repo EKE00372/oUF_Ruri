@@ -520,7 +520,7 @@ T.CreateTankResource = function(self, unit)
 end
 
 -- [[ 圖騰 ]] --
-
+--[[
 T.CreateTotems = function(self)
 	-- 直接調用暴雪的圖騰條
 	TotemFrame:ClearAllPoints()
@@ -587,7 +587,32 @@ T.CreateTotems = function(self)
 	
 	hooksecurefunc("TotemFrame_Update", UpdatePos)
 end
+]]--
 
+--[[
+T.CreateTotems = function(self)
+	local Totems = {}
+    for index = 1, 5 do
+        -- Position and size of the totem indicator
+        local Totem = CreateFrame("Button", nil, self)
+        Totem:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
+		Totem:SetPoint("TOPLEFT", self, "BOTTOMLEFT", index * Totem:GetWidth(), -C.PPOffset)
+		
+        local Icon = Totem:CreateTexture(nil, "OVERLAY")
+        Icon:SetAllPoints()
+        Icon:SetTexCoord(.08, .92, .08, .92)
+
+        Totem.Icon = Icon
+        Totem.Cooldown = false
+
+        Totems[index] = Totem
+    end
+
+	self.Totems = Totems
+	self.Totems.PostUpdate = T.PostUpdateTotem
+end
+]]--
+--[[
 T.CreateFCT = function(self)
 	if not C.CombatText then return end
 
@@ -595,11 +620,7 @@ T.CreateFCT = function(self)
 	local parentName = self:GetName()
 	local fcf = CreateFrame("Frame", parentName.."CombatTextFrame", parentFrame)
 	fcf:SetSize(32, 32)
-	--[[if self.mystyle == "player" then
-		B.Mover(fcf, L["CombatText"], "PlayerCombatText", {"BOTTOM", self, "TOPLEFT", 0, 120})
-	else
-		B.Mover(fcf, L["CombatText"], "TargetCombatText", {"BOTTOM", self, "TOPRIGHT", 0, 120})
-	end]]--
+
 
 	for i = 1, 36 do
 		fcf[i] = parentFrame:CreateFontString("$parentText", "OVERLAY")
@@ -623,3 +644,4 @@ T.CreateFCT = function(self)
 	-- Default CombatText
 	SetCVar("enableFloatingCombatText", 0)
 end
+]]--

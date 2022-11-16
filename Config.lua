@@ -20,8 +20,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 ------------
 
 	C.UnitFrames = true		-- enable Unitframes, ture = enable, false = disable / 啟用頭像，enable = 啟用，disable = 停用
-	C.RaidFrames = true		-- enable Raidframes / 啟用團隊框架
-	C.PartyFrames = true
+	C.RaidFrames = false		-- enable Raidframes / 啟用團隊框架
+	C.PartyFrames = false
 	C.Nameplates = true		-- enable Nameplates/ 啟用名條
 
 -------------
