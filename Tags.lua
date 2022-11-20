@@ -11,6 +11,7 @@ oUF.colors.class["SHAMAN"] = {0, .6, 1}
 oUF.colors.class["MAGE"] = {.48, .84, .94}
 oUF.colors.class["DEATHKNIGHT"] = {1, .23, .23}
 oUF.colors.class["DEMONHUNTER"] = {.74, .35, .95}
+oUF.colors.class["EVOKER"] = {.33, .68, .68}
 
 -- [[ 威脅 ]] --
 

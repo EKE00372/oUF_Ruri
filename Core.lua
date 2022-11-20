@@ -386,10 +386,10 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	local id = GetSpecializationInfo(index)
 	
 	if (id == 268 and not C.TankResource) or 
-	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK") or 
+	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
 	  (F.Multicheck(id, 581, 73) and C.TankResource) or
 	  F.Multicheck(id, 102, 103, 104, 62, 269, 66, 70, 262) then
-		-- 雙資源專精：死騎、盜賊、術士；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、元素
+		-- 雙資源專精：死騎、盜賊、術士、喚能；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、元素
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2) + 1, 1)
 		else
@@ -594,12 +594,11 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	
 	local style = self.__owner.mystyle
 	local cpColor = {
-	--{1, .8, .5},
 	{1, .7, .1},
 	{1, .95, .4},		-- 滿星
 	}
 	
-	for i = 1, 6 do
+	for i = 1, 7 do
 		if MaxChanged then
 			if style == "VL" then
 				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
@@ -609,8 +608,8 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
 			end
 		end
-		
-		if F.Multicheck(G.myClass, "ROUGE", "DRUID") then
+
+		if powerType == "COMBO_POINTS" then
 			if max > 0 and cur == max then
 				self[i]:SetStatusBarColor(unpack(cpColor[2]))
 			else
@@ -619,6 +618,37 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 		end
 	end
 end
+
+--[[
+https://github.com/tomrus88/BlizzardInterfaceCode/blob/master/Interface/FrameXML/EssenceFramePlayer.lua
+
+T.PostUpdateEssence = function(self)
+	local index = UnitPower("player",19)
+	if index and index ~= 6 then
+		local peace, interrupted = GetPowerRegenForPowerType(Enum.PowerType.Essence)
+		if (peace == nil or peace == 0) then
+			peace = 0.2
+		end
+		local cooldownDuration = 1 / peace
+		
+		expirationTime = cooldownDuration + GetTime()
+		
+		self:SetValue(duration) ?????
+		
+		
+		-- 把Aura API 返回的方法转换成进度比 取值[0,100]
+local function GetProgress(startTime, duration)
+    if startTime == 0 and duration == 0 then return 100 end
+    local nowTime = GetTime() -- nowTime
+    local startTime = startTime -- startTime
+    local expirTime = startTime + nowTime -- expirTime
+
+    local progress = (nowTime - startTime) / (duration)
+
+    return progress * 100
+end
+
+]]--
 
 -- [[ 符能 ]] --
 
