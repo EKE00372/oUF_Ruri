@@ -250,11 +250,11 @@ end
 -- [[ 職業資源 ]] --
 
 T.CreateClassPower = function(self, unit)
-	if not F.Multicheck(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROGUE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT") then return end
+	if not F.Multicheck(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROGUE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT", "EVOKER") then return end
 	
 	local ClassPower = {}
 	
-	for i = 1, 6 do
+	for i = 1, 7 do
 		-- 創建總體條
 		ClassPower[i] = F.CreateStatusbar(self, G.addon..unit.."_ClassPowerBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 3)
@@ -263,7 +263,7 @@ T.CreateClassPower = function(self, unit)
 		if self.mystyle == "VL" then
 			-- 單獨的每個豆子
 			ClassPower[i]:SetOrientation("VERTICAL")
-			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - 5*C.PPOffset)/6)
+			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - 6*C.PPOffset)/7)
 			
 			if i == 1 then
 				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
@@ -271,7 +271,7 @@ T.CreateClassPower = function(self, unit)
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
 		elseif self.mystyle == "NPP" or self.mystyle == "BPP" then
-			ClassPower[i]:SetSize((C.PlayerNPWidth - 5*C.PPOffset)/6, C.PPHeight)
+			ClassPower[i]:SetSize((C.PlayerNPWidth - 6*C.PPOffset)/7, C.PPHeight)
 			
 			if C.NumberStylePP then
 				if i == 1 then
@@ -287,7 +287,7 @@ T.CreateClassPower = function(self, unit)
 				end
 			end
 		else
-			ClassPower[i]:SetSize((C.PWidth - 5*C.PPOffset)/6, C.PPHeight)
+			ClassPower[i]:SetSize((C.PWidth - 6*C.PPOffset)/7, C.PPHeight)
 			
 			if i == 1 then
 				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
@@ -304,6 +304,15 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
 			ClassPower[i].timer:SetPoint("CENTER", 0, 0)
 		end
+		
+		--[[if G.myClass == "EVOKER" then
+			ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
+			ClassPower[i].bg:SetAllPoints()
+			ClassPower[i].bg:SetTexture(G.media.blank)
+			ClassPower[i].bg.multiplier = .4
+			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
+			ClassPower[i].timer:SetPoint("CENTER", 0, 0)
+		end]]--
 	end
 	
 	-- 註冊到ouf並整合符文顯示
@@ -518,130 +527,3 @@ T.CreateTankResource = function(self, unit)
     self.TankResource = TankResource
     self.TankResource.PostUpdate = T.PostUpdateTankResource
 end
-
--- [[ 圖騰 ]] --
---[[
-T.CreateTotems = function(self)
-	-- 直接調用暴雪的圖騰條
-	TotemFrame:ClearAllPoints()
-	TotemFrame:SetParent(self)
-	
-	-- Cumstom API
-	local function GetTotemRegion(slot)
-		return
-			_G["TotemFrameTotem" .. slot],
-			_G["TotemFrameTotem" .. slot .. "Background"],
-			_G["TotemFrameTotem" .. slot .. "Duration"],
-			_G["TotemFrameTotem" .. slot .. "Icon"],
-			_G["TotemFrameTotem" .. slot .. "IconCooldown"]
-	end
-	
-	-- 美化一下圖示
-	local function StyledTotemIcon(icon)
-		_G[icon:GetName() .. "Texture"]:SetTexCoord(.08, .92, .08, .92)
-		icon.Border = F.CreateBD(icon, _G[icon:GetName() .. "Texture"], 1, .6, .6, .6, 1)
-		icon.Shadow = F.CreateSD(icon, icon.Border, 3)
-	end
-	
-	-- 幹掉冷卻動畫
-	local function StyledTotemCooldown(cooldown)
-		cooldown:SetDrawBling(false)
-		cooldown:SetDrawEdge(false)
-		cooldown:SetDrawSwipe(false)
-		cooldown:SetSwipeColor(0, 0, 0, 0)
-	end
-	
-	-- 利用Cumstom API統一更改四個圖騰格子
-	for i = 1 , MAX_TOTEMS do
-		local totem, background, duration, icon, cooldown = GetTotemRegion(i)
-		local _, border = totem:GetChildren()
-		
-		totem:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
-		
-		border:Hide()
-		duration:SetAlpha(0)
-		background:Hide()
-		icon:SetAllPoints(totem)
-		StyledTotemIcon(icon)
-		StyledTotemCooldown(cooldown)
-		
-		if self.mystyle == "H" then
-			if i == 1 then
-				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -C.PPOffset-C.PPHeight*2)
-			else
-				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * totem:GetWidth() + i * C.PPOffset, -C.PPOffset-C.PPHeight*2)
-			end
-		else
-			if i == 1 then
-				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -C.PPOffset)
-			else
-				totem:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", (i - 1) * totem:GetWidth() + i * C.PPOffset, -C.PPOffset)
-			end
-		end
-	end
-	
-	local function UpdatePos()
-		TotemFrame:ClearAllPoints()
-		TotemFrame:SetPoint("TOPLEFT", self, "BOTTOMRIGHT", C.PPOffset, -6)
-	end
-	
-	hooksecurefunc("TotemFrame_Update", UpdatePos)
-end
-]]--
-
---[[
-T.CreateTotems = function(self)
-	local Totems = {}
-    for index = 1, 5 do
-        -- Position and size of the totem indicator
-        local Totem = CreateFrame("Button", nil, self)
-        Totem:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
-		Totem:SetPoint("TOPLEFT", self, "BOTTOMLEFT", index * Totem:GetWidth(), -C.PPOffset)
-		
-        local Icon = Totem:CreateTexture(nil, "OVERLAY")
-        Icon:SetAllPoints()
-        Icon:SetTexCoord(.08, .92, .08, .92)
-
-        Totem.Icon = Icon
-        Totem.Cooldown = false
-
-        Totems[index] = Totem
-    end
-
-	self.Totems = Totems
-	self.Totems.PostUpdate = T.PostUpdateTotem
-end
-]]--
---[[
-T.CreateFCT = function(self)
-	if not C.CombatText then return end
-
-	local parentFrame = CreateFrame("Frame", nil, UIParent)
-	local parentName = self:GetName()
-	local fcf = CreateFrame("Frame", parentName.."CombatTextFrame", parentFrame)
-	fcf:SetSize(32, 32)
-
-
-	for i = 1, 36 do
-		fcf[i] = parentFrame:CreateFontString("$parentText", "OVERLAY")
-	end
-
-	local scrolling = CreateFrame("ScrollingMessageFrame", parentName.."CombatTextScrollingFrame", parentFrame)
-	scrolling:SetSpacing(3)
-	scrolling:SetMaxLines(20)
-	scrolling:SetFadeDuration(.2)
-	scrolling:SetTimeVisible(3)
-	scrolling:SetJustifyH("CENTER")
-	scrolling:SetPoint("BOTTOM", fcf)
-	fcf.Scrolling = scrolling
-	--tinsert(scrolls, scrolling)
-
-	fcf.font = G.Font
-	fcf.fontFlags = G.FontFlag
-	fcf.abbreviateNumbers = true
-	self.FloatingCombatFeedback = fcf
-
-	-- Default CombatText
-	SetCVar("enableFloatingCombatText", 0)
-end
-]]--

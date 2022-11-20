@@ -107,14 +107,6 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.CastFailed = {.5, .2, .2}	-- 施法失敗顏色 / cast failed color
 	C.CastShield = {.9, 0, 1}	-- 不可打斷施法條顏色 / non-InterruptibleColor castbar color
 
-	--[[C.CombatText = true
-	C.ScrollingCT = true
-	C.AutoAttack = false
-	C.HotsDots = false
-	C.FCTOverHealing = true
-	C.FCTFontSize = 16
-	C.PetCombatText = false]]--
-	
 ------------------------
 -- RaidFrame settings --
 ------------------------
