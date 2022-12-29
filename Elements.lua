@@ -251,10 +251,14 @@ end
 
 T.CreateClassPower = function(self, unit)
 	if not F.Multicheck(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROGUE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT", "EVOKER") then return end
+	--if F.Multicheck(G.myClass, "WARRIOR", "HUNTER", "SHAMAN") then return end
+	
+	local isDK = G.myClass == "DEATHKNIGHT"
+	local maxPoint = (isDK and 6) or 7
 	
 	local ClassPower = {}
 	
-	for i = 1, 7 do
+	for i = 1, maxPoint do
 		-- 創建總體條
 		ClassPower[i] = F.CreateStatusbar(self, G.addon..unit.."_ClassPowerBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 3)
@@ -263,7 +267,7 @@ T.CreateClassPower = function(self, unit)
 		if self.mystyle == "VL" then
 			-- 單獨的每個豆子
 			ClassPower[i]:SetOrientation("VERTICAL")
-			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - 6*C.PPOffset)/7)
+			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint)
 			
 			if i == 1 then
 				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
@@ -271,7 +275,7 @@ T.CreateClassPower = function(self, unit)
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
 		elseif self.mystyle == "NPP" or self.mystyle == "BPP" then
-			ClassPower[i]:SetSize((C.PlayerNPWidth - 6*C.PPOffset)/7, C.PPHeight)
+			ClassPower[i]:SetSize((C.PlayerNPWidth - (maxPoint-1)*C.PPOffset)/maxPoint, C.PPHeight)
 			
 			if C.NumberStylePP then
 				if i == 1 then
@@ -287,7 +291,7 @@ T.CreateClassPower = function(self, unit)
 				end
 			end
 		else
-			ClassPower[i]:SetSize((C.PWidth - 6*C.PPOffset)/7, C.PPHeight)
+			ClassPower[i]:SetSize((C.PWidth - 6*C.PPOffset)/maxPoint, C.PPHeight)
 			
 			if i == 1 then
 				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
@@ -296,7 +300,7 @@ T.CreateClassPower = function(self, unit)
 			end
 		end
 		
-		if G.myClass == "DEATHKNIGHT" then
+		if isDK then
 			ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
 			ClassPower[i].bg:SetAllPoints()
 			ClassPower[i].bg:SetTexture(G.media.blank)
@@ -316,9 +320,10 @@ T.CreateClassPower = function(self, unit)
 	end
 	
 	-- 註冊到ouf並整合符文顯示
-	if G.myClass == "DEATHKNIGHT" then
+	if isDK then
 		ClassPower.colorSpec = true
 		ClassPower.sortOrder = "asc"
+		--ClassPower.__max = 6
 		self.Runes = ClassPower
 		self.Runes.PostUpdate = T.PostUpdateRunes
 	else

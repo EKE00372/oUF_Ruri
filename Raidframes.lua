@@ -131,7 +131,7 @@ local function CreateRaid(self, unit)
 	-- Make mouse active
 	self:SetScript("OnEnter", UnitFrame_OnEnter)	-- mouseover
 	self:SetScript("OnLeave", UnitFrame_OnLeave)
-	self:RegisterForClicks("AnyUp")
+	--self:RegisterForClicks("AnyUp")
 	
 	-- Highlight
 	local hl = self:CreateTexture(nil, "HIGHLIGHT")
@@ -148,7 +148,6 @@ local function CreateRaid(self, unit)
 	Health:SetFrameLevel(self:GetFrameLevel())
 	Health:SetReverseFill(true)
 	-- 選項
-	Health.colorDisconnected = true
 	Health.colorSmooth = true			-- 血量漸變色
 	Health.smoothGradient = {1, 0, 0, 1, .8, .1, 1, .8, .1}
 	-- 背景
@@ -178,6 +177,7 @@ local function CreateRaid(self, unit)
 	-- 選項
 	Power.frequentUpdates = true
 	Power.colorPower = true
+	Power.colorDisconnected = true
 	-- 背景
 	Power.bg = Power:CreateTexture(nil, "BACKGROUND")
 	Power.bg:SetAllPoints()
@@ -271,7 +271,7 @@ local function CreateRaidStyle(self, unit)
 	self.Range = {
 		insideAlpha = 1, outsideAlpha = .4,
 	}
-	self.Range.PostUpdate = UpdateOffline
+	--self.Range.PostUpdate = UpdateOffline
 
 	-- 框體
 	CreateRaid(self, unit)				-- 繼承通用樣式	
@@ -281,7 +281,7 @@ local function CreateRaidStyle(self, unit)
 	self.Name:SetPoint("TOPRIGHT", -2, -3)
 	self.Name:SetJustifyH("RIGHT")
 	self.Name:SetWidth(self:GetWidth()-4)
-	self.Name.frequentUpdates = 60
+	self.Name.frequentUpdates = 5
 	self:Tag(self.Name, "[namecolor][name][afkdnd]")
 	-- 減益
 	CreateAuras(self)
