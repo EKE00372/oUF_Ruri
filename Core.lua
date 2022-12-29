@@ -27,7 +27,7 @@ T.OverrideHealthbar = function(self, event, unit)
 	
 	if disconnected then
 		-- 離線時顯示為滿血
-		health:SetValue(max)
+		health:SetValue(0)
 	else
 		-- 血量反轉為顯示損失量
 		if max == cur then
@@ -44,7 +44,7 @@ T.PostUpdateHealth = function(self, unit, min, max)
 	local disconnected = not UnitIsConnected(unit)
 	
 	if disconnected then
-		self:SetValue(max)
+		self:SetValue(0)
 	else
 		-- 血量反轉為顯示損失量
 		if max == min then
@@ -389,7 +389,7 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
 	  (F.Multicheck(id, 581, 73) and C.TankResource) or
 	  F.Multicheck(id, 102, 103, 104, 62, 269, 66, 70, 262) then
-		-- 雙資源專精：死騎、盜賊、術士、喚能；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、元素
+		-- 雙資源專精：不開坦克資源條的酒僧、死騎、盜賊、術士、喚能；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、元素
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2) + 1, 1)
 		else

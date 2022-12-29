@@ -36,6 +36,7 @@ oUF.colors.power["RUNIC_POWER"] = {.1, .9, .9}				-- 6 死騎 符能
 oUF.colors.power["LUNAR_POWER"] = {0, .6, 1}				-- 8 鳥德 月能
 oUF.colors.power["MAELSTROM"] = {0, .6, 1}					-- 11 薩滿旋渦值
 oUF.colors.power["INSANITY"] = {.74, .35, .95}				-- 13 暗牧 瘋狂值(共用dh職業色)
+oUF.colors.power["ARCANE_CHARGES"] = {0, .8, 1}				-- 16 秘法 充能
 -- 載具類型
 oUF.colors.power["FUEL"] = {0, .75, .7}						-- 同時用於npc無屬能量
 oUF.colors.power["AMMOSLOT"] = {.8, .6, 0}

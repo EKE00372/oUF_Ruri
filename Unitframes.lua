@@ -12,7 +12,7 @@ local function CreateUnitShared(self, unit)
 	local u = unit:match("[^%d]+") -- boss1 -> boss
 
 	-- [[ 前置作業 ]] --	
-	self:RegisterForClicks("AnyUp")	-- Make mouse active
+	--self:RegisterForClicks("AnyUp")	-- Make mouse active
 	
 	-- [[ 高亮 ]] --
 	
@@ -60,7 +60,6 @@ local function CreateUnitShared(self, unit)
 	
 	-- 選項
 	Health.colorTapping = true			-- 無拾取權
-	Health.colorDisconnected = true		-- 離線
 	Health.colorSmooth = true			-- 血量漸變色
 	Health.smoothGradient = {1, 0, 0, 1, .8, .1, 1, .8, .1}
 	--Health.frequentUpdates = .1			-- 更新速率
@@ -101,6 +100,7 @@ local function CreateUnitShared(self, unit)
 	Power.colorPower = false		-- 能量類型染色
 	Power.colorClass = true			-- 職業染色
 	Power.colorReaction = true		-- 陣營染色
+	Power.colorDisconnected = true
 	-- 背景
 	Power.bg = Power:CreateTexture(nil, "BACKGROUND")
 	Power.bg:SetAllPoints()
