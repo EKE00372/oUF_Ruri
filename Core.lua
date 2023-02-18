@@ -452,10 +452,32 @@ end
 
 -- [[ 光環過濾 ]] --
 
--- 替激勵設一個初始層數並用於重置
-T.BolsterPreUpdate = function(self)
-	self.bolsterStacks = 0
-	self.bolsterInstanceID = nil
+T.BolsterPostUpdateInfo = function(element)
+	-- 替激勵設一個初始層數並用於重置
+	element.bolsterStacks = 0
+	element.bolsterInstanceID = nil
+
+	for auraInstanceID, data in next, element.allBuffs do
+		if data.spellId == 209859 then
+			if not element.bolsterInstanceID then
+				element.bolsterInstanceID = auraInstanceID
+				element.activeBuffs[auraInstanceID] = true
+			end
+			element.bolsterStacks = element.bolsterStacks + 1
+			if element.bolsterStacks > 1 then
+				element.activeBuffs[auraInstanceID] = nil
+			end
+		end
+	end
+	if element.bolsterStacks > 0 then
+		for i = 1, element.visibleButtons do
+			local button = element[i]
+			if element.bolsterInstanceID and element.bolsterInstanceID == button.auraInstanceID then
+				button.Count:SetText(element.bolsterStacks)
+				break
+			end
+		end
+	end
 end
 
 -- 光環過濾
@@ -463,14 +485,7 @@ T.CustomFilter = function(self, unit, data)
 	local style = self.__owner.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
-	if data.name and data.spellId == 209859 then
-		-- 激勵顯示為層數
-		if not self.bolsterInstanceID then
-			self.bolsterInstanceID = data.auraInstanceID
-		end
-		self.bolsterStacks = self.bolsterStacks + 1
-		return self.bolsterStacks == 1
-	elseif style == "NP" or style == "BP" then
+	if style == "NP" or style == "BP" then
 		if UnitIsUnit("player", unit) then
 			-- 當該名條單位是玩家自己時隱藏，預防有人把系統的個人資源打開搞事情
 			return false
