@@ -239,9 +239,7 @@ T.CreateAuras = function(self, button)
 	end
 	
 	self.Auras.FilterAura = T.CustomFilter					-- 光環過濾	
-	--self.Auras.PreUpdate = T.BolsterPreUpdate				-- 激勵
-	--self.Auras.PostUpdate = T.BolsterPostUpdate				-- 激勵計數
-	self.Auras.PostUpdateInfo = T.BolsterPostUpdateInfo
+	self.Auras.PostUpdateInfo = T.BolsterPostUpdateInfo		-- 激勵
 end
 
 --===================================================--
