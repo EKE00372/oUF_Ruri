@@ -263,7 +263,7 @@ local function SetPosition(self, from, to)
 	end
 end
 
-local function CreeateAuras(self, unit)
+local function CreateAuras(self, unit)
 	local style = self.mystyle
 	
 	local Auras = CreateFrame("Frame", nil, self)
@@ -295,9 +295,7 @@ local function CreeateAuras(self, unit)
 	self.Auras.PostCreateButton = T.PostCreateIcon
 	self.Auras.PostUpdateButton = T.PostUpdateIcon
 	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
-	--self.Auras.PreUpdate = T.BolsterPreUpdate			-- 激勵
-	--self.Auras.PostUpdate = T.BolsterPostUpdate			-- 激勵計數和錨點更新
-	self.Auras.PostUpdateInfo = T.BolsterPostUpdateInfo
+	self.Auras.PostUpdateInfo = T.BolsterPostUpdateInfo -- 激勵
 	
 end
 
@@ -490,7 +488,7 @@ local function CreateNumberPlates(self, unit)
 	
 	-- 光環
 	if C.ShowAuras then
-		CreeateAuras(self, unit)
+		CreateAuras(self, unit)
 		self.Auras:SetPoint("BOTTOM", self.HealthText, "TOP", 0, 2)
 	end
 	-- 指向高亮
@@ -574,7 +572,7 @@ local function CreateBarPlates(self, unit)
 	
 	-- 光環
 	if C.ShowAuras then
-		CreeateAuras(self, unit)
+		CreateAuras(self, unit)
 		self.Auras:SetPoint("BOTTOM", self.Name, "TOP", 0, 4)
 	end
 	-- 指向高亮
@@ -652,7 +650,7 @@ local function CreatePlayerNumberPlate(self, unit)
 	
 	-- 光環
 	if C.PlayerBuffs then
-		CreeateAuras(self, unit)
+		CreateAuras(self, unit)
 		self.Auras.numDebuffs = 0
 		self.Auras:SetPoint("BOTTOM", self.HealthText, "TOP", 0, 0)
 	end
@@ -718,7 +716,7 @@ local function CreatePlayerBarPlate(self, unit)
 	
 	-- 光環
 	if C.PlayerBuffs then
-		CreeateAuras(self, unit)
+		CreateAuras(self, unit)
 		self.Auras.numDebuffs = 0
 		self.Auras:SetPoint("BOTTOM", self.Health, "TOP", 0, 8)
 	end

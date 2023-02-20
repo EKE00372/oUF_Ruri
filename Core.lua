@@ -452,7 +452,7 @@ end
 
 -- [[ 光環過濾 ]] --
 
-T.BolsterPostUpdateInfo = function(element)
+T.BolsterPostUpdateInfo = function(element, unit, _, debuffsChanged)
 	-- 替激勵設一個初始層數並用於重置
 	element.bolsterStacks = 0
 	element.bolsterInstanceID = nil
@@ -485,7 +485,10 @@ T.CustomFilter = function(self, unit, data)
 	local style = self.__owner.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
-	if style == "NP" or style == "BP" then
+	if data.name and data.spellId == 209859 then
+		-- 激勵為true才能被postupdateinfo處理
+		return true
+	elseif style == "NP" or style == "BP" then
 		if UnitIsUnit("player", unit) then
 			-- 當該名條單位是玩家自己時隱藏，預防有人把系統的個人資源打開搞事情
 			return false
