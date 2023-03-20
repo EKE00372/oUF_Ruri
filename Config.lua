@@ -112,7 +112,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 ------------------------
 	
 	C.RWidth = 128				-- raid frame width
-	C.RHeight = 46				-- raid frame height
+	C.RHeight = 44				-- raid frame height
 	
 	C.RPHeight = 2				-- raid frame power height
 	C.RSpace = 6

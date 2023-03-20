@@ -1,4 +1,5 @@
 ﻿local addon, ns = ...
+local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
 -- core: replace ouf default post update function
@@ -264,7 +265,7 @@ T.CreateAuraTimer = function(self, elapsed)
 			self.Cooldown:SetText(F.FormatTime(timeLeft))
 		else
 			self:SetScript("OnUpdate", nil)
-			self.Cooldown:SetText(nil)
+			self.Cooldown:SetText("")
 		end
 	self.elapsed = 0
 	end
@@ -277,12 +278,12 @@ T.CreateRaidAuraTimer = function(self, elapsed)
 	
 	if self.elapsed >= 0.1 then
 		local timeLeft = self.timeLeft - GetTime()
-		if timeLeft > 0 and timeLeft <= 60 then
+		if timeLeft > 0 then
 			-- 只在小於60秒時顯示計數
-			self.Cooldown:SetText(F.FormatTime(timeLeft))
+			self.Cooldown:SetText((timeLeft > 60 and "") or F.FormatTime(timeLeft))
 		else
 			self:SetScript("OnUpdate", nil)
-			self.Cooldown:SetText(nil)
+			self.Cooldown:SetText("")
 		end
 	self.elapsed = 0
 	end

@@ -171,7 +171,8 @@ F.CreateSD = function(parent, anchor, size)
 		edgeSize = size or 3,		-- 邊框大小
 	})
 	--sd:SetBackdropColor(0, 0, 0, 1)
-	sd:SetBackdropBorderColor(0, 0, 0, 1)
+	--sd:SetBackdropBorderColor(0, 0, 0, 1)
+	sd:SetBackdropBorderColor(.05, .05, .05, 1)
 	
 	return sd
 end
