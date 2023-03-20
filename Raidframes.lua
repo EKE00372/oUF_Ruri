@@ -1,4 +1,5 @@
 local addon, ns = ...
+local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
 if not (C.RaidFrames or C.PartyFrames) then return end
@@ -73,7 +74,7 @@ local function UpdateTargetBorder(self, event, unit)
 	if UnitIsUnit("target", self.unit) then
 		self.Health.border:SetBackdropBorderColor(.9, .9, .9)
 	else
-		self.Health.border:SetBackdropBorderColor(0, 0, 0)
+		self.Health.border:SetBackdropBorderColor(.05, .05, .05)
 	end
 end
 
@@ -86,7 +87,7 @@ local function UpdateThreatBorder(self, event, unit)
 		local r, g, b = unpack(oUF.colors.threat[status])
 		self.Health.border:SetBackdropBorderColor(r, g, b)
 	else
-		self.Health.border:SetBackdropBorderColor(0, 0, 0)
+		self.Health.border:SetBackdropBorderColor(.05, .05, .05)
 	end
 end
 
@@ -120,6 +121,36 @@ local function CreateAuras(self)
 	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
 end
 
+local CreateSD = function(parent, anchor, size)
+	local bd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+	local sd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+	local framelvl = parent:GetFrameLevel()
+	
+	-- 1px邊框
+	bd:ClearAllPoints()
+	bd:SetPoint("TOPLEFT", anchor, -1, 1)
+	bd:SetPoint("BOTTOMRIGHT", anchor, 1, -(1+(C.RPHeight+1)))	-- 錨點於血量條時總高要算入能量條
+	bd:SetFrameLevel(framelvl == 0 and 0 or framelvl-1)
+	bd:SetBackdrop({
+		edgeFile = G.media.blank,	-- 陰影邊框
+		edgeSize = 1,		-- 邊框大小
+		insets = { left = -1, right = 1, top = 1, bottom = -1 },
+	})
+	bd:SetBackdropBorderColor(.05, .05, .05, 1)
+	
+	sd:ClearAllPoints()
+	sd:SetPoint("TOPLEFT", anchor, -size, size)
+	sd:SetPoint("BOTTOMRIGHT", anchor, size, -size-(1+(C.RPHeight+1)))	-- 錨點於血量條時總高要算入能量條
+	sd:SetFrameLevel(framelvl == 0 and 0 or framelvl-1)
+	sd:SetBackdrop({
+		edgeFile = G.media.glow,	-- 陰影邊框
+		edgeSize = size or 3,		-- 邊框大小
+		insets = { left = -1, right = 1, top = 1, bottom = -1 },
+	})
+	sd:SetBackdropBorderColor(.05, .05, .05, 1)
+	
+	return sd
+end
 --=========================================================--
 -----------------    [[ Create Frames ]]    -----------------
 --=========================================================--
@@ -155,7 +186,7 @@ local function CreateRaid(self, unit)
 	Health.bg:SetAllPoints()
 	Health.bg:SetTexture(G.media.raidbar)
 	-- 陰影和邊框
-	Health.border = F.CreateSD(Health, Health, 3)
+	Health.border = CreateSD(Health, Health, 5)
 	-- 註冊到OUF
 	self.Health = Health
 	self.Health.PreUpdate = T.OverrideHealthbar		-- 更新機制：損血量
@@ -171,8 +202,8 @@ local function CreateRaid(self, unit)
 	
 	local Power = F.CreateStatusbar(self, G.addon..unit.."_PowerBar", "ARTWORK", nil, nil, 1, 1, 1, 1)
 	Power:SetHeight(C.RPHeight)
-	Power:SetPoint("BOTTOMLEFT", self.Health, 0, 0)	-- 與血量條等寬
-	Power:SetPoint("BOTTOMRIGHT", self.Health, 0, 0)
+	Power:SetPoint("BOTTOMLEFT", self.Health, 0, -(C.RPHeight+1))	-- 與血量條等寬
+	Power:SetPoint("BOTTOMRIGHT", self.Health, 0, -(C.RPHeight+1))
 	Power:SetFrameLevel(self:GetFrameLevel()+3)
 	-- 選項
 	Power.frequentUpdates = true
@@ -184,12 +215,12 @@ local function CreateRaid(self, unit)
 	Power.bg:SetTexture(G.media.blank)
 	Power.bg.multiplier = .3
 	-- 邊框，只需要上方一條1px，CreateBD會創建四面的
-	Power.border = Power:CreateTexture(nil, "BACKGROUND")
+	Power.border = Power:CreateTexture(nil, "ARTWORK")
 	Power.border:SetHeight(1)	-- 與血量條等寬
 	Power.border:SetPoint("TOPLEFT", Power, 0, 1)	-- 與血量條等寬
 	Power.border:SetPoint("TOPRIGHT", Power, 0, 2)	-- 1px高度
 	Power.border:SetTexture(G.media.blank)
-	Power.border:SetVertexColor(0, 0, 0, 1)
+	Power.border:SetVertexColor(.05, .05, .05, 1)	-- 和sd同色
 	-- 註冊到OUF
 	self.Power = Power
 	
@@ -350,7 +381,7 @@ oUF:Factory(function(self)
 			"unitsPerColumn",	5,
 			"columnSpacing",	C.RSpace,
 			"xoffset",			C.RSpace,
-			"yOffset",			-C.RSpace,
+			"yOffset",			-(C.RSpace+C.RPHeight+2),	-- power hight and 2px border
 			
 			"templateType", "Button",
 			"oUF-initialConfigFunction", ([[
@@ -365,7 +396,7 @@ oUF:Factory(function(self)
 			raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
 		elseif i == 5 then
 			--raid[i]:SetPoint("TOP", raid[i-4], "BOTTOM", 0, -C.RSpace)
-			raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, -(C.RHeight+C.RSpace)*5)
+			raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, -(C.RHeight*5+C.RPHeight*5+C.RSpace*6))
 		elseif i >= 6 then
 			raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
 		end

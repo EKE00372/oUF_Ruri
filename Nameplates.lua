@@ -1,4 +1,5 @@
 local addon, ns = ...
+local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
 if not C.Nameplates then return end

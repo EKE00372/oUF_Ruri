@@ -1,4 +1,5 @@
 local addon, ns = ...
+local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
 -- elements: create elements
@@ -22,7 +23,7 @@ T.CreateCastbar = function(self, unit)
 	-- 邊框
 	Castbar.Border = F.CreateBD(Castbar, Castbar.Icon, 1, 0, 0, 0, 1)
 	-- 陰影
-	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Border, 3)
+	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Border, 4)
 	
 	-- 文本
 	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
@@ -73,13 +74,13 @@ T.CreateStandaloneCastbar = function(self, unit)
 	-- 背景與邊框
 	Castbar.BarBG = F.CreateBD(Castbar, Castbar, 1, .15, .15, .15, .4)
 	-- 陰影
-	Castbar.BarShadow = F.CreateSD(Castbar, Castbar, 3)
+	Castbar.BarShadow = F.CreateSD(Castbar, Castbar, 4)
 	
 	-- 圖示
 	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY", nil, 1)
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
 	-- 圖示邊框
-	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Icon, 3)
+	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Icon, 4)
 	
 	-- 進度高亮
 	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
@@ -260,7 +261,7 @@ T.CreateClassPower = function(self, unit)
 	for i = 1, maxPoint do
 		-- 創建總體條
 		ClassPower[i] = F.CreateStatusbar(self, G.addon..unit.."_ClassPowerBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
-		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 3)
+		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 4)
 		ClassPower[i]:SetFrameLevel(self:GetFrameLevel() + 2)
 		
 		if self.mystyle == "VL" then
@@ -359,7 +360,7 @@ T.CreateAddPower = function(self, unit)
 	AddPower.bg:SetTexture(G.media.blank)
 	AddPower.bg.multiplier = .3
 	-- 陰影
-	AddPower.border = F.CreateSD(AddPower, AddPower, 3)
+	AddPower.border = F.CreateSD(AddPower, AddPower, 4)
 	-- 註冊到ouf
 	self.AdditionalPower = AddPower
 	-- 文本
@@ -393,7 +394,7 @@ T.CreateAltPowerBar = function(self, unit)
 	-- 背景
 	AltPower.bg = F.CreateBD(AltPower, AltPower, 1, .15, .15, .15, .6)
 	-- 陰影
-	AltPower.border = F.CreateSD(AltPower, AltPower, 3)
+	AltPower.border = F.CreateSD(AltPower, AltPower, 4)
 	-- 註冊到ouf
 	self.AlternativePower = AltPower
 	self.AlternativePower.PostUpdate = T.PostUpdateAltPower
@@ -427,7 +428,7 @@ T.CreateStagger = function(self, unit)
 	Stagger.bg:SetTexture(G.media.blank)
 	Stagger.bg.multiplier = .3
 	-- 陰影
-	Stagger.border = F.CreateSD(Stagger, Stagger, 3)
+	Stagger.border = F.CreateSD(Stagger, Stagger, 4)
 	
 	-- 註冊到ouf	
 	self.Stagger = Stagger
@@ -481,7 +482,7 @@ T.CreateTankResource = function(self, unit)
 
     for i = 1, 4 do
 		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
-		TankResource[i].border = F.CreateSD(TankResource[i], TankResource[i], 3)
+		TankResource[i].border = F.CreateSD(TankResource[i], TankResource[i], 4)
 		TankResource[i]:SetFrameLevel(self:GetFrameLevel() + 2)
 		
 		-- 背景

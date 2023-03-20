@@ -1,4 +1,5 @@
 ﻿local addon, ns = ...
+local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
 if not C.UnitFrames then return end
@@ -64,7 +65,7 @@ local function CreateUnitShared(self, unit)
 	Health.smoothGradient = {1, 0, 0, 1, .8, .1, 1, .8, .1}
 	--Health.frequentUpdates = .1			-- 更新速率
 	-- 陰影
-	Health.border = F.CreateSD(Health, Health, 3)
+	Health.border = F.CreateSD(Health, Health, 4)
 	-- 註冊到ouf
 	self.Health = Health
 	self.Health.PreUpdate = T.OverrideHealthbar	-- 更新機制：損血量
@@ -107,7 +108,7 @@ local function CreateUnitShared(self, unit)
 	Power.bg:SetTexture(G.media.blank)
 	Power.bg.multiplier = .3
 	-- 陰影
-	Power.border = F.CreateSD(Power, Power, 3)
+	Power.border = F.CreateSD(Power, Power, 4)
 	-- 註冊到ouf
 	self.Power = Power
 	self.Power.PostUpdate = T.PostUpdatePower

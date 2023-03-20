@@ -1,9 +1,10 @@
 ## Interface: 100005
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R3.3
+## Version: B3.4
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
-## RequiredDeps: oUF
+## X-oUF: oUF_Ruri
+## X-SlashCmdList: /omf
 
 ## Credits-to: Siweia, Paopao, Dawn, HopeASD
 
@@ -11,10 +12,13 @@ Config.lua
 FilterList.lua
 API.lua
 
+Libs\oUF\oUF.xml
 Libs\oUF_TankResource.lua
 Libs\oUF_Fader.lua
+#Libs\oUF_MovableFrames.lua
 Embeds\Crosshairs.lua
 #Embeds\FloatingCombatFeedback.lua
+#Embeds\Totems.lua
 
 Tags.lua
 Core.lua
