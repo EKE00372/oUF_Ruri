@@ -1,3 +1,5 @@
+if C_AddOns  and C_AddOns.GetAddOnMetadata then GetAddOnMetadata = C_AddOns.GetAddOnMetadata end
+
 local parent, ns = ...
 local global = GetAddOnMetadata(parent, 'X-oUF')
 local _VERSION = '@project-version@'
