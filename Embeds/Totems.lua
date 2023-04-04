@@ -1,15 +1,17 @@
 local addon, ns = ...
 local C, F, G, T = unpack(ns)
+local oUF = ns.oUF or oUF
 
 -- https://github.com/FireSiku/LUI/blob/master/modules/unitframes/layout/layout.lua
 -- https://github.com/siweia/NDui/blob/master/Interface/AddOns/NDui/Modules/Auras/Totems.lua
 
+if not C.Totems then return end
+
 local _G = _G
 local GetTotemInfo = GetTotemInfo
-
--- Style
 local totems = {}
 
+-- 幹掉CooldownFrameTemplate，用OnUpdate顯示秒數
 local function Totems_Update(self, elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed
 	
@@ -25,27 +27,33 @@ local function Totems_Update(self, elapsed)
 	end
 end
 
+-- 初始化
 local function TotemBar_Init()
-	local margin = 6
-	local iconSize = (C.buSize + 4)
-	local width = (iconSize*4 + margin*5)
+	local margin = C.PPOffset
+	local iconSize = (C.buSize + 4)			-- 和玩家自身光環一樣大
+	local width = (iconSize*4 + margin*5)	-- 上下左右都要多margin
 	local height = (iconSize + margin*2)
 	
+	-- 創建圖騰條
 	local totemBar = CreateFrame("Frame", "Ruri_TotemBar", oUF_Player)
-	totemBar:SetSize(width, height)
 	totemBar:ClearAllPoints()
-	totemBar:SetPoint("CENTER", 0,0)
+	if C.vertPlayer then
+		totemBar:SetSize(height, width)
+		totemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", -10, 0)	-- C.PPHeight + C.PPOffset*2 - margin 
+	else
+		totemBar:SetSize(width, height)
+		totemBar:SetPoint("BOTTOMLEFT", oUF_Player, "TOPLEFT", -C.PPOffset, 0)
+	end
 
 	for i = 1, 4 do
 		local totem = totems[i]
 		if not totem then
-			totem = F.CreateSD(totemBar, totemBar, 3)
+			totem = F.CreateBD(totemBar, totemBar, 1)
+			totem.BD = F.CreateSD(totem, totem, 3)
 			
 			totem.Icon = totem:CreateTexture(nil, "OVERLAY")
 			totem.Icon:SetTexCoord(.08, .92, .08, .92)
-			totem.Icon:ClearAllPoints()
-			totem.Icon:SetPoint("TOPLEFT", totem, 3, -3)
-			totem.Icon:SetPoint("BOTTOMRIGHT", totem, -3, 3)
+			totem.Icon:SetAllPoints(totem)
 			totem.Icon:SetTexture("")
 			
 			totem.CD = F.CreateText(totem, "OVERLAY", G.Font, G.NumberFS, G.FontFlag, "CENTER")
@@ -61,15 +69,23 @@ local function TotemBar_Init()
 
 		totem:SetSize(iconSize, iconSize)
 		totem:ClearAllPoints()
-		
-		if i == 1 then
-			totem:SetPoint("BOTTOMLEFT", margin, margin)
+		if C.vertPlayer then
+			if i == 1 then
+				totem:SetPoint("TOP", 0, 0)
+			else
+				totem:SetPoint("TOP", totems[i-1], "BOTTOM", 0, -margin)
+			end
 		else
-			totem:SetPoint("LEFT", totems[i-1], "RIGHT", margin, 0)
+			if i == 1 then
+				totem:SetPoint("BOTTOMLEFT", margin, margin)
+			else
+				totem:SetPoint("LEFT", totems[i-1], "RIGHT", margin, 0)
+			end
 		end
 	end
 end
 
+-- 更新
 local function TotemBar_Update(self)
 
 	local activeTotems = 0
@@ -83,7 +99,7 @@ local function TotemBar_Update(self)
 			totem.Icon:SetTexture(icon)
 			totem:SetAlpha(1)
 			
-			-- get time
+			-- 獲取時間，起始+持續=結束
 			totem.expirationTime = dur + start
 			totem:SetScript("OnUpdate", Totems_Update)
 			totem:Show()
@@ -92,7 +108,7 @@ local function TotemBar_Update(self)
 			totem:SetAlpha(0)
 		end
 
-		-- hide blizzard original totem frame
+		-- hide blizzard original totem frame / 幹掉暴雪圖騰條
 		button:ClearAllPoints()
 		button:SetParent(totem)
 		button:SetAllPoints(totem)
@@ -100,14 +116,14 @@ local function TotemBar_Update(self)
 		button:SetFrameLevel(totem:GetFrameLevel() + 1)
 	end
 
-	for i = activeTotems+1, 4 do
+	for i = activeTotems + 1, 4 do
 		local totem = totems[i]
 		totem.Icon:SetTexture("")
 		totem:SetAlpha(0)
 	end
 end
 
-
+-- 動起來
 local frame = CreateFrame("FRAME")
 	frame:RegisterEvent("PLAYER_LOGIN")
 	frame:SetScript("OnEvent", function()
