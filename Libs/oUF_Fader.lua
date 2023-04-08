@@ -83,9 +83,11 @@ local function Update(self)
 
 	if
 		(self.FadeCasting and (UnitCastingInfo(unit) or UnitChannelInfo(unit))) or
-		(self.FadeCombat and UnitAffectingCombat(unit)) or
-		(self.FadeTarget and (unit:find('target') and UnitExists(unit))) or
-		(self.FadeTarget and UnitExists(unit .. 'target')) or
+		--(self.FadeCombat and UnitAffectingCombat(unit)) or
+		(self.FadeCombat and UnitAffectingCombat('player')) or
+		--(self.FadeTarget and (unit:find('target') and UnitExists(unit))) or
+		--(self.FadeTarget and UnitExists(unit .. 'target')) or
+		(self.FadeTarget and UnitExists('playertarget')) or
 		(self.FadeHealth and UnitHealth(unit) < UnitHealthMax(unit)) or
 		(self.FadePower and EmptyPowerType[select(2, UnitPowerType("player"))] and UnitPower("player") > 0) or
 		(self.FadePower and (not EmptyPowerType[select(2, UnitPowerType("player"))]) and UnitPower("player") < UnitPowerMax("player")) or

@@ -384,10 +384,10 @@ T.CreateAltPowerBar = function(self, unit)
 		-- 垂直模式分別在左右兩側
 		if self.mystyle == "VL" then
 			AltPower:SetPoint("TOPRIGHT", self.Power, "TOPLEFT", -C.PPOffset, 0)
-			AltPower:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, C.PWidth/2)
+			AltPower:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (C.PWidth - C.TOTWidth))
 		elseif  self.mystyle == "VR" then
 			AltPower:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", C.PPOffset, 0)
-			AltPower:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, C.PWidth/2)
+			AltPower:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (C.PWidth - C.TOTWidth))
 		end
 	end
 	
@@ -451,17 +451,24 @@ T.CreateHealthPrediction = function(self, unit)
 	AbsorbBar:SetFrameLevel(self:GetFrameLevel() + 2)
 	
 	if self.mystyle == "VL" then
+		-- 玩家直式
 		AbsorbBar:SetSize(C.PHeight, C.PWidth)
 		AbsorbBar:SetOrientation("VERTICAL")
 		AbsorbBar:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
 	elseif self.mystyle == "BP" then
+		-- 條形名條
 		AbsorbBar:SetSize(C.NPWidth, C.NPHeight)
 		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
 	elseif self.mystyle == "BPP" then
+		-- 條形個人資源條
 		AbsorbBar:SetSize(C.PlayerNPWidth, C.NPHeight+4)
 		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
 	else
+		-- 玩家橫式
 		AbsorbBar:SetSize(C.PWidth, C.PHeight)
+		AbsorbBar:SetReverseFill(true)
+		AbsorbBar:SetPoint("TOP")
+		AbsorbBar:SetPoint("BOTTOM")
 		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
 	end
 

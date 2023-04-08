@@ -39,7 +39,7 @@ local function TotemBar_Init()
 	totemBar:ClearAllPoints()
 	if C.vertPlayer then
 		totemBar:SetSize(height, width)
-		totemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", -10, 0)	-- C.PPHeight + C.PPOffset*2 - margin 
+		totemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", -(C.PPHeight + C.PPOffset), 0)	-- C.PPHeight + C.PPOffset*2 - margin
 	else
 		totemBar:SetSize(width, height)
 		totemBar:SetPoint("BOTTOMLEFT", oUF_Player, "TOPLEFT", -C.PPOffset, 0)
@@ -124,9 +124,34 @@ local function TotemBar_Update(self)
 end
 
 -- 動起來
-local frame = CreateFrame("FRAME")
+--[[local frame = CreateFrame("FRAME")
 	frame:RegisterEvent("PLAYER_LOGIN")
 	frame:SetScript("OnEvent", function()
 		TotemBar_Init()
 		hooksecurefunc(TotemFrame, "Update", TotemBar_Update)
-	end)
+	end)]]--
+
+T.CreateTotemBar = function(self)
+	TotemBar_Init()
+	hooksecurefunc(TotemFrame, "Update", TotemBar_Update)
+end
+	
+--[[
+local function Enable(self, unit)
+	if self.unit ~= unit or unit ~= 'player' then return end
+	
+	local element = self.Totems
+	if element then
+		element.__owner = self
+		element.ForceUpdate = ForceUpdate
+		
+		self:RegisterEvent("PLAYER_ENTERING_WORLD")
+	
+	end
+end
+
+local function Disable(self)
+	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+end
+
+oUF:AddElement('TotemBar', Update, Enable, Disable)]]--
