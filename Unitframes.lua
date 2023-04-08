@@ -63,7 +63,6 @@ local function CreateUnitShared(self, unit)
 	Health.colorTapping = true			-- 無拾取權
 	Health.colorSmooth = true			-- 血量漸變色
 	Health.smoothGradient = {1, 0, 0, 1, .8, .1, 1, .8, .1}
-	--Health.frequentUpdates = .1			-- 更新速率
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 4)
 	-- 註冊到ouf
@@ -210,6 +209,9 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("CENTER",  0, -3)
 	
+	-- 圖騰
+	T.CreateTotemBar(self)
+	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
@@ -236,13 +238,12 @@ local function CreatePlayerStyle(self, unit)
 	-- 減益
 	if C.PlayerDebuffs then
 		T.CreateDebuffs(self)		
-		--self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
 		self.Debuffs["growth-x"] = "RIGHT"
 		self.Debuffs["growth-y"] = "UP"
 		self.Debuffs.num = 6
-		self.Debuffs.size = C.buSize + 6
-		self.Debuffs.spacing = 6
-		self.Debuffs:SetSize(C.PWidth, C.buSize)
+		self.Debuffs.size = C.buSize + 4
+		self.Debuffs:SetSize(C.PWidth, C.buSize + 4)
+		--self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
 		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 	end
 	
@@ -261,7 +262,7 @@ local function CreateVPlayerStyle(self, unit)
 	-- 框體
     CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.PWidth)	-- 主框體尺寸
-	--T.CreateHealthPrediction(self, unit)-- 吸收盾
+	T.CreateHealthPrediction(self, unit)-- 吸收盾
 	
 	-- 文本
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, 0)
@@ -271,7 +272,9 @@ local function CreateVPlayerStyle(self, unit)
 	
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
-	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2) * 6)
+	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
+	-- 圖騰
+	T.CreateTotemBar(self)
 	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
@@ -294,16 +297,6 @@ local function CreateVPlayerStyle(self, unit)
 		self.Debuffs:SetSize(C.buSize + 4, C.PWidth)
 		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 	end
-	
-	-- 增益
-	--[[T.CreateBuffs(self)		
-	self.Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, C.PHeight/2+C.PPOffset)
-	self.Buffs.initialAnchor = "UP"
-	self.Buffs["growth-x"] = "RIGHT"
-	self.Buffs.num = 6
-	self.Buffs.size = C.buSize + 4
-	self.Buffs.spacing = 5
-	self.Buffs:SetSize(C.buSize + 4, C.PWidth)]]--
 
 	-- 施法條
 	if C.StandaloneCastbar then
@@ -392,7 +385,7 @@ local function CreateVTargetStyle(self, unit)
 	
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
-	self.AlternativePower.value:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*6)
+	self.AlternativePower.value:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*5)
 
 	-- 光環
 	T.CreateAuras(self)
@@ -542,6 +535,7 @@ local function CreateSFocusStyle(self, unit)
 	RaidIcon:SetPoint("LEFT", self.Name, "RIGHT", 0, 0)
 	self.RaidTargetIndicator = RaidIcon
 	
+	-- 簡易焦點是純文字的，從框體繼承來的淡出沒有套用到文字上
 	if C.Fade then
 		self.FadeMinAlpha = C.FadeOutAlpha
 		self.FadeInSmooth = 0.4
@@ -550,7 +544,6 @@ local function CreateSFocusStyle(self, unit)
 		self.FadeCombat = true
 		self.FadeTarget = true
 		self.FadeHealth = true
-		self.FadePower = true
 		self.FadeHover = true
 	end
 end

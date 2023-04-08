@@ -163,6 +163,7 @@ oUF.Tags.Methods["np:hp"] = function(u)
 	local per = oUF.Tags.Methods["perhp"](u)
 	--local player = UnitIsPlayer(u)
 	local reaction = UnitReaction(u, "player")
+	local absorb = UnitGetTotalAbsorbs(u) or 0
 	local color
 	
 	if per < 25 then
@@ -184,7 +185,8 @@ oUF.Tags.Methods["np:hp"] = function(u)
 			return ""
 		elseif per == 100 then
 			-- 滿血不顯示血量
-			return ""
+			--return UnitAffectingCombat("player") and "100" or ""
+			return (absorb > 0 and "+") or ""
 		elseif per ~= 100 then
 			return color..per.."|r"
 		else
