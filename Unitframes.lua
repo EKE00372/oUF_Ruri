@@ -274,7 +274,7 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
 	-- 圖騰
-	T.CreateTotemBar(self)
+	--T.CreateTotemBar(self)
 	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
