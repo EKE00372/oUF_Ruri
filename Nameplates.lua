@@ -468,8 +468,8 @@ local function CreateNumberPlates(self, unit)
 	--self.CastTargetText:SetPoint("TOPRIGHT", self.Name, "BOTTOMRIGHT", 0, -2)
 	--self:Tag(self.CastTargetText, "[npcast]")
 	
-	-- 目標名字，用於惡意詞綴的怨毒幽影
-	self.TargetName = F.CreateText(self.Castbar, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
+	-- 目標名字，用於惡意詞綴
+	self.TargetName = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
 	self.TargetName:ClearAllPoints()
 	self.TargetName:SetPoint("TOPRIGHT", self.Name, "BOTTOMRIGHT", 0, 0)
 	self.TargetName:Hide()
@@ -599,7 +599,10 @@ local function PostUpdatePlates(self, event, unit)
 
 	-- 每個名條創建時獲取該單位的npc id，在名條消失時清空
 	if event == "NAME_PLATE_UNIT_ADDED" then
-		self.npcID = F.GetNPCID(UnitGUID(unit))
+		--self.unitName = UnitName(unit)
+		self.unitGUID = UnitGUID(unit)
+		--self.isPlayer = UnitIsPlayer(unit)
+		self.npcID = F.GetNPCID(self.unitGUID)
 	elseif event == "NAME_PLATE_UNIT_REMOVED" then
 		self.npcID = nil
 	end
