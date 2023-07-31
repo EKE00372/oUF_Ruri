@@ -1,4 +1,4 @@
-## Interface: 100100
+## Interface: 100105
 ## Title: oUF_|cff00ffffRuri|r
 ## Version: R4.1
 ## Author: EK (Linodas@Illidan-US)
