@@ -17,6 +17,11 @@ do
 	end
 end
 
+local function ClassAuraFilter(self, unit, data)
+	if C.RaidBuffList[data.spellId] then
+		return true
+	end
+end
 --[[
 local function DisableBlizzard()
     local hider = CreateFrame("Frame")
@@ -39,11 +44,11 @@ end
 --====================================================--
 
 -- 離線等同超距
-local function UpdateOffline(self, parent, inRange, checkedRange, isConnected)
+--[[local function UpdateOffline(self, parent, inRange, checkedRange, isConnected)
 	if not isConnected then
 		parent:SetAlpha(self.outsideAlpha)
 	end
-end
+end]]--
 
 -- 職業顏色映射至背景
 local function PostUpdateColor(self, unit, r, g, b)
@@ -103,12 +108,12 @@ local function CreateAuras(self)
 	
 	Auras:SetFrameLevel(self:GetFrameLevel() + 2)
 	Auras.numBuffs = 0
-	Auras.numDebuffs = 4
-	Auras.numTotal = 4
+	Auras.numDebuffs = 5
+	Auras.numTotal = 5
 
 	Auras:SetPoint("BOTTOMLEFT", self, 4, 6)
-	Auras:SetWidth(C.sAuSize*4 + Auras.spacing * 3)
-	Auras:SetHeight(C.sAuSize+Auras.spacing*2)
+	Auras:SetWidth(C.sAuSize*5 + Auras.spacing * 4)
+	Auras:SetHeight(C.sAuSize + Auras.spacing*2)
 	
 	-- 選項
 	Auras.disableCooldown = true
@@ -121,6 +126,33 @@ local function CreateAuras(self)
 	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
 end
 
+-- 隊伍增益光環
+local function CreatePartyBuffs(self)
+	local Buffs = CreateFrame("Frame", nil, self)
+	Buffs.size = C.PartyBuffSize
+	Buffs.spacing = 4
+	
+	Buffs:SetFrameLevel(self:GetFrameLevel() + 2)
+	Buffs.num = 2
+
+	Buffs:SetPoint("BOTTOMRIGHT", self, -4, 6)
+	Buffs:SetWidth(C.PartyBuffSize*2 + Buffs.spacing)
+	Buffs:SetHeight(C.PartyBuffSize + Buffs.spacing*2)
+	
+	-- 選項
+	Buffs["growth-x"] = "LEFT"
+	Buffs.initialAnchor = "BOTTOMRIGHT"
+	Buffs.showDebuffType = false
+	Buffs.disableCooldown = true
+	Buffs.disableMouse = true
+	-- 註冊到ouf
+	self.Buffs = Buffs
+	self.Buffs.PostCreateButton = T.PostCreateIcon
+	self.Buffs.PostUpdateButton = T.PostUpdateIcon
+	self.Buffs.FilterAura = ClassAuraFilter				-- 光環過濾
+end
+
+-- 專用的樣式
 local CreateSD = function(parent, anchor, size)
 	local bd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	local sd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
@@ -224,6 +256,14 @@ local function CreateRaid(self, unit)
 	-- 註冊到OUF
 	self.Power = Power
 	
+	-- 文本
+	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
+	self.Name:SetPoint("TOPRIGHT", -2, -3)
+	self.Name:SetJustifyH("RIGHT")
+	self.Name:SetWidth(self:GetWidth()-4)
+	self.Name.frequentUpdates = 5
+	self:Tag(self.Name, "[namecolor][name][afkdnd]")
+	
 	-- [[ 圖示 ]] --
 	
 	-- 建立一個提供給圖示依附的父級框體，框體層級高，避免被蓋住
@@ -233,7 +273,7 @@ local function CreateRaid(self, unit)
 	
 	-- 團隊標記
 	local RaidIcon = StringParent:CreateTexture(nil, "OVERLAY")
-	RaidIcon:SetSize(20, 20)
+	RaidIcon:SetSize(24, 24)
 	RaidIcon:SetTexture(G.media.raidicon)
 	self.RaidTargetIndicator = RaidIcon
 	-- 助手
@@ -244,6 +284,11 @@ local function CreateRaid(self, unit)
 	local Leader = StringParent:CreateTexture(nil, "OVERLAY")
 	Leader:SetSize(14, 14)
 	self.LeaderIndicator = Leader
+	-- 團隊確認
+	local RDCheck = StringParent:CreateTexture(nil, "OVERLAY")
+	RDCheck:SetSize(20, 20)
+	RDCheck:SetPoint("CENTER", self.Health, 0, -3)
+	self.ReadyCheckIndicator = RDCheck
 	-- 異位面
 	local phase = StringParent:CreateTexture(nil, "OVERLAY")
 	phase:SetSize(20, 20)
@@ -268,7 +313,7 @@ local function CreateRaid(self, unit)
     self.GroupRoleIndicator = Role
 end
 
---[[
+
 local function CreatePartyStyle(self, unit)
 	self.mystyle = "R"
 	self.Range = {
@@ -277,26 +322,25 @@ local function CreatePartyStyle(self, unit)
 
 	-- 框體
 	CreateRaid(self, unit)				-- 繼承通用樣式	
-	self:SetSize(C.RWidth, C.RHeight)	-- 主框體尺寸
-	-- 文本
-	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	self.Name:SetPoint("TOPRIGHT", -2, -2)
-	self.Name:SetJustifyH("RIGHT")
-	self.Name:SetWidth(self:GetWidth() * 0.9)
-	self:Tag(self.Name, "[namecolor][name]")
+	self:SetSize(C.PartyWidth, C.PartyHeight)	-- 主框體尺寸
+	-- 死亡背景
+	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PartyHeight, G.FontFlag, nil)
+	self.DeadSkull:SetPoint("CENTER", -10, 0)
+	self.DeadSkull:SetJustifyH("CENTER")
+	self.DeadSkull:SetWidth(self:GetWidth()-4)
+	self.DeadSkull:SetAlpha(.4)
+	self:Tag(self.DeadSkull, "[deadskull]")
+	
 	-- 減益
 	CreateAuras(self)
-	
-	-- 狀態：暫離/忙錄/等級
-	self.StatusR = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	self:Tag(self.StatusR, "[afkdnd] ")
-	self.StatusR:SetPoint("TOPRIGHT", 0, 0)
-	
-	self.RaidTargetIndicator:SetPoint("TOP", self.Health, 0, 12)
-	self.AssistantIndicator:SetPoint("TOPLEFT", self.Health, 0, 8)
-	self.LeaderIndicator:SetPoint("TOPLEFT", self.Health, 0, 8)
+	-- 增益
+	CreatePartyBuffs(self)
+
+	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
+	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
+	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, 3, 8)
 end
-]]--
+
 local function CreateRaidStyle(self, unit)
 	self.mystyle = "R"
 	self.Range = {
@@ -307,19 +351,20 @@ local function CreateRaidStyle(self, unit)
 	-- 框體
 	CreateRaid(self, unit)				-- 繼承通用樣式	
 	self:SetSize(C.RWidth, C.RHeight)	-- 主框體尺寸
-	-- 文本
-	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	self.Name:SetPoint("TOPRIGHT", -2, -3)
-	self.Name:SetJustifyH("RIGHT")
-	self.Name:SetWidth(self:GetWidth()-4)
-	self.Name.frequentUpdates = 5
-	self:Tag(self.Name, "[namecolor][name][afkdnd]")
+	-- 死亡背景
+	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.RHeight, G.FontFlag, nil)
+	self.DeadSkull:SetPoint("CENTER", -5, 0)
+	self.DeadSkull:SetJustifyH("CENTER")
+	self.DeadSkull:SetWidth(self:GetWidth()-4)
+	self.DeadSkull:SetAlpha(.4)
+	self:Tag(self.DeadSkull, "[deadskull]")
+	
 	-- 減益
 	CreateAuras(self)
 
 	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
-	self.AssistantIndicator:SetPoint("BOTTOMRIGHT", self.Health, 0, 0)
-	self.LeaderIndicator:SetPoint("BOTTOMRIGHT", self.Health, 0, 0)
+	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
+	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, 3, 8)
 end
 
 --===================================================--
@@ -329,24 +374,54 @@ end
 if C.RaidFrames then
 	oUF:RegisterStyle("Raid", CreateRaidStyle)
 end
---[[
+
 if C.PartyFrames then
 	oUF:RegisterStyle("Party", CreatePartyStyle)
 end
-]]--
+
 --===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
 -- 生成
 
 oUF:Factory(function(self)
-	self:SetActiveStyle("Raid")
-	
 	local raidAnchor = CreateFrame("Frame", nil, UIParent)
 	raidAnchor:SetSize(20, 20)
 	raidAnchor:ClearAllPoints()
-	raidAnchor:SetPoint("CENTER", UIParent, 570, 120)
+	raidAnchor:SetPoint(unpack(C.Position.Groups))
 	
+	if C.PartyFrames then
+		self:SetActiveStyle("Party")
+		local party = {}
+		for i = 1, 5 do
+			party[i] = self:SpawnHeader("oUF_Party"..i, nil, "party",
+				"showSolo",			false,
+				"showParty",		C.PartyFrames,
+				"showRaid",			false,
+				"showPlayer",		true,
+
+				"point",			"TOP",
+				"columnAnchorPoint","LEFT",
+
+				"sortMethod",		"INDEX", -- or "NAME"
+				"startingIndex",	1,
+				
+				"unitsPerColumn",	5,
+				"columnSpacing",	C.PartySpace,
+				"xoffset",			C.PartySpace,
+				"yOffset",			-(C.PartySpace+C.RPHeight+2),	-- power hight and 2px border
+				
+				"templateType", "Button",
+				"oUF-initialConfigFunction", ([[
+					self:SetWidth(%d)
+					self:SetHeight(%d)
+				]]):format(C.PartyWidth, C.PartyHeight)
+			)
+			
+			party[1]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
+		end
+	end
+
 	--[[
 	local party = {}
 	for i = 1, 5 do
@@ -354,51 +429,55 @@ oUF:Factory(function(self)
 		if i == 1 then
 			unit:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
 		else
-			unit:SetPoint("TOP", party[i-1], "BOTTOM", 0, -4)
+			unit:SetPoint("TOP", party[i-1], "BOTTOM", 0, -(C.PartySpace+C.RPHeight+2))
 		end
 		party[i] = unit
 	end
 	]]--
 	
-	local raid = {}
-	for i = 1, 8 do
-		raid[i] = self:SpawnHeader("oUF_Raid"..i, nil, "party,raid,solo",
-			"showSolo",			false,
-			"showParty",		C.PartyFrames,
-			"showRaid",			C.RaidFrames,
-			"showPlayer",		true,
+	if C.RaidFrames then
+		self:SetActiveStyle("Raid")
+		local raid = {}
+		for i = 1, 8 do
+			--raid[i] = self:SpawnHeader("oUF_Raid"..i, nil, "party,raid,solo",
+			raid[i] = self:SpawnHeader("oUF_Raid"..i, nil, "raid,solo",
+				"showSolo",			false,
+				"showParty",		false,
+				"showRaid",			C.RaidFrames,
+				"showPlayer",		true,
 
-			"point",			"TOP",
-			"columnAnchorPoint","LEFT",
+				"point",			"TOP",
+				"columnAnchorPoint","LEFT",
 
-			"groupFilter",		tostring(i),
-			"groupingOrder",	tostring(i),
-			"groupBy",			"GROUP",
-			"sortMethod",		"INDEX", -- or "NAME"
-			"startingIndex",	1,
+				"groupFilter",		tostring(i),
+				"groupingOrder",	tostring(i),
+				"groupBy",			"GROUP",
+				"sortMethod",		"INDEX", -- or "NAME"
+				"startingIndex",	1,
+				
+				"maxColumns",		8,
+				"unitsPerColumn",	5,
+				"columnSpacing",	C.RSpace,
+				"xoffset",			C.RSpace,
+				"yOffset",			-(C.RSpace+C.RPHeight+2),	-- power hight and 2px border
+				
+				"templateType", "Button",
+				"oUF-initialConfigFunction", ([[
+					self:SetWidth(%d)
+					self:SetHeight(%d)
+				]]):format(C.RWidth, C.RHeight)
+			)
 			
-			"maxColumns",		8,
-			"unitsPerColumn",	5,
-			"columnSpacing",	C.RSpace,
-			"xoffset",			C.RSpace,
-			"yOffset",			-(C.RSpace+C.RPHeight+2),	-- power hight and 2px border
-			
-			"templateType", "Button",
-			"oUF-initialConfigFunction", ([[
-				self:SetWidth(%d)
-				self:SetHeight(%d)
-			]]):format(C.RWidth, C.RHeight)
-		)
-		
-		if i == 1 then
-			raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
-		elseif i >= 2 and i <= 4 then
-			raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
-		elseif i == 5 then
-			--raid[i]:SetPoint("TOP", raid[i-4], "BOTTOM", 0, -C.RSpace)
-			raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, -(C.RHeight*5+C.RPHeight*5+C.RSpace*6))
-		elseif i >= 6 then
-			raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
+			if i == 1 then
+				raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
+			elseif i >= 2 and i <= 4 then
+				raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
+			elseif i == 5 then
+				--raid[i]:SetPoint("TOP", raid[i-4], "BOTTOM", 0, -C.RSpace)
+				raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, -(C.RHeight*5+C.RPHeight*5+C.RSpace*6))
+			elseif i >= 6 then
+				raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
+			end
 		end
 	end
 end)

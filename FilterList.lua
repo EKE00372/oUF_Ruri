@@ -133,15 +133,15 @@ C.RaidBlackList = {
 	[338906] = true,		-- 典狱长之链
 }
 
-C.RaidAuraList = {
--- Death Knight
-    [48707] = true, --Anti-Magic Shell
-    [48792] = true, --Icebound Fortitude
+C.RaidBuffList = {
+	-- Death Knight
+    [48707]  = true, -- Anti-Magic Shell
+    [48792]  = true, -- Icebound Fortitude
     [287081] = true, --Lichborne
-    [55233] = true, --Vampiric Blood
+    [55233]  = true, --Vampiric Blood
     [194679] = true, --Rune Tap
     [145629] = true, --Anti-Magic Zone
-    [81256] = true, --Dancing Rune Weapon
+    [81256]  = true, --Dancing Rune Weapon
 
     -- Demon Hunter
     [196555] = true, --Netherwalk
@@ -154,9 +154,9 @@ C.RaidAuraList = {
     [203554] = true, --Focused Growth
     [362486] = true, --Tranquility (Druid PVP)
     [102342] = true, --Ironbark
-    [22812] = true, --Barkskin
-    [61336] = true, --Survival Instincts
-    [5215] = true, --Prowl
+    [22812]  = true, --Barkskin
+    [61336]  = true, --Survival Instincts
+    [5215]   = true, --Prowl
 
     -- Hunter
     [186265] = true, --Aspect of the Turtle
@@ -166,8 +166,8 @@ C.RaidAuraList = {
     [199483] = true, --Camouflage
 
     -- Mage
-    [45438] = true, --Ice Block
-    [66] = true, --Invisibility
+    [45438]  = true, --Ice Block
+    [66]     = true, --Invisibility
     [198111] = true, --Temporal Shield
     [113862] = true, --Greater Invisibility
     [342246] = true, --Alter Time
@@ -175,43 +175,43 @@ C.RaidAuraList = {
     [108978] = true,
 
     -- Monk
-    [125174] = true, --Touch of Karma
+    [125174] = true, -- 乾坤挪移 / Touch of Karma
     [120954] = true, --Fortifying Brew (Brewmaster)
     [243435] = true, --Fortifying Brew (Mistweaver)
     [201318] = true, --Fortifying Brew (Windwalker)
-    [115176] = true, --Zen Meditation
+    [115176] = true, -- 禪定歸宗 / Zen Meditation
     [116849] = true, --Life Cocoon
     [122278] = true, --Dampen Harm
-    [122783] = true, --Diffuse Magic
+    [122783] = true, -- Diffuse Magic
 
     -- Paladin
     [204018] = true, --Blessing of Spellwarding
-    [642] = true, --Divine Shield
+    [642]    = true, --聖盾術 / Divine Shield
     [228050] = true, --Divine Shield (Protection)
-    [1022] = true, --Blessing of Protection
-    [6940] = true, --Blessing of Sacrifice
+    [1022]   = true, --保護 / Blessing of Protection
+    [6940]   = true, --Blessing of Sacrifice
     [199448] = true, --Blessing of Ultimate Sacrifice
-    [498] = true, --Divine Protection
-    [31850] = true, --Ardent Defender
-    [86659] = true, --Guardian of Ancient Kings
+    [498]    = true, --Divine Protection
+    [31850]  = true, --Ardent Defender
+    [86659]  = true, --Guardian of Ancient Kings
     [205191] = true, --Eye for an Eye
 
     -- Priest
-    [47788] = true, --Guardian Spirit
-    [47585] = true, --Dispersion
-    [33206] = true, --Pain Suppression
+    [47788]  = true, --Guardian Spirit
+    [47585]  = true, --Dispersion
+    [33206]  = true, --Pain Suppression
     [213602] = true, --Greater Fade
-    [81782] = true, --Power Word: Barrier
+    [81782]  = true, --Power Word: Barrier
     [271466] = true, --Luminous Barrier
-    [20711] = true, --Spirit of Redemption
+    [20711]  = true, --Spirit of Redemption
 
     -- Rogue
-    [31224] = true, --Cloak of Shadows
-    [45182] = true, --Cheating Death
-    [5277] = true, --Evasion
+    [31224]  = true, --Cloak of Shadows
+    [45182]  = true, --Cheating Death
+    [5277]   = true, --Evasion
     [199754] = true, --Riposte
-    [1966] = true, --Feint
-    [1784] = true, --Stealth
+    [1966]   = true, --Feint
+    [1784]   = true, --Stealth
 
     -- Shaman
     [210918] = true, --Ethereal Form
@@ -225,25 +225,25 @@ C.RaidAuraList = {
     [108416] = true, --Dark Pact
 
     -- Warrior
-    [871] = true, --Shield Wall
+    [871]    = true, --Shield Wall
     [118038] = true, --Die by the Sword
     [147833] = true, --Intervene
     [213915] = true, --Mass Spell Reflection
-    [23920] = true, --Spell Reflection (Prot)
+    [23920]  = true, --Spell Reflection (Prot)
     [216890] = true, --Spell Reflection (Arms/Fury)
     [184364] = true, --Enraged Regeneration
-    [97463] = true, --Rallying Cry
-    [12975] = true, --Last Stand
+    [97463]  = true, --Rallying Cry
+    [12975]  = true, --Last Stand
     [190456] = true, --Ignore Pain
 
     -- Misc
-    ["Eating/Drinking"] = true, -- Food umbrella
-    ["Food & Drink"] = true, --Food & Drink
+    --[[["Eating/Drinking"] = true, -- Food umbrella
+	["Food & Drink"] = true, --Food & Drink
     ["Food"] = true, --Food
     ["Drink"] = true, --Drink
     ["Refreshment"] = true, --Refreshment
     [185710] = true, --Sugar-Crusted Fish Feast
     [320224] = true, -- Podtender
     [363522] = true, -- Gladiator's Eternal Aegis
-    [345231] = true, -- Gladiator's Emblem
+    [345231] = true, -- Gladiator's Emblem]]--
 }
