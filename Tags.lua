@@ -86,6 +86,18 @@ oUF.Tags.Methods["quest"] = function(u)
 end
 oUF.Tags.Events["quest"] = "UNIT_CLASSIFICATION_CHANGED"
 
+-- [[ 死亡 ]] --
+oUF.Tags.Methods["deadskull"] = function(u)
+	local dead = UnitIsDead(u) or UnitIsGhost(u)
+	if dead then
+		--return "|T"..G.media.skull..":64:64:0:0:64:64:0:64:8:56|t"
+		return "|T"..G.media.skull..":12:16:0:0:64:64:8:56:9:52|t"
+	else
+		return ""
+	end
+end
+oUF.Tags.Events["deadskull"] = "UNIT_HEALTH"
+
 -- [[ 狀態 ]] --
 
 oUF.Tags.Methods["afkdnd"] = function(unit)

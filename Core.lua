@@ -328,7 +328,7 @@ T.PostUpdateIcon = function(self, button, unit, data)
 	if style == "NPP" or style == "BPP" then
 		-- 玩家名條固定灰色
 		button.Overlay:SetVertexColor(.6, .6, .6)
-	elseif F.Multicheck(style, "NP", "BP" ,"R") then
+	elseif F.Multicheck(style, "NP", "BP") then
 		-- 名條和團隊框架上的光環一率按類型染色
 		button.Overlay:SetVertexColor(color[1], color[2], color[3])
 	else

@@ -40,6 +40,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		resting = MediaFolder.."resting.blp",
 		combat = MediaFolder.."combat.blp",
 		raidicon = MediaFolder.."raidicons.blp",
+		skull = MediaFolder.."RaidFrameDeathIcon.blp",
 		
 		circle = MediaFolder.."crosshair_circle.blp",
 		arrows = MediaFolder.."crosshair_arrows.blp",
@@ -115,10 +116,17 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.RHeight = 44				-- raid frame height
 	
 	C.RPHeight = 2				-- raid frame power height
-	C.RSpace = 6
+	C.RSpace = 6				-- frame space
 	C.sAuSize = 18				-- corner small aura size
 	--C.bAuSize = 20				-- middle big aura size
 	C.RangeAlpha = 0.4			-- alpha for out of range units
+	
+	C.PartyWidth = 162				-- raid frame width
+	C.PartyHeight = 44				-- raid frame height
+	
+	C.PartyPHeight = 2				-- raid frame power height
+	C.PartySpace = 6
+	C.PartyBuffSize = 22
 	
 ------------------------
 -- Nameplate settings --
@@ -201,6 +209,11 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		
 		Boss	= {"LEFT", 10, 80},
 		Arena	= {"LEFT", 10, 80},
+		
+		-- [[ Groups / 團隊 ]] --
+		--Party	= {},
+		--Raid	= {},
+		Groups	= {"CENTER", UIParent, 570, 120},
 		
 		-- [[ 玩家個人資源 / player plate ]] --
 		
