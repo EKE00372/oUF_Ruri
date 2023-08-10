@@ -390,46 +390,45 @@ oUF:Factory(function(self)
 	raidAnchor:ClearAllPoints()
 	raidAnchor:SetPoint(unpack(C.Position.Groups))
 	
+	-- show raid style partyframe
 	if C.PartyFrames then
 		self:SetActiveStyle("Party")
-		local party = {}
-		for i = 1, 5 do
-			party[i] = self:SpawnHeader("oUF_Party"..i, nil, "party",
-				"showSolo",			false,
-				"showParty",		C.PartyFrames,
-				"showRaid",			false,
-				"showPlayer",		true,
+		local party = self:SpawnHeader("oUF_Party", nil, "party",
+			"showSolo",			false,
+			"showParty",		C.PartyFrames,
+			"showRaid",			false,
+			"showPlayer",		true,
 
-				"point",			"TOP",
-				"columnAnchorPoint","LEFT",
+			"point",			"TOP",
+			"columnAnchorPoint","LEFT",
 
-				"sortMethod",		"INDEX", -- or "NAME"
-				"startingIndex",	1,
-				
-				"unitsPerColumn",	5,
-				"columnSpacing",	C.PartySpace,
-				"xoffset",			C.PartySpace,
-				"yOffset",			-(C.PartySpace+C.RPHeight+2),	-- power hight and 2px border
-				
-				"templateType", "Button",
-				"oUF-initialConfigFunction", ([[
-					self:SetWidth(%d)
-					self:SetHeight(%d)
-				]]):format(C.PartyWidth, C.PartyHeight)
-			)
+			"sortMethod",		"INDEX", -- or "NAME"
+			"startingIndex",	1,
 			
-			party[1]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
-		end
+			"unitsPerColumn",	5,
+			"columnSpacing",	C.RSpace,
+			"xoffset",			C.RSpace,
+			"yOffset",			-(C.RSpace+C.RPHeight+2),	-- power hight and 2px border
+			
+			"templateType",		"Button",
+			"oUF-initialConfigFunction", ([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+			]]):format(C.PartyWidth, C.PartyHeight)
+		)
+		
+		party:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
 	end
 
 	--[[
+	-- as same as default partyframe, it dont have self unitframe
 	local party = {}
-	for i = 1, 5 do
+	for i = 1, 4 do
 		local unit = self:Spawn("party"..i, "oUF_Party"..i)
 		if i == 1 then
 			unit:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
 		else
-			unit:SetPoint("TOP", party[i-1], "BOTTOM", 0, -(C.PartySpace+C.RPHeight+2))
+			unit:SetPoint("TOP", party[i-1], "BOTTOM", 0, -(C.RSpace+C.RPHeight+2))
 		end
 		party[i] = unit
 	end

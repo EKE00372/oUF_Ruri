@@ -209,16 +209,13 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("CENTER",  0, -3)
 	
-	-- 圖騰
-	T.CreateTotemBar(self)
-	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	
 	if C.TankResource then T.CreateTankResource(self, unit) end
-	
+	--if C.Totems then T.CreateTotemBar(self) end
+
 	-- 施法條
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)
@@ -273,17 +270,14 @@ local function CreateVPlayerStyle(self, unit)
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
-	-- 圖騰
-	--T.CreateTotemBar(self)
 	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	
 	if C.TankResource then T.CreateTankResource(self, unit) end
-	--if C.Totems then T.CreateTotems(self) end
-	--if C.CombatText then T.CreateFCT(self) end
+	-- 圖騰
+	--if C.Totems then T.CreateTotemBar(self) end
 	
 	-- 減益
 	if C.PlayerDebuffs then
