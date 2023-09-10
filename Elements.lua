@@ -182,6 +182,7 @@ T.CreateAuras = function(self, button)
 	Auras:SetFrameLevel(self:GetFrameLevel() + 2)
 	
 	if self.mystyle == "S" then
+		-- simple focus
 		Auras.numBuffs = 2
 		Auras.numDebuffs = 4
 		Auras.numTotal = 4
@@ -189,6 +190,7 @@ T.CreateAuras = function(self, button)
 		
 		Auras.iconsPerRow = 4
 		Auras.initialAnchor = "BOTTOMLEFT"
+		Auras.tooltipAnchor = "ANCHOR_TOPRIGHT"
 		Auras["growth-x"] = "RIGHT"
 		Auras["growth-y"] = "UP"
 		Auras:SetPoint("BOTTOMLEFT", self.HealthText, "TOPLEFT", 3, 0)
@@ -204,12 +206,14 @@ T.CreateAuras = function(self, button)
 			Auras.gap = true
 
 			Auras.initialAnchor = "BOTTOMLEFT"
+			Auras.tooltipAnchor = "ANCHOR_TOPLEFT"
 			Auras["growth-x"] = "RIGHT"
 			Auras["growth-y"] = "UP"
 			Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
 			Auras:SetWidth(self:GetWidth())
 			Auras:SetHeight(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
 		else
+			-- VL=player/VR=target
 			local iconsPerLine = math.floor(self:GetHeight() / (C.buSize + Auras.spacing) + 0.5)
 			
 			Auras.numBuffs = iconsPerLine
