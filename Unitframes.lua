@@ -192,7 +192,7 @@ end
 --------------    [[ UnitSpecific ]]     --------------
 --===================================================--
 
--- 玩家橫式
+-- 玩家橫式 / Player
 local function CreatePlayerStyle(self, unit)
 	self.mystyle = "H"
 	
@@ -252,7 +252,7 @@ local function CreatePlayerStyle(self, unit)
 	self.RestingIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
 end
 
--- 玩家直式
+-- 玩家直式 / Vert plater
 local function CreateVPlayerStyle(self, unit)
 	self.mystyle = "VL"
 	
@@ -323,7 +323,7 @@ local function CreateVPlayerStyle(self, unit)
 	self.RestingIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
 end
 
--- 目標橫式
+-- 目標橫式 / Target
 local function CreateTargetStyle(self, unit)
 	self.mystyle = "H"
 	-- 框體
@@ -369,7 +369,7 @@ local function CreateTargetStyle(self, unit)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 end
 
--- 目標直式
+-- 目標直式 / Vert target
 local function CreateVTargetStyle(self, unit)
 	self.mystyle = "VR"
 	
@@ -383,6 +383,7 @@ local function CreateVTargetStyle(self, unit)
 
 	-- 光環
 	T.CreateAuras(self)
+	self.Auras.tooltipAnchor = "ANCHOR_BOTTOMLEFT"
 	
 	-- 施法條
 	if C.StandaloneCastbar then
@@ -419,7 +420,7 @@ local function CreateVTargetStyle(self, unit)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, 0, -4)
 end
 
--- 焦點
+-- 焦點 / Focus
 local function CreateFocusStyle(self, unit)
 	self.mystyle = "H"
 	
@@ -469,7 +470,7 @@ local function CreateFocusStyle(self, unit)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 end
 
--- 簡易焦點
+-- 簡易焦點 / Simple focus
 local function CreateSFocusStyle(self, unit)
 	self.mystyle = "S"
 	
@@ -542,7 +543,7 @@ local function CreateSFocusStyle(self, unit)
 	end
 end
 
--- 寵物
+-- 寵物橫式 / Pet
 local function CreatePetStyle(self, unit)
 	self.mystyle = "H"
 	
@@ -569,7 +570,7 @@ local function CreatePetStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("LEFT", self.Health, -14, 0)
 end
 
--- 寵物直式
+-- 寵物直式 / Vert pet
 local function CreateVPetStyle(self, unit)
 	self.mystyle = "VL"
 	-- 框體
@@ -584,6 +585,7 @@ local function CreateVPetStyle(self, unit)
 	T.CreateDebuffs(self)
 	self.Debuffs:SetPoint("TOPRIGHT", self.Power, "TOPLEFT", -C.PPOffset - 1, -2)
 	self.Debuffs.initialAnchor = "TOP"
+	self.Debuffs.tooltipAnchor = "ANCHOR_BOTTOMLEFT"
 	self.Debuffs["growth-y"] = "DOWN"
 	self.Debuffs.num = 2
 	self.Debuffs.size = C.buSize
@@ -593,7 +595,7 @@ local function CreateVPetStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
 end
 
--- 目標的目標橫式
+-- 目標的目標橫式 / ToT
 local function CreateToTStyle(self, unit)
 	self.mystyle = "H"
 	
@@ -633,7 +635,7 @@ local function CreateToTStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
 end
 
--- 目標的目標直式
+-- 目標的目標直式 / Vert ToT
 local function CreateVToTStyle(self, unit)
 	self.mystyle = "VR"
 	
@@ -671,7 +673,7 @@ local function CreateVToTStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
 end
 
--- 焦點目標
+-- 焦點目標 / FoT
 local function CreateFoTStyle(self, unit)
 	self.mystyle = "H"
 	
@@ -723,7 +725,7 @@ local function CreateFoTStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
 end
 
--- 簡易焦點目標
+-- 簡易焦點目標 / Simple FoT
 local function CreateSFoTStyle(self, unit)
 	self.mystyle = "S"
 	
@@ -782,7 +784,7 @@ local function CreateSFoTStyle(self, unit)
 	self.RaidTargetIndicator = RaidIcon
 end
 
--- 首領
+-- 首領 / Boss
 local function CreateBossStyle(self, unit)
 	self.mystyle = "H"
 	
@@ -838,7 +840,7 @@ local function CreateBossStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
 end
 
--- 競技場
+-- 競技場 / Arena
 local function CreateArenaStyle(self, unit)
 	self.mystyle = "H"
 	
