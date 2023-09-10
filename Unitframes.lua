@@ -111,7 +111,7 @@ local function CreateUnitShared(self, unit)
 	-- 註冊到ouf
 	self.Power = Power
 	self.Power.PostUpdate = T.PostUpdatePower
-
+	
 	-- [[ 圖示 ]] --
 	
 	-- 建立一個提供給圖示依附的父級框體，框體層級高，避免被蓋住
@@ -199,7 +199,6 @@ local function CreatePlayerStyle(self, unit)
 	-- 框體
     CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
-	T.CreateHealthPrediction(self, unit)-- 吸收盾
 	
 	-- 文本
 	self.Health.value:SetPoint("LEFT", 0, 2)
@@ -208,6 +207,11 @@ local function CreatePlayerStyle(self, unit)
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("CENTER",  0, -3)
+	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.PWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.PWidth)
 	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
@@ -259,7 +263,6 @@ local function CreateVPlayerStyle(self, unit)
 	-- 框體
     CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.PWidth)	-- 主框體尺寸
-	T.CreateHealthPrediction(self, unit)-- 吸收盾
 	
 	-- 文本
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, 0)
@@ -270,6 +273,11 @@ local function CreateVPlayerStyle(self, unit)
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
+	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetHeight(C.PWidth)
+	self.HealthPrediction.overAbsorb:SetHeight(C.PWidth)
 	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
@@ -334,6 +342,11 @@ local function CreateTargetStyle(self, unit)
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("CENTER",  0, -3)
 	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.PWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.PWidth)
+	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("RIGHT")
@@ -380,7 +393,12 @@ local function CreateVTargetStyle(self, unit)
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*5)
-
+	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetHeight(C.PWidth)
+	self.HealthPrediction.overAbsorb:SetHeight(C.PWidth)
+	
 	-- 光環
 	T.CreateAuras(self)
 	self.Auras.tooltipAnchor = "ANCHOR_BOTTOMLEFT"
@@ -427,6 +445,11 @@ local function CreateFocusStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
+	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.PWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.PWidth)
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -551,6 +574,11 @@ local function CreatePetStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
 	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.TOTWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.TOTWidth)
+	
 	-- 文本
 	self.Name:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("LEFT")
@@ -576,6 +604,11 @@ local function CreateVPetStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.TOTWidth)	-- 主框體尺寸
+	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetHeight(C.TOTWidth)
+	self.HealthPrediction.overAbsorb:SetHeight(C.TOTWidth)
 	
 	-- 文本
 	self.Name:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, 0)
@@ -603,6 +636,11 @@ local function CreateToTStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
 
+	-- 吸收盾
+	--T.CreateHealthPrediction(self, unit)
+	--self.HealthPrediction.absorbBar:SetWidth(C.TOTWidth)
+	--self.HealthPrediction.overAbsorb:SetWidth(C.TOTWidth)
+	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("RIGHT")
@@ -642,7 +680,12 @@ local function CreateVToTStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.TOTWidth)	-- 主框體尺寸
-
+	
+	-- 吸收盾
+	--T.CreateHealthPrediction(self, unit)
+	--self.HealthPrediction.absorbBar:SetHeight(C.TOTWidth)
+	--self.HealthPrediction.overAbsorb:SetHeight(C.TOTWidth)
+	
 	-- 文本
 	self.Name:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, 0)
 	
@@ -681,6 +724,11 @@ local function CreateFoTStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
 
+	-- 吸收盾
+	--T.CreateHealthPrediction(self, unit)
+	--self.HealthPrediction.absorbBar:SetWidth(C.TOTWidth)
+	--self.HealthPrediction.overAbsorb:SetWidth(C.TOTWidth)
+	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("RIGHT")
@@ -792,6 +840,11 @@ local function CreateBossStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
 
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.BWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.BWidth)
+	
 	-- 文本
 	self.Status:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
 	self.Status:SetJustifyH("LEFT")
@@ -848,6 +901,11 @@ local function CreateArenaStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
 
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.BWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.BWidth)
+	
 	-- 文本
 	self.Status:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
 	self.Status:SetJustifyH("LEFT")

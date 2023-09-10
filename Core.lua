@@ -329,7 +329,7 @@ T.PostUpdateIcon = function(self, button, unit, data)
 		-- 玩家名條固定灰色
 		button.Overlay:SetVertexColor(.6, .6, .6)
 	elseif F.Multicheck(style, "NP", "BP") then
-		-- 名條和團隊框架上的光環一率按類型染色
+		-- 名條上的光環一率按類型染色
 		button.Overlay:SetVertexColor(color[1], color[2], color[3])
 	else
 		if data.icon then
@@ -704,6 +704,34 @@ T.PostUpdateRunes = function(self, runemap)
 				--rune:SetAlpha(.6)
 				rune.runeDuration = duration
 				rune:SetScript("OnUpdate", T.OnUpdateRunes)
+			end
+		end
+	end
+end
+
+-- [[ 更新預估治療 ]] --
+
+T.PostUpdateHealPer = function(self, unit, myIncomingHeal, otherIncomingHeal, absorb, healAbsorb, hasOverAbsorb, hasOverHealAbsorb)
+	local health = self.__owner.Health
+	local style = self.__owner.mystyle
+	local cur, max, ab = UnitHealth(unit), UnitHealthMax(unit), UnitGetTotalAbsorbs(unit) or 0
+	
+	if self.overAbsorb and hasOverAbsorb then
+		local lost = (max - cur)
+		
+		if style == "VL" or style == "VR" then
+			if lost == 0 then
+				-- -- 滿血時吸收盾按血量百分比顯示
+				self.overAbsorb:SetHeight((ab/max) * health:GetHeight())
+			elseif  lost > 0 and (ab > lost) then
+				-- 吸收盾大於損血量時按血量百分比顯示並實時更新
+				self.overAbsorb:SetHeight(((ab - lost)/max) * health:GetHeight())
+			end
+		elseif F.Multicheck(style, "H", "BP", "BPP", "R") then
+			if lost == 0 then
+				self.overAbsorb:SetWidth((ab/max) * health:GetWidth())
+			elseif lost > 0 and (ab > lost) then
+				self.overAbsorb:SetWidth(((ab - lost)/max) * health:GetWidth())
 			end
 		end
 	end

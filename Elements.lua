@@ -182,7 +182,7 @@ T.CreateAuras = function(self, button)
 	Auras:SetFrameLevel(self:GetFrameLevel() + 2)
 	
 	if self.mystyle == "S" then
-		-- simple focus
+		-- Simple focus
 		Auras.numBuffs = 2
 		Auras.numDebuffs = 4
 		Auras.numTotal = 4
@@ -198,6 +198,7 @@ T.CreateAuras = function(self, button)
 		Auras:SetHeight(C.buSize)
 	else
 		if self.mystyle == "H" then
+			-- Player/Target/Focus
 			local iconsPerLine = math.floor(self:GetWidth() / (C.buSize + Auras.spacing) + 0.5)
 			
 			Auras.numBuffs = iconsPerLine
@@ -213,7 +214,7 @@ T.CreateAuras = function(self, button)
 			Auras:SetWidth(self:GetWidth())
 			Auras:SetHeight(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
 		else
-			-- VL=player/VR=target
+			-- VL=Player/VR=Target
 			local iconsPerLine = math.floor(self:GetHeight() / (C.buSize + Auras.spacing) + 0.5)
 			
 			Auras.numBuffs = iconsPerLine
@@ -451,39 +452,49 @@ end
 -- [[ 預估治療 ]] --
 
 T.CreateHealthPrediction = function(self, unit)
-	local AbsorbBar = F.CreateStatusbar(self, G.addon..unit.."_AbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
-	AbsorbBar:SetFrameLevel(self:GetFrameLevel() + 2)
+	-- 吸收盾
+	local abb = F.CreateStatusbar(self, G.addon..unit.."_AbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
+	abb:SetFrameLevel(self:GetFrameLevel() + 2)
 	
-	if self.mystyle == "VL" then
-		-- 玩家直式
-		AbsorbBar:SetSize(C.PHeight, C.PWidth)
-		AbsorbBar:SetOrientation("VERTICAL")
-		AbsorbBar:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif self.mystyle == "BP" then
-		-- 條形名條
-		AbsorbBar:SetSize(C.NPWidth, C.NPHeight)
-		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
-	elseif self.mystyle == "BPP" then
-		-- 條形個人資源條
-		AbsorbBar:SetSize(C.PlayerNPWidth, C.NPHeight+4)
-		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
-	else
-		-- 玩家橫式
-		AbsorbBar:SetSize(C.PWidth, C.PHeight)
-		AbsorbBar:SetReverseFill(true)
-		AbsorbBar:SetPoint("TOP")
-		AbsorbBar:SetPoint("BOTTOM")
-		AbsorbBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
+	if self.mystyle == "VL" or self.mystyle == "VR" then
+		-- 直式
+		abb:SetOrientation("VERTICAL")
+		abb:SetPoint("LEFT")
+		abb:SetPoint("RIGHT")
+		abb:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
+	elseif F.Multicheck(self.mystyle, "H", "BP", "BPP", "R") then
+		-- 橫式
+		abb:SetPoint("TOP")
+		abb:SetPoint("BOTTOM")
+		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "LEFT")
+	end
+	
+	-- 滿血時的吸收盾
+	local abbo = F.CreateStatusbar(self, G.addon..unit.."_OverAbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
+	abbo:SetFrameLevel(self:GetFrameLevel() + 2)
+	
+	if self.mystyle == "VL" or self.mystyle == "VR" then
+		-- 直式
+		abbo:SetOrientation("VERTICAL")
+		abbo:SetPoint("RIGHT")
+		abbo:SetPoint("LEFT")
+		abbo:SetPoint("TOP", self.Health:GetStatusBarTexture(), "BOTTOM")
+	elseif F.Multicheck(self.mystyle, "BP", "H", "BPP", "R") then
+		-- 橫式
+		abbo:SetPoint("TOP")
+		abbo:SetPoint("BOTTOM")
+		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "LEFT")
 	end
 
-	-- 只做了吸收盾，治療吸收盾跟其他一堆都還沒做
 	self.HealthPrediction = {
-        absorbBar = AbsorbBar,
+        absorbBar = abb,	-- 吸收盾
         -- healAbsorbBar
-		-- overAbsorb
+		overAbsorb = abbo,	-- 過量吸收盾
 		-- overHealAbsorb
         frequentUpdates = true,
+		maxOverflow = 1.01,
     }
+	self.HealthPrediction.PostUpdate = T.PostUpdateHealPer
 end
 
 -- [[ 坦克資源 ]] --
