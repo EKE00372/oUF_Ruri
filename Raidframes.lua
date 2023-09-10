@@ -331,6 +331,10 @@ local function CreatePartyStyle(self, unit)
 	self.DeadSkull:SetAlpha(.4)
 	self:Tag(self.DeadSkull, "[deadskull]")
 	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.PartyWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.PartyWidth)
 	-- 減益
 	CreateAuras(self)
 	-- 增益
@@ -359,6 +363,10 @@ local function CreateRaidStyle(self, unit)
 	self.DeadSkull:SetAlpha(.4)
 	self:Tag(self.DeadSkull, "[deadskull]")
 	
+	-- 吸收盾
+	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.RWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.RWidth)
 	-- 減益
 	CreateAuras(self)
 

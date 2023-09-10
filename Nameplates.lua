@@ -570,6 +570,8 @@ local function CreateBarPlates(self, unit)
 	CreateStandaloneCastbar(self, unit)
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.NPWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.NPWidth)
 	
 	-- 光環
 	if C.ShowAuras then
@@ -729,6 +731,8 @@ local function CreatePlayerBarPlate(self, unit)
 	T.CreateClassPower(self, unit)
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
+	self.HealthPrediction.absorbBar:SetWidth(C.PlayerNPWidth)
+	self.HealthPrediction.overAbsorb:SetWidth(C.PlayerNPWidth)
 	
 	if C.Fade then
 		self.FadeMinAlpha = C.FadeOutAlpha
