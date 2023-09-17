@@ -256,19 +256,11 @@ local function CreateRaid(self, unit)
 	-- 註冊到OUF
 	self.Power = Power
 	
-	-- 文本
-	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	self.Name:SetPoint("TOPRIGHT", -2, -3)
-	self.Name:SetJustifyH("RIGHT")
-	self.Name:SetWidth(self:GetWidth()-4)
-	self.Name.frequentUpdates = 5
-	self:Tag(self.Name, "[namecolor][name][afkdnd]")
-	
 	-- [[ 圖示 ]] --
 	
 	-- 建立一個提供給圖示依附的父級框體，框體層級高，避免被蓋住
 	local StringParent = CreateFrame("Frame", nil, self)
-	StringParent:SetFrameLevel(self:GetFrameLevel() + 8)
+	StringParent:SetFrameLevel(self:GetFrameLevel() + 10)
 	self.StringParent = StringParent
 	
 	-- 團隊標記
@@ -311,6 +303,21 @@ local function CreateRaid(self, unit)
     Role:SetTexture(G.media.role)
     Role:SetDesaturated(true)
     self.GroupRoleIndicator = Role
+	
+	-- [[ 文本/TAGS ]] --
+	
+	-- 名字與狀態
+	self.Name = F.CreateText(StringParent, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "RIGHT")
+	self.Name:SetPoint("TOPRIGHT", self, -2, -3)
+	self.Name:SetWidth(self:GetWidth()-4)
+	self.Name.frequentUpdates = 5
+	self:Tag(self.Name, "[namecolor][name][afkdnd]")
+	
+	-- 死亡背景
+	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PartyHeight, G.FontFlag, "CENTER")
+	self.DeadSkull:SetWidth(self:GetWidth()-4)
+	self.DeadSkull:SetAlpha(.4)
+	self:Tag(self.DeadSkull, "[deadskull]")
 end
 
 
@@ -324,17 +331,12 @@ local function CreatePartyStyle(self, unit)
 	CreateRaid(self, unit)				-- 繼承通用樣式	
 	self:SetSize(C.PartyWidth, C.PartyHeight)	-- 主框體尺寸
 	-- 死亡背景
-	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PartyHeight, G.FontFlag, nil)
 	self.DeadSkull:SetPoint("CENTER", -10, 0)
-	self.DeadSkull:SetJustifyH("CENTER")
-	self.DeadSkull:SetWidth(self:GetWidth()-4)
-	self.DeadSkull:SetAlpha(.4)
-	self:Tag(self.DeadSkull, "[deadskull]")
 	
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.PartyWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.PartyWidth)
+	--self.HealthPrediction.absorbBar:SetWidth(C.PartyWidth)
+	--self.HealthPrediction.overAbsorb:SetWidth(C.PartyWidth)
 	-- 減益
 	CreateAuras(self)
 	-- 增益
@@ -356,17 +358,12 @@ local function CreateRaidStyle(self, unit)
 	CreateRaid(self, unit)				-- 繼承通用樣式	
 	self:SetSize(C.RWidth, C.RHeight)	-- 主框體尺寸
 	-- 死亡背景
-	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.RHeight, G.FontFlag, nil)
 	self.DeadSkull:SetPoint("CENTER", -5, 0)
-	self.DeadSkull:SetJustifyH("CENTER")
-	self.DeadSkull:SetWidth(self:GetWidth()-4)
-	self.DeadSkull:SetAlpha(.4)
-	self:Tag(self.DeadSkull, "[deadskull]")
 	
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.RWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.RWidth)
+	--self.HealthPrediction.absorbBar:SetWidth(C.RWidth)
+	--self.HealthPrediction.overAbsorb:SetWidth(C.RWidth)
 	-- 減益
 	CreateAuras(self)
 
