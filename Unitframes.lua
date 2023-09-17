@@ -162,10 +162,10 @@ local function CreateUnitShared(self, unit)
 	-- [[ 文本/TAGS ]] --
 	
 	-- 血量
-	self.Health.value = F.CreateText(self.Power, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
+	self.Health.value = F.CreateText(StringParent, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 	self:Tag(self.Health.value, "[unit:hp]")
 	-- 能量
-	self.Power.value = F.CreateText(self.Power, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "RIGHT")
+	self.Power.value = F.CreateText(StringParent, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "RIGHT")
 	--self:Tag(self.Power.value, "[unit:mp]") --不用這個，用postupdate
 	-- 名字
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
@@ -201,18 +201,15 @@ local function CreatePlayerStyle(self, unit)
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
 	
 	-- 文本
-	self.Health.value:SetPoint("LEFT", 0, 2)
-	self.Power.value:SetPoint("RIGHT", 0, 2)
+	self.Health.value:SetPoint("LEFT", self.Power, 0, 2)
+	self.Power.value:SetPoint("RIGHT", self.Power, 0, 2)
 	
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("CENTER",  0, -3)
 	
 	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.PWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.PWidth)
-	
+	T.CreateHealthPrediction(self, unit)	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
@@ -275,10 +272,7 @@ local function CreateVPlayerStyle(self, unit)
 	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
 	
 	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetHeight(C.PWidth)
-	self.HealthPrediction.overAbsorb:SetHeight(C.PWidth)
-	
+	T.CreateHealthPrediction(self, unit)	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
@@ -344,8 +338,6 @@ local function CreateTargetStyle(self, unit)
 	
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.PWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.PWidth)
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -396,8 +388,8 @@ local function CreateVTargetStyle(self, unit)
 	
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetHeight(C.PWidth)
-	self.HealthPrediction.overAbsorb:SetHeight(C.PWidth)
+	--self.HealthPrediction.absorbBar:SetHeight(C.PWidth)
+	--self.HealthPrediction.overAbsorb:SetHeight(C.PWidth)
 	
 	-- 光環
 	T.CreateAuras(self)
@@ -448,8 +440,6 @@ local function CreateFocusStyle(self, unit)
 	
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.PWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.PWidth)
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -576,8 +566,6 @@ local function CreatePetStyle(self, unit)
 	
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.TOTWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.TOTWidth)
 	
 	-- 文本
 	self.Name:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -607,8 +595,6 @@ local function CreateVPetStyle(self, unit)
 	
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetHeight(C.TOTWidth)
-	self.HealthPrediction.overAbsorb:SetHeight(C.TOTWidth)
 	
 	-- 文本
 	self.Name:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, 0)
@@ -638,8 +624,6 @@ local function CreateToTStyle(self, unit)
 
 	-- 吸收盾
 	--T.CreateHealthPrediction(self, unit)
-	--self.HealthPrediction.absorbBar:SetWidth(C.TOTWidth)
-	--self.HealthPrediction.overAbsorb:SetWidth(C.TOTWidth)
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -683,8 +667,6 @@ local function CreateVToTStyle(self, unit)
 	
 	-- 吸收盾
 	--T.CreateHealthPrediction(self, unit)
-	--self.HealthPrediction.absorbBar:SetHeight(C.TOTWidth)
-	--self.HealthPrediction.overAbsorb:SetHeight(C.TOTWidth)
 	
 	-- 文本
 	self.Name:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, 0)
@@ -726,8 +708,6 @@ local function CreateFoTStyle(self, unit)
 
 	-- 吸收盾
 	--T.CreateHealthPrediction(self, unit)
-	--self.HealthPrediction.absorbBar:SetWidth(C.TOTWidth)
-	--self.HealthPrediction.overAbsorb:SetWidth(C.TOTWidth)
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -842,8 +822,6 @@ local function CreateBossStyle(self, unit)
 
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.BWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.BWidth)
 	
 	-- 文本
 	self.Status:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
@@ -903,8 +881,6 @@ local function CreateArenaStyle(self, unit)
 
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.BWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.BWidth)
 	
 	-- 文本
 	self.Status:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)

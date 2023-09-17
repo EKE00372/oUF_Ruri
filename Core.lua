@@ -185,6 +185,16 @@ end
 -- [[ 嵌入施法條：施法失敗 ]] --
 
 T.PostCastFailed = function(self, unit)
+	local frame = self:GetParent()
+	if frame.mystyle == "NP" then
+		-- 使數字模式名條的名字復位
+		frame.Name:SetPoint("BOTTOM", 0, 6)
+	else
+		-- 施法結束時顯示名字
+		frame.Name:Show()
+		frame.Status:Show()
+	end
+	
 	-- 一閃而過的施法失敗紅色條
 	self:SetStatusBarColor(.5, .2, .2, .4)
 	self:SetValue(self.max)
@@ -198,13 +208,14 @@ end
 
 T.PostStandaloneCastFailed = function(self, unit)
 	local frame = self:GetParent()
-	-- 一閃而過的施法失敗紅色條
-	self:SetStatusBarColor(unpack(C.CastFailed))
-	self:SetValue(self.max)
 	if frame.mystyle == "BP" then
 		-- 條形模式清空施法目標
 		T.ResetSpellTarget(self)
 	end
+	
+	-- 一閃而過的施法失敗紅色條
+	self:SetStatusBarColor(unpack(C.CastFailed))
+	self:SetValue(self.max)
 	self:Show()
 end
 
@@ -616,9 +627,9 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	
 	local style = self.__owner.mystyle
 	local cpColor = {
-	{1, .7, .1},
-	{1, .95, .4},		-- 滿星
-	}
+		{1, .7, .1},
+		{1, .95, .4},		-- 滿星
+		}
 	
 	for i = 1, 7 do
 		if MaxChanged then
@@ -711,27 +722,43 @@ end
 
 -- [[ 更新預估治療 ]] --
 
-T.PostUpdateHealPer = function(self, unit, myIncomingHeal, otherIncomingHeal, absorb, healAbsorb, hasOverAbsorb, hasOverHealAbsorb)
+T.PostUpdateHealthPrediction = function(self, unit, myIncomingHeal, otherIncomingHeal, absorb, healAbsorb, hasOverAbsorb, hasOverHealAbsorb)
 	local health = self.__owner.Health
 	local style = self.__owner.mystyle
-	local cur, max, ab = UnitHealth(unit), UnitHealthMax(unit), UnitGetTotalAbsorbs(unit) or 0
+	local cur, max = UnitHealth(unit), UnitHealthMax(unit)
+	local ab, income = UnitGetTotalAbsorbs(unit) or 0, UnitGetIncomingHeals(unit) or 0
+	
+	-- 合併預估治療治吸收盾
+	-- 不要這麼做，會誤判血量的
+	--self.absorbBar:SetValue(ab + income)
 	
 	if self.overAbsorb and hasOverAbsorb then
-		local lost = (max - cur)
+	--if self.overAbsorb and (cur + ab > max) then
+		local totalAbsorb = (ab + income)
+		local lostHealth = (max - cur) -- 目標當前缺口
+		local curHealth = cur/max -- 目標當前血量百分比
+		local perAbsorb = (totalAbsorb > lostHealth) and (totalAbsorb - lostHealth)/max or 0 -- 盾吸收值轉換血量百分比
 		
-		if style == "VL" or style == "VR" then
-			if lost == 0 then
-				-- -- 滿血時吸收盾按血量百分比顯示
-				self.overAbsorb:SetHeight((ab/max) * health:GetHeight())
-			elseif  lost > 0 and (ab > lost) then
-				-- 吸收盾大於損血量時按血量百分比顯示並實時更新
-				self.overAbsorb:SetHeight(((ab - lost)/max) * health:GetHeight())
-			end
-		elseif F.Multicheck(style, "H", "BP", "BPP", "R") then
-			if lost == 0 then
-				self.overAbsorb:SetWidth((ab/max) * health:GetWidth())
-			elseif lost > 0 and (ab > lost) then
-				self.overAbsorb:SetWidth(((ab - lost)/max) * health:GetWidth())
+		-- 轉換計量條的相乘係數
+		local value
+		if totalAbsorb >= max then
+			-- 盾大於總血量：長度等於當前血量
+			value = curHealth
+		else
+			-- 盾小於總血量：長度等於百分比
+			value = perAbsorb
+		end
+
+		if perAbsorb == 0 then
+			-- value 偶爾會無法運算，hasOverAbsorb成立但不滿足perAbsorb條件？
+			self.overAbsorb:Hide()
+		else
+			self.overAbsorb:Show()
+			
+			if style == "VL" or style == "VR" then
+				self.overAbsorb:SetHeight(value * health:GetHeight())
+			elseif F.Multicheck(style, "H", "BP", "BPP", "R") then
+				self.overAbsorb:SetWidth(value * health:GetWidth())
 			end
 		end
 	end

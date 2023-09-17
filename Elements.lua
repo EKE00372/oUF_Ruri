@@ -145,7 +145,7 @@ end
 T.CreateDebuffs = function(self, button)
 	local Debuffs = CreateFrame("Frame", nil, self)
 	Debuffs.spacing = 6
-	Debuffs:SetFrameLevel(self:GetFrameLevel() + 2)
+	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
 	
 	-- 選項
 	Debuffs.disableCooldown = true
@@ -162,7 +162,7 @@ end
 T.CreateBuffs = function(self, button)
 	local Buffs = CreateFrame("Frame", nil, self)
 	Buffs.spacing = 6
-	Buffs:SetFrameLevel(self:GetFrameLevel() + 2)
+	Buffs:SetFrameLevel(self:GetFrameLevel() + 4)
 	
 	-- 選項
 	Buffs.disableCooldown = true
@@ -179,7 +179,7 @@ T.CreateAuras = function(self, button)
 	local Auras = CreateFrame("Frame", nil, self)
 	Auras.spacing = 6
 	Auras.size = C.buSize
-	Auras:SetFrameLevel(self:GetFrameLevel() + 2)
+	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
 	
 	if self.mystyle == "S" then
 		-- Simple focus
@@ -452,6 +452,11 @@ end
 -- [[ 預估治療 ]] --
 
 T.CreateHealthPrediction = function(self, unit)
+	-- Why GetSize()?
+	-- Unitframe和Raidframe的self大小等於self.health大小，且創建時用了Custom API，size是nil
+	-- Nameplate的self是點擊範圍，self.health是元素實際大小
+	-- Unitframe和Raidframe的吸收盾錨點相反是因為血量條反轉
+	
 	-- 吸收盾
 	local abb = F.CreateStatusbar(self, G.addon..unit.."_AbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
 	abb:SetFrameLevel(self:GetFrameLevel() + 2)
@@ -459,31 +464,54 @@ T.CreateHealthPrediction = function(self, unit)
 	if self.mystyle == "VL" or self.mystyle == "VR" then
 		-- 直式
 		abb:SetOrientation("VERTICAL")
-		abb:SetPoint("LEFT")
-		abb:SetPoint("RIGHT")
+		abb:SetSize(self:GetSize())
 		abb:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.Multicheck(self.mystyle, "H", "BP", "BPP", "R") then
+	elseif F.Multicheck(self.mystyle, "H", "R") then
 		-- 橫式
-		abb:SetPoint("TOP")
-		abb:SetPoint("BOTTOM")
+		abb:SetSize(self:GetSize())
 		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "LEFT")
+	elseif F.Multicheck(self.mystyle, "BP", "BPP") then
+		-- 條形名條
+		abb:SetSize(self.Health:GetSize())
+		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
 	end
 	
 	-- 滿血時的吸收盾
-	local abbo = F.CreateStatusbar(self, G.addon..unit.."_OverAbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
+	--[[local abbo = F.CreateStatusbar(self, G.addon..unit.."_OverAbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
 	abbo:SetFrameLevel(self:GetFrameLevel() + 2)
 	
-	if self.mystyle == "VL" or self.mystyle == "VR" then
+	if F.Multicheck(self.mystyle, "VL", "VR") then
 		-- 直式
 		abbo:SetOrientation("VERTICAL")
-		abbo:SetPoint("RIGHT")
-		abbo:SetPoint("LEFT")
+		abbo:SetSize(self:GetSize())
 		abbo:SetPoint("TOP", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.Multicheck(self.mystyle, "BP", "H", "BPP", "R") then
+	elseif F.Multicheck(self.mystyle, "H", "R") then
 		-- 橫式
-		abbo:SetPoint("TOP")
-		abbo:SetPoint("BOTTOM")
+		abbo:SetSize(self:GetSize())
 		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "LEFT")
+	elseif F.Multicheck(self.mystyle, "BP", "BPP") then
+		-- 條形名條
+		abbo:SetSize(self.Health:GetSize())
+		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "RIGHT")
+	end]]--
+	
+	local abbo = self.Health:CreateTexture(nil, "OVERLAY")
+	abbo:SetTexture(G.media.blank, true, true)
+	abbo:SetBlendMode("ADD")
+	abbo:SetVertexColor( 0, .5, .8, .7)
+	
+	if F.Multicheck(self.mystyle, "VL", "VR") then
+		-- 直式
+		abbo:SetSize(self:GetSize())
+		abbo:SetPoint("TOP", self.Health:GetStatusBarTexture(), "BOTTOM")
+	elseif F.Multicheck(self.mystyle, "H", "R") then
+		-- 橫式
+		abbo:SetSize(self:GetSize())
+		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "LEFT")
+	elseif F.Multicheck(self.mystyle, "BP", "BPP") then
+		-- 條形名條
+		abbo:SetSize(self.Health:GetSize())
+		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "RIGHT")
 	end
 
 	self.HealthPrediction = {
@@ -494,7 +522,7 @@ T.CreateHealthPrediction = function(self, unit)
         frequentUpdates = true,
 		maxOverflow = 1.01,
     }
-	self.HealthPrediction.PostUpdate = T.PostUpdateHealPer
+	self.HealthPrediction.PostUpdate = T.PostUpdateHealthPrediction
 end
 
 -- [[ 坦克資源 ]] --
