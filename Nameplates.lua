@@ -218,7 +218,7 @@ local function CreateStandaloneCastbar(self, unit)
 	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	Castbar.Text:SetPoint("TOPLEFT", Castbar, "BOTTOMLEFT", -5, 5)
 	Castbar.Text:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 5, -5)
-	
+	-- 法術目標
 	Castbar.spellTarget = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	Castbar.spellTarget:ClearAllPoints()
 	Castbar.spellTarget:SetJustifyH("LEFT")
@@ -570,8 +570,6 @@ local function CreateBarPlates(self, unit)
 	CreateStandaloneCastbar(self, unit)
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.NPWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.NPWidth)
 	
 	-- 光環
 	if C.ShowAuras then
@@ -623,7 +621,7 @@ end
 -----------------    [[ PlayerPlate ]]    -----------------
 --=======================================================--
 
--- [[ 關閉暴雪的個人資源條，自己創建一個玩家名條，因為暴雪的資源條有很多衍生問題比如污染 ]] --
+-- [[ 關閉暴雪的個人資源條，自己創建一個玩家名條，因為暴雪的資源條有很多衍生問題 ]] --
 
 local function CreatePlayerNumberPlate(self, unit)
 	self.mystyle = "NPP" -- Number style Player Plate
@@ -731,8 +729,8 @@ local function CreatePlayerBarPlate(self, unit)
 	T.CreateClassPower(self, unit)
 	-- 吸收盾
 	T.CreateHealthPrediction(self, unit)
-	self.HealthPrediction.absorbBar:SetWidth(C.PlayerNPWidth)
-	self.HealthPrediction.overAbsorb:SetWidth(C.PlayerNPWidth)
+	--self.HealthPrediction.absorbBar:SetWidth(C.PlayerNPWidth)
+	--self.HealthPrediction.overAbsorb:SetWidth(C.PlayerNPWidth)
 	
 	if C.Fade then
 		self.FadeMinAlpha = C.FadeOutAlpha
