@@ -1,6 +1,6 @@
-## Interface: 100200
+## Interface: 100205
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R4.5a
+## Version: R4.6
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
