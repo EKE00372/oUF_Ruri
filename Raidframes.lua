@@ -5,15 +5,10 @@ local C, F, G, T = unpack(ns)
 if not (C.RaidFrames or C.PartyFrames) then return end
 
 -- Hide Default RaidFrame
+-- do not ban the CompactRaidFrameManager, just keep it and hide raidframes at default
 do
-	local HiddenFrame = CreateFrame("Frame")
-	HiddenFrame:Hide()
-	
-	if CompactRaidFrameManager_SetSetting then
-		CompactRaidFrameManager_SetSetting("IsShown", "0")
-		UIParent:UnregisterEvent("GROUP_ROSTER_UPDATE")
-		CompactRaidFrameManager:UnregisterAllEvents()
-		CompactRaidFrameManager:SetParent(HiddenFrame)
+	for i = 1, 8 do
+		CompactRaidFrameManager_ToggleGroupFilter(i)
 	end
 end
 
@@ -22,23 +17,7 @@ local function ClassAuraFilter(self, unit, data)
 		return true
 	end
 end
---[[
-local function DisableBlizzard()
-    local hider = CreateFrame("Frame")
-    hider:Hide()
 
-    if _G.CompactUnitFrameProfiles then
-        _G.CompactUnitFrameProfiles:UnregisterAllEvents()
-    end
-
-    if _G.CompactRaidFrameManager and (_G.CompactRaidFrameManager:GetParent() ~= hider) then
-        _G.CompactRaidFrameManager:SetParent(hider)
-    end
-
-    InterfaceOptionsFrameCategoriesButton10:SetScale(0.00001)
-    InterfaceOptionsFrameCategoriesButton10:SetAlpha(0)
-end
-]]--
 --====================================================--
 -----------------    [[ Function ]]    -----------------
 --====================================================--
