@@ -13,7 +13,7 @@ local function CreateUnitShared(self, unit)
 	local u = unit:match("[^%d]+") -- boss1 -> boss
 
 	-- [[ 前置作業 ]] --	
-	--self:RegisterForClicks("AnyUp")	-- Make mouse active
+	self:RegisterForClicks("AnyUp")	-- Make mouse active
 	
 	-- [[ 高亮 ]] --
 	
