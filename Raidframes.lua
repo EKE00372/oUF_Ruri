@@ -173,7 +173,7 @@ local function CreateRaid(self, unit)
 	-- Make mouse active
 	self:SetScript("OnEnter", UnitFrame_OnEnter)	-- mouseover
 	self:SetScript("OnLeave", UnitFrame_OnLeave)
-	--self:RegisterForClicks("AnyUp")
+	self:RegisterForClicks("AnyUp")
 	
 	-- Highlight
 	local hl = self:CreateTexture(nil, "HIGHLIGHT")
