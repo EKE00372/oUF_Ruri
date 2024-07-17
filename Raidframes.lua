@@ -7,8 +7,10 @@ if not (C.RaidFrames or C.PartyFrames) then return end
 -- Hide Default RaidFrame
 -- do not ban the CompactRaidFrameManager, just keep it and hide raidframes at default
 do
-	for i = 1, 8 do
-		CompactRaidFrameManager_ToggleGroupFilter(i)
+	if C.RaidFrames then
+		for i = 1, 8 do
+			CompactRaidFrameManager_ToggleGroupFilter(i)
+		end
 	end
 end
 
