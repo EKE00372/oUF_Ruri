@@ -72,11 +72,12 @@ local SPEC_WARRIOR_PROTECTION = SPEC_WARRIOR_PROTECTION or 3
 -- local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
 local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
 
-local GetSpellCooldown, GetSpellCharges, GetSpellCount, UnitSpellHaste, GetTime,
+local GetSpellCharges, GetSpellCount, UnitSpellHaste, GetTime,
       UnitIsUnit, GetSpecialization, UnitHasVehicleUI, IsPlayerSpell,
-      CreateFrame = GetSpellCooldown, GetSpellCharges, GetSpellCount,
+      CreateFrame =  GetSpellCharges, C_Spell.GetSpellCount,
                     UnitSpellHaste, GetTime, UnitIsUnit, GetSpecialization,
                     UnitHasVehicleUI, IsPlayerSpell, CreateFrame
+local GetSpellCooldown =  C_Spell.GetSpellCooldown
 
 local TankResourceEnable, TankResourceDisable
 -- {enable,spell,spec}
@@ -119,8 +120,10 @@ end
 
 -- 自制的获取时间方法
 local function GetResourceCooldown(spell)
-    local start, dur, enable = GetSpellCooldown(spell)
-    local charges, maxCharges, startCharges, durCharges = GetSpellCharges(spell);
+	local cooldownInfo = GetSpellCooldown(spell)	
+    local start, dur, enable = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnable
+	
+    local charges, maxCharges, startCharges, durCharges = GetSpellCharges(spell)
 
     local stack = charges or GetSpellCount(spell)
     local gcd = math.max((1.5 / (1 + (UnitSpellHaste("player") / 100))), 0.75)
@@ -134,7 +137,10 @@ local function GetResourceCooldown(spell)
     if enable == 0 then start, dur = 0, 0 end
 
     local startTime, duration = start, dur
-
+	
+	if type(charges) == "table" then 
+		print(spell,charges,GetSpellCharges(spell),GetSpellCount(spell))
+	end
     if charges == maxCharges then
         start, dur = 0, 0
         startCharges, durCharges = 0, 0
@@ -193,7 +199,7 @@ local function UpdateUsableColor(element)
     local costColor = element.noPowerCostColor
     local color = element.__owner.colors.power[4]
 
-    local usable, noMana = IsUsableSpell(enableState.spell)
+    local usable, noMana = C_Spell.IsSpellUsable(enableState.spell)
 
     local r, g, b = costColor[1], costColor[2], costColor[3]
 

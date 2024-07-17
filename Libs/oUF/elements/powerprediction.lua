@@ -43,8 +43,9 @@ A default texture will be applied if the widget is a StatusBar and doesn't have 
 local _, ns = ...
 local oUF = ns.oUF
 
--- sourced from FrameXML/AlternatePowerBar.lua
+-- sourced from Blizzard_UnitFrame/AlternatePowerBar.lua
 local ALT_POWER_BAR_PAIR_DISPLAY_INFO = _G.ALT_POWER_BAR_PAIR_DISPLAY_INFO
+
 local ADDITIONAL_POWER_BAR_INDEX = 0
 
 local _, playerClass = UnitClass('player')
@@ -71,7 +72,9 @@ local function Update(self, event, unit)
 	local mainCost, altCost = 0, 0
 
 	if(event == 'UNIT_SPELLCAST_START' and startTime ~= endTime) then
-		local costTable = GetSpellPowerCost(spellID)
+		local costTable = C_Spell.GetSpellPowerCost(spellID)
+		if(not costTable) then return end
+
 		-- hasRequiredAura is always false if there's only 1 subtable
 		local checkRequiredAura = #costTable > 1
 
