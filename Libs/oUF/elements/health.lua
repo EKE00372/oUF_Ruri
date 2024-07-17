@@ -26,18 +26,18 @@ The following options are listed by priority. The first check that returns true 
 .colorDisconnected - Use `self.colors.disconnected` to color the bar if the unit is offline (boolean)
 .colorTapping      - Use `self.colors.tapping` to color the bar if the unit isn't tapped by the player (boolean)
 .colorThreat       - Use `self.colors.threat[threat]` to color the bar based on the unit's threat status. `threat` is
-                     defined by the first return of [UnitThreatSituation](https://wow.gamepedia.com/API_UnitThreatSituation) (boolean)
+                     defined by the first return of [UnitThreatSituation](https://warcraft.wiki.gg/wiki/API_UnitThreatSituation) (boolean)
 .colorClass        - Use `self.colors.class[class]` to color the bar based on unit class. `class` is defined by the
-                     second return of [UnitClass](http://wowprogramming.com/docs/api/UnitClass.html) (boolean)
+                     second return of [UnitClass](https://warcraft.wiki.gg/wiki/API_UnitClass) (boolean)
 .colorClassNPC     - Use `self.colors.class[class]` to color the bar if the unit is a NPC (boolean)
 .colorClassPet     - Use `self.colors.class[class]` to color the bar if the unit is player controlled, but not a player
                      (boolean)
 .colorSelection    - Use `self.colors.selection[selection]` to color the bar based on the unit's selection color.
                      `selection` is defined by the return value of Private.unitSelectionType, a wrapper function
-                     for [UnitSelectionType](https://wow.gamepedia.com/API_UnitSelectionType) (boolean)
+                     for [UnitSelectionType](https://warcraft.wiki.gg/wiki/API_UnitSelectionType) (boolean)
 .colorReaction     - Use `self.colors.reaction[reaction]` to color the bar based on the player's reaction towards the
                      unit. `reaction` is defined by the return value of
-                     [UnitReaction](http://wowprogramming.com/docs/api/UnitReaction.html) (boolean)
+                     [UnitReaction](https://warcraft.wiki.gg/wiki/API_UnitReaction) (boolean)
 .colorSmooth       - Use `smoothGradient` if present or `self.colors.smooth` to color the bar with a smooth gradient
                      based on the player's current health percentage (boolean)
 .colorHealth       - Use `self.colors.health` to color the bar. This flag is used to reset the bar color back to default
@@ -173,16 +173,24 @@ local function Update(self, event, unit)
 	element.cur = cur
 	element.max = max
 
-	--[[ Callback: Health:PostUpdate(unit, cur, max)
+	local lossPerc = 0
+	if(element.TempLoss) then
+		lossPerc = Clamp(GetUnitTotalModifiedMaxHealthPercent(unit), 0, 1)
+
+		element.TempLoss:SetValue(lossPerc)
+	end
+
+	--[[ Callback: Health:PostUpdate(unit, cur, max, lossPerc)
 	Called after the element has been updated.
 
-	* self - the Health element
-	* unit - the unit for which the update has been triggered (string)
-	* cur  - the unit's current health value (number)
-	* max  - the unit's maximum possible health value (number)
+	* self     - the Health element
+	* unit     - the unit for which the update has been triggered (string)
+	* cur      - the unit's current health value (number)
+	* max      - the unit's maximum possible health value (number)
+	* lossPerc - the percent by which the unit's max health has been temporarily reduced (number)
 	--]]
 	if(element.PostUpdate) then
-		element:PostUpdate(unit, cur, max)
+		element:PostUpdate(unit, cur, max, lossPerc)
 	end
 end
 
@@ -303,12 +311,26 @@ local function Enable(self)
 
 		self:RegisterEvent('UNIT_HEALTH', Path)
 		self:RegisterEvent('UNIT_MAXHEALTH', Path)
+		self:RegisterEvent('UNIT_MAX_HEALTH_MODIFIERS_CHANGED', Path)
 
 		if(element:IsObjectType('StatusBar') and not element:GetStatusBarTexture()) then
 			element:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
 		end
 
 		element:Show()
+
+		if(element.TempLoss) then
+			if(element.TempLoss:IsObjectType('StatusBar')) then
+				element.TempLoss:SetMinMaxValues(0, 1)
+				element.TempLoss:SetValue(0)
+
+				if(not element.TempLoss:GetStatusBarTexture()) then
+					element.TempLoss:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
+				end
+			end
+
+			element.TempLoss:Show()
+		end
 
 		return true
 	end
@@ -325,6 +347,11 @@ local function Disable(self)
 		self:UnregisterEvent('UNIT_FACTION', ColorPath)
 		self:UnregisterEvent('UNIT_FLAGS', ColorPath)
 		self:UnregisterEvent('UNIT_THREAT_LIST_UPDATE', ColorPath)
+		self:UnregisterEvent('UNIT_MAX_HEALTH_MODIFIERS_CHANGED', Path)
+
+		if(element.TempLoss) then
+			element.TempLoss:Hide()
+		end
 	end
 end
 

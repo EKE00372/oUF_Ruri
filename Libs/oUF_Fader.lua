@@ -91,7 +91,7 @@ local function Update(self)
 		(self.FadeHealth and UnitHealth(unit) < UnitHealthMax(unit)) or
 		(self.FadePower and EmptyPowerType[select(2, UnitPowerType("player"))] and UnitPower("player") > 0) or
 		(self.FadePower and (not EmptyPowerType[select(2, UnitPowerType("player"))]) and UnitPower("player") < UnitPowerMax("player")) or
-		(self.FadeHover and GetMouseFocus() == self)
+		(self.FadeHover and GetMouseFoci()[1] == self)
 	then
 		if(self.FadeInSmooth) then
 			T.UIFrameFadeIn(self, self.FadeInSmooth, self:GetAlpha(), self.FadeMaxAlpha or 1)
