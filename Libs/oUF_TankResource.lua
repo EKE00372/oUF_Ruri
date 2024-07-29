@@ -69,15 +69,16 @@ local SPEC_MONK_BREWMASTER = SPEC_MONK_BREWMASTER or 1
 local SPEC_DEATHKNIGHT_BLOOD = SPEC_DEATHKNIGHT_BLOOD or 1
 local SPEC_DEMONHUNTER_VENGEANCE = SPEC_DEMONHUNTER_VENGEANCE or 2
 local SPEC_WARRIOR_PROTECTION = SPEC_WARRIOR_PROTECTION or 3
--- local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
+local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
 local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
 
-local GetSpellCharges, GetSpellCount, UnitSpellHaste, GetTime,
-      UnitIsUnit, GetSpecialization, UnitHasVehicleUI, IsPlayerSpell,
-      CreateFrame =  GetSpellCharges, C_Spell.GetSpellCount,
-                    UnitSpellHaste, GetTime, UnitIsUnit, GetSpecialization,
-                    UnitHasVehicleUI, IsPlayerSpell, CreateFrame
-local GetSpellCooldown =  C_Spell.GetSpellCooldown
+local GetSpellCharges,  UnitSpellHaste, GetTime, UnitIsUnit, GetSpecialization, UnitHasVehicleUI, 
+      IsPlayerSpell, CreateFrame =  GetSpellCharges, UnitSpellHaste, GetTime, 
+      UnitIsUnit, GetSpecialization, UnitHasVehicleUI, IsPlayerSpell, CreateFrame
+local C_Spell_GetSpellCharges = C_Spell.GetSpellCharges
+local C_Spell_GetSpellCastCount = C_Spell.GetSpellCastCount
+local C_Spell_GetSpellCooldown =  C_Spell.GetSpellCooldown
+
 
 local TankResourceEnable, TankResourceDisable
 -- {enable,spell,spec}
@@ -100,6 +101,7 @@ local enableState = {}
 ]]
 local enableClassAndSpec = {
     ['MONK'] = {SPEC_MONK_BREWMASTER, 119582},
+    ['PALADIN'] = {SPEC_PALADIN_PROTECTION, 432459},
     ['DEMONHUNTER'] = {SPEC_DEMONHUNTER_VENGEANCE, 203720},
     ['WARRIOR'] = {SPEC_WARRIOR_PROTECTION, 2565},
     ['DRUID'] = {SPEC_DRUID_GUARDIAN, 22842},
@@ -120,12 +122,13 @@ end
 
 -- 自制的获取时间方法
 local function GetResourceCooldown(spell)
-	local cooldownInfo = GetSpellCooldown(spell)	
+	local cooldownInfo = C_Spell_GetSpellCooldown(spell)	
     local start, dur, enable = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnable
 	
-    local charges, maxCharges, startCharges, durCharges = GetSpellCharges(spell)
+    local chargesInfo = C_Spell_GetSpellCharges(spell)
+    local charges, maxCharges, startCharges, durCharges = chargesInfo.currentCharges, chargesInfo.maxCharges, chargesInfo.cooldownStartTime, chargesInfo.cooldownDuration
 
-    local stack = charges or GetSpellCount(spell)
+    local stack = charges or C_Spell_GetSpellCastCount(spell)
     local gcd = math.max((1.5 / (1 + (UnitSpellHaste("player") / 100))), 0.75)
 
     start = start or 0
@@ -139,7 +142,7 @@ local function GetResourceCooldown(spell)
     local startTime, duration = start, dur
 	
 	if type(charges) == "table" then 
-		print(spell,charges,GetSpellCharges(spell),GetSpellCount(spell))
+		print(spell, charges, GetSpellCharges(spell), C_Spell_GetSpellCount(spell))
 	end
     if charges == maxCharges then
         start, dur = 0, 0
@@ -191,8 +194,9 @@ end
 local UsableUpdateEvents = {
     ["SPELL_UPDATE_USABLE"] = true,
     ["PLAYER_TARGET_CHANGED"] = true,
-    ["UNIT_POWER_FREQUENT"] = true
+    ["UNIT_POWER_FREQUENT"] = true,
 }
+
 local function UpdateUsableColor(element)
     if not enableState.enable then return end
     if not element.costColor then return end
@@ -306,8 +310,7 @@ local function Update(self, event, unit)
     -- 预留 PostUpdate
     if element.PostUpdate then
         -- return element:PostUpdate(cur, maxCharges, start, duration)
-        return element:PostUpdate(cur, maxCharges, oldMax ~= max, start,
-                                  duration)
+        return element:PostUpdate(cur, maxCharges, oldMax ~= max, start, duration)
     end
 end
 
