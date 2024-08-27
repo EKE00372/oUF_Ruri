@@ -260,6 +260,8 @@ T.CreateClassPower = function(self, unit)
 	
 	local isDK = G.myClass == "DEATHKNIGHT"
 	local maxPoint = (isDK and 6) or 7
+	local index = GetSpecialization() or 0
+	local id = GetSpecializationInfo(index)
 	
 	local ClassPower = {}
 	
@@ -275,7 +277,11 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint)
 			
 			if i == 1 then
-				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
+				if (id == 66 and C.TankResource and IsSpellKnown(432459)) then
+					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)  
+				else
+					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
+				end
 			else
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
@@ -530,7 +536,7 @@ end
 T.CreateTankResource = function(self, unit)
 	local TankResource = {}
 
-    for i = 1, 4 do
+    for i = 1, 2 do
 		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		TankResource[i].border = F.CreateSD(TankResource[i], TankResource[i], 4)
 		TankResource[i]:SetFrameLevel(self:GetFrameLevel() + 2)
@@ -544,7 +550,7 @@ T.CreateTankResource = function(self, unit)
 		if self.mystyle == "VL" then
 			-- 單獨的每個豆子
 			TankResource[i]:SetOrientation("VERTICAL")
-			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - 3*C.PPOffset)/4)
+			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - C.PPOffset)/2)
 			
 			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
 				if i == 1 then
@@ -560,9 +566,9 @@ T.CreateTankResource = function(self, unit)
 				end
 			end
 		else
-			TankResource[i]:SetSize((C.PWidth - 3*C.PPOffset)/4, C.PPHeight)
+			TankResource[i]:SetSize((C.PWidth - C.PPOffset)/2, C.PPHeight)
 			
-			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
+			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK", "PALADIN") then
 				if i == 1 then
 					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
 				else
@@ -580,5 +586,5 @@ T.CreateTankResource = function(self, unit)
 
     -- Register with oUF
     self.TankResource = TankResource
-    self.TankResource.PostUpdate = T.PostUpdateTankResource
+    --self.TankResource.PostUpdate = T.PostUpdateTankResource
 end
