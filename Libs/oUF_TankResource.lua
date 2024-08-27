@@ -455,9 +455,10 @@ local function Enable(self, unit)
 
         -- 这里注册用于判断是否显示的事件 用于更新是否显隐
         self:RegisterEvent('PLAYER_TALENT_UPDATE', VisibilityPath, true)
-        -- self:RegisterEvent('SPELLS_CHANGED', VisibilityPath, true)
+        self:RegisterEvent('SPELLS_CHANGED', VisibilityPath, true)
         self:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', VisibilityPath)
         self:RegisterEvent('PLAYER_ENTERING_WORLD', VisibilityPath)
+        --self:RegisterEvent('TRAIT_SUB_TREE_CHANGED', VisibilityPath, true)
 
         element.TankResourceEnable = TankResourceEnable
         element.TankResourceDisable = TankResourceDisable
@@ -486,9 +487,10 @@ local function Disable(self)
 
         -- 这里解除注册用于判断是否显示的事件 
         self:UnregisterEvent('PLAYER_TALENT_UPDATE', VisibilityPath)
-        -- self:UnregisterEvent('SPELLS_CHANGED', VisibilityPath)
+        self:UnregisterEvent('SPELLS_CHANGED', VisibilityPath)
         self:UnregisterEvent('PLAYER_SPECIALIZATION_CHANGED', VisibilityPath)
         self:UnregisterEvent('PLAYER_ENTERING_WORLD', VisibilityPath)
+        --self:UnregisterEvent('TRAIT_SUB_TREE_CHANGED', VisibilityPath)
     end
 end
 

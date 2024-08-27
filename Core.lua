@@ -397,18 +397,26 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	local index = GetSpecialization() or 0
 	local id = GetSpecializationInfo(index)
 	
-	if (id == 268 and not C.TankResource) or 
+	if (F.Multicheck(id, 268, 66) and not C.TankResource) or 
+	  (id == 66 and C.TankResource and not IsSpellKnown(432459)) or
 	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
 	  (F.Multicheck(id, 581, 73) and C.TankResource) or
-	  F.Multicheck(id, 102, 103, 104, 62, 269, 66, 70, 262) then
-		-- 雙資源專精：不開坦克資源條的酒僧、死騎、盜賊、術士、喚能；復仇、防戰；鳥貓熊、秘法、御風、防騎、懲戒、元素
+	  F.Multicheck(id, 102, 103, 104, 62, 269, 65, 70, 262) then
+		-- 雙資源專精：
+		-- 關閉坦克資源的酒僧和防騎
+		-- 開坦克資源的防騎，但是聖殿騎士
+		-- 死騎、盜賊、術士、喚能
+		-- 開坦克資源的復仇、防戰
+		-- 鳥貓熊、秘法、御風、神聖、懲戒、元素
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPHeight + C.PPOffset*2, 1)
 		else
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight + C.PPOffset*2)
 		end
-	elseif (id == 268 and C.TankResource) then
-		-- 三資源專精：釀酒，就你特別
+	elseif (id == 268 and C.TankResource) or (id == 66 and C.TankResource and IsSpellKnown(432459)) then
+		-- 三資源專精：
+		-- 開坦克資源的釀酒，多個酒池，就你特別
+		-- 開坦克資源的防騎，且是光鑄師
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPHeight*2 + C.PPOffset*3, 1)
 		else
@@ -601,13 +609,13 @@ T.PostUpdateStagger = function(self, cur, max)
 end
 
 -- [[ 坦克資源的天賦更新 ]] --
-
+--[[
 T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
 	if not max or not cur then return end
 	
 	local style = self.__owner.mystyle
 
-	for i = 1, 4 do
+	for i = 1, 2 do
 		if MaxChanged then
 			if style == "VL" then
 				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
@@ -619,7 +627,7 @@ T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
 		end
 	end
 end
-
+]]--
 -- [[ 連擊點的天賦更新 ]] --
 
 T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
