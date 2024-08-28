@@ -828,10 +828,16 @@ local function CreateBossStyle(self, unit)
 	self.Status:SetJustifyH("LEFT")
 	self.Name:SetPoint("LEFT", self.Status, "RIGHT", 0, 0)
 	self.Name:SetJustifyH("LEFT")
-	self.Name:SetWidth(self:GetWidth()*0.9)
-	self.Name:SetWidth(self:GetWidth() * 0.8)
+	self.Name:SetWidth(self:GetWidth() * 0.9)
 	self.Health.value:SetPoint("LEFT", self.Power, 0, 5)
 	self.Power.value:SetPoint("RIGHT", self.Power, 0, 5)
+	
+	-- 死亡背景
+	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PartyHeight, G.FontFlag, "CENTER")
+	self.DeadSkull:SetWidth(self:GetWidth()-4)
+	self.DeadSkull:SetAlpha(.4)
+	self:Tag(self.DeadSkull, "[deadskull]")
+	self.DeadSkull:SetPoint("CENTER", -10, 0)
 	
 	-- 特殊能量
 	T.CreateAltPowerBar(self, unit)
@@ -887,11 +893,16 @@ local function CreateArenaStyle(self, unit)
 	self.Status:SetJustifyH("LEFT")
 	self.Name:SetPoint("LEFT", self.Status, "RIGHT", 0, 0)
 	self.Name:SetJustifyH("LEFT")
-	self.Name:SetWidth(self:GetWidth()*0.9)
-	self.Name:SetWidth(self:GetWidth() * 0.8)
+	self.Name:SetWidth(self:GetWidth() * 0.9)
 	self.Health.value:SetPoint("LEFT", self.Power, 0, 5)
 	self.Power.value:SetPoint("RIGHT", self.Power, 0, 5)
-	
+
+	-- 死亡背景
+	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PartyHeight, G.FontFlag, "CENTER")
+	self.DeadSkull:SetWidth(self:GetWidth()-4)
+	self.DeadSkull:SetAlpha(.4)
+	self:Tag(self.DeadSkull, "[deadskull]")
+	self.DeadSkull:SetPoint("CENTER", -10, 0)
 	-- 專精預測
 	self.Spec = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
 	self.Spec:SetPoint("CENTER", self.Health, 0, 0)
