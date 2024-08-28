@@ -1,12 +1,11 @@
 ## Interface: 110002
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R5.0
+## Version: R5.1
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
 ## X-SlashCmdList: /omf
-
-## Credits-to: Siweia, Paopao, Dawn, HopeASD
+## X-Credits: Siweia, Paopao, Dawn, HopeASD
 
 Config.lua
 FilterList.lua
