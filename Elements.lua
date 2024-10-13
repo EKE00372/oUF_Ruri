@@ -593,4 +593,5 @@ T.CreateTankResource = function(self, unit)
     -- Register with oUF
     self.TankResource = TankResource
     --self.TankResource.PostUpdate = T.PostUpdateTankResource
+    self.TankResource.UpdateColor = T.PostUpdateTankResourceColor
 end
