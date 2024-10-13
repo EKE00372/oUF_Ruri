@@ -302,10 +302,14 @@ T.CreateClassPower = function(self, unit)
 				end
 			end
 		else
-			ClassPower[i]:SetSize((C.PWidth - 6*C.PPOffset)/maxPoint, C.PPHeight)
+			ClassPower[i]:SetSize((C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint, C.PPHeight)
 			
 			if i == 1 then
-				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
+				if (id == 66 and C.TankResource and IsSpellKnown(432459)) then
+					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
+				else
+					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
+				end
 			else
 				ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 			end
@@ -553,6 +557,7 @@ T.CreateTankResource = function(self, unit)
 			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - C.PPOffset)/2)
 			
 			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
+				-- DK的在符文前面，武僧的在酒池前面
 				if i == 1 then
 					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
 				else
@@ -568,7 +573,8 @@ T.CreateTankResource = function(self, unit)
 		else
 			TankResource[i]:SetSize((C.PWidth - C.PPOffset)/2, C.PPHeight)
 			
-			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK", "PALADIN") then
+			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
+				-- DK的在符文上面，武僧的在酒池上面
 				if i == 1 then
 					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
 				else

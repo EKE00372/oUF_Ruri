@@ -634,6 +634,9 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	if not max or not cur then return end
 	
 	local style = self.__owner.mystyle
+	local index = GetSpecialization() or 0
+	local id = GetSpecializationInfo(index)
+	
 	local cpColor = {
 		{1, .7, .1},
 		{1, .95, .4},		-- 滿星
@@ -647,6 +650,14 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 				self[i]:SetWidth((C.PlayerNPWidth - (max-1) * C.PPOffset) / max)
 			else
 				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
+			end
+		end
+
+		if i == 1 and (id == 66 and C.TankResource and IsSpellKnown(432459)) then
+			if style == "VL" then
+				self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
+			elseif style == "H" then
+				self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
 			end
 		end
 
