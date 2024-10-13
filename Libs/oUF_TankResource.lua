@@ -175,7 +175,8 @@ local function UpdateColor(element)
     local color = element.__owner.colors.power[4]
 
     if (spec ~= 0 and element.colors) then
-        color = element.colors[PlayerClass]
+        --color = element.colors[PlayerClass]
+        color = element.__owner.colors.power[4]
     end
 
     local r, g, b = color[1], color[2], color[3]
@@ -201,7 +202,11 @@ local function UpdateUsableColor(element)
     if not enableState.enable then return end
     if not element.costColor then return end
     local costColor = element.noPowerCostColor
-    local color = element.__owner.colors.power[4]
+    --local color = element.__owner.colors.power[4]
+    if (spec ~= 0 and element.colors) then
+        color = element.__owner.colors.power[4]
+    end
+
 
     local usable, noMana = C_Spell.IsSpellUsable(enableState.spell)
 
