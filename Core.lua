@@ -626,8 +626,52 @@ T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
 			end
 		end
 	end
+
+	local index = GetSpecialization() or 0
+	local id = GetSpecializationInfo(index)
+	local r, g, b
+
+	if id == 66 and C.TankResource and IsSpellKnown(432459) then
+		for i = 1, 2 do
+			if FindSpellOverrideByID(432459) == 432472 then
+				self[i]:SetStatusBarColor(0, 1, .92)
+			else
+				self[i]:SetStatusBarColor(1, 1, 0)
+			end
+		end
+	end
+
 end
 ]]--
+
+T.PostUpdateTankResourceColor = function(self)
+	local index = GetSpecialization() or 0
+	local id = GetSpecializationInfo(index)
+	local r, g, b
+	
+	if id == 66 and C.TankResource and IsSpellKnown(432459) then
+		if FindSpellOverrideByID(432459) == 432472 then
+			r, g, b = 0, 1, 0.92
+			
+		elseif FindSpellOverrideByID(432459) == 432459 then
+			r, g, b = 1, 1, 0
+			
+		end
+
+		for i = 1, #self do
+			local bar = self[i]
+			bar:SetStatusBarColor(r, g, b)
+	
+			local bg = bar.bg
+			if bg then
+				local mu = bg.multiplier or 1
+				bg:SetVertexColor(r * mu, g * mu, b * mu)
+			end
+		end
+	end
+end
+
+
 -- [[ 連擊點的天賦更新 ]] --
 
 T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
