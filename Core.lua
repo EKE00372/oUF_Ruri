@@ -626,24 +626,9 @@ T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
 			end
 		end
 	end
-
-	local index = GetSpecialization() or 0
-	local id = GetSpecializationInfo(index)
-	local r, g, b
-
-	if id == 66 and C.TankResource and IsSpellKnown(432459) then
-		for i = 1, 2 do
-			if FindSpellOverrideByID(432459) == 432472 then
-				self[i]:SetStatusBarColor(0, 1, .92)
-			else
-				self[i]:SetStatusBarColor(1, 1, 0)
-			end
-		end
-	end
-
 end
 ]]--
-
+--[[
 T.PostUpdateTankResourceColor = function(self)
 	local index = GetSpecialization() or 0
 	local id = GetSpecializationInfo(index)
@@ -670,7 +655,7 @@ T.PostUpdateTankResourceColor = function(self)
 		end
 	end
 end
-
+]]--
 
 -- [[ 連擊點的天賦更新 ]] --
 
@@ -684,7 +669,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	local cpColor = {
 		{1, .7, .1},
 		{1, .95, .4},		-- 滿星
-		}
+	}
 	
 	for i = 1, 7 do
 		if MaxChanged then
@@ -697,11 +682,19 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 			end
 		end
 
-		if i == 1 and (id == 66 and C.TankResource and IsSpellKnown(432459)) then
-			if style == "VL" then
-				self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
-			elseif style == "H" then
-				self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
+		if i == 1 and powerType == "HOLY_POWER" then
+			if C.TankResource and IsSpellKnown(432459) then
+				if style == "VL" then
+					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
+				elseif style == "H" then
+					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
+				end
+			else
+				if style == "VL" then
+					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset, 0)
+				elseif style == "H" then
+					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset)
+				end
 			end
 		end
 
@@ -714,7 +707,27 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 		end
 	end
 end
-
+--[[
+T.PostUpdateHolyPower = function(self)
+	local style = self.__owner.mystyle
+	local index = GetSpecialization() or 0
+	local id = GetSpecializationInfo(index)
+	
+	if C.TankResource and IsSpellKnown(432459) then
+		if style == "VL" then
+			self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
+		elseif style == "H" then
+			self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
+		end
+	else
+		if style == "VL" then
+			self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset, 0)
+		elseif style == "H" then
+			self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset)
+		end
+	end
+end
+]]--
 --[[
 https://github.com/tomrus88/BlizzardInterfaceCode/blob/master/Interface/FrameXML/EssenceFramePlayer.lua
 

@@ -277,11 +277,7 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint)
 			
 			if i == 1 then
-				if (id == 66 and C.TankResource and IsSpellKnown(432459)) then
-					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)  
-				else
-					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
-				end
+				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
 			else
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
@@ -305,11 +301,7 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i]:SetSize((C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint, C.PPHeight)
 			
 			if i == 1 then
-				if (id == 66 and C.TankResource and IsSpellKnown(432459)) then
-					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
-				else
-					ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
-				end
+				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
 			else
 				ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 			end
@@ -343,6 +335,7 @@ T.CreateClassPower = function(self, unit)
 		self.Runes.PostUpdate = T.PostUpdateRunes
 	else
 		self.ClassPower = ClassPower
+		--self.ClassPower.PreUpdate = T.PostUpdateHolyPower
 		self.ClassPower.PostUpdate = T.PostUpdateClassPower
 	end
 end
@@ -539,8 +532,16 @@ end
 
 T.CreateTankResource = function(self, unit)
 	local TankResource = {}
+	local maxLength = 2
 
-    for i = 1, 2 do
+	TankResource.overrideSpellOptions = {
+		["PALADIN"] = {
+			[432459] = {1, 1, 0},
+			[432472] = {0, 1, .92}
+		}
+	}
+
+    for i = 1, maxLength do
 		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		TankResource[i].border = F.CreateSD(TankResource[i], TankResource[i], 4)
 		TankResource[i]:SetFrameLevel(self:GetFrameLevel() + 2)
@@ -589,9 +590,16 @@ T.CreateTankResource = function(self, unit)
 			end
 		end
     end
-
+	--[[
+	TankResource.colors = {
+		["WARRIOR"] = {.2,.5,.7},
+		["PALDAIN"] = {1, 1, 0},
+		["DEMONHUNTER"] = {.7,.6,.4},
+		["MONK"] = {.7,.6,.4},
+	}
+	]]--
     -- Register with oUF
     self.TankResource = TankResource
     --self.TankResource.PostUpdate = T.PostUpdateTankResource
-    self.TankResource.UpdateColor = T.PostUpdateTankResourceColor
+    --self.TankResource.UpdateColor = T.PostUpdateTankResourceColor
 end
