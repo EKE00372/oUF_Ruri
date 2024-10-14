@@ -11,7 +11,9 @@
 	## Options
 	.colors the RGB values for the widget.
 	.updateDealy the delay for the bar update values. Defaults to .1 (number)[0-1]
-
+    .costColor the resource noPowerCostColor flag Defaults to true (boolean)
+    .noPowerCostColor the RGB values for noPowerCost Defaults to {.9,.1,.1}
+    .overrideSpellOptions the overrideSpellOptions, Defaults to {[PlayerClass] = {[spell] = {colorR,colorG,colorB,colorA}}}
 	## Support Class
 	- PALDAIN
 	- WARRIOR
@@ -44,6 +46,11 @@
 		["DEMONHUNTER"] = {.7,.6,.4},
 		["MONK"] = {.7,.6,.4},
 	}
+    TankResouce.noPowerCostColor = {
+        .9,
+        .1,
+        .1,
+    }
 
 	#### if resourceStack is changed  you can override MaxChangeUpdate function to changed size.
 	TankResource.MaxChangeUpdate = function(self,maxCharge)
@@ -72,21 +79,21 @@ local SPEC_WARRIOR_PROTECTION = SPEC_WARRIOR_PROTECTION or 3
 local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
 local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
 
-local GetSpellCharges,  UnitSpellHaste, GetTime, UnitIsUnit, GetSpecialization, UnitHasVehicleUI, 
-      IsPlayerSpell, CreateFrame =  GetSpellCharges, UnitSpellHaste, GetTime, 
-      UnitIsUnit, GetSpecialization, UnitHasVehicleUI, IsPlayerSpell, CreateFrame
+local GetSpellCharges, UnitSpellHaste, GetTime, UnitIsUnit, GetSpecialization, UnitHasVehicleUI,
+IsPlayerSpell, CreateFrame = GetSpellCharges, UnitSpellHaste, GetTime,
+    UnitIsUnit, GetSpecialization, UnitHasVehicleUI, IsPlayerSpell, CreateFrame
 local C_Spell_GetSpellCharges = C_Spell.GetSpellCharges
 local C_Spell_GetSpellCastCount = C_Spell.GetSpellCastCount
-local C_Spell_GetSpellCooldown =  C_Spell.GetSpellCooldown
+local C_Spell_GetSpellCooldown = C_Spell.GetSpellCooldown
 
 
 local TankResourceEnable, TankResourceDisable
--- {enable,spell,spec}
+-- {enable,spell,spec,overrideSpellOptions}
 local enableState = {}
 
 --[[
 	TODO:
-		1 Paladin tankResource 
+		1 Paladin tankResource
 		2 StatusBar update Type(ChargesCooldown,AuraDuration,AuraStacks)
 ]]
 --[[
@@ -100,12 +107,12 @@ local enableState = {}
 			3. AuraStacks (like Druid_Guardian 铁鬃)
 ]]
 local enableClassAndSpec = {
-    ['MONK'] = {SPEC_MONK_BREWMASTER, 119582},
-    ['PALADIN'] = {SPEC_PALADIN_PROTECTION, 432459},
-    ['DEMONHUNTER'] = {SPEC_DEMONHUNTER_VENGEANCE, 203720},
-    ['WARRIOR'] = {SPEC_WARRIOR_PROTECTION, 2565},
-    ['DRUID'] = {SPEC_DRUID_GUARDIAN, 22842},
-    ['DEATHKNIGHT'] = {SPEC_DEATHKNIGHT_BLOOD, 194679}
+    ['MONK'] = { SPEC_MONK_BREWMASTER, 119582 },
+    ['PALADIN'] = { SPEC_PALADIN_PROTECTION, 432459 },
+    ['DEMONHUNTER'] = { SPEC_DEMONHUNTER_VENGEANCE, 203720 },
+    ['WARRIOR'] = { SPEC_WARRIOR_PROTECTION, 2565 },
+    ['DRUID'] = { SPEC_DRUID_GUARDIAN, 22842 },
+    ['DEATHKNIGHT'] = { SPEC_DEATHKNIGHT_BLOOD, 194679 }
 }
 --[[
 	return 是否能开启模块的状态
@@ -122,11 +129,12 @@ end
 
 -- 自制的获取时间方法
 local function GetResourceCooldown(spell)
-	local cooldownInfo = C_Spell_GetSpellCooldown(spell)	
+    local cooldownInfo = C_Spell_GetSpellCooldown(spell)
     local start, dur, enable = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnable
-	
+
     local chargesInfo = C_Spell_GetSpellCharges(spell)
-    local charges, maxCharges, startCharges, durCharges = chargesInfo.currentCharges, chargesInfo.maxCharges, chargesInfo.cooldownStartTime, chargesInfo.cooldownDuration
+    local charges, maxCharges, startCharges, durCharges = chargesInfo.currentCharges, chargesInfo.maxCharges,
+        chargesInfo.cooldownStartTime, chargesInfo.cooldownDuration
 
     local stack = charges or C_Spell_GetSpellCastCount(spell)
     local gcd = math.max((1.5 / (1 + (UnitSpellHaste("player") / 100))), 0.75)
@@ -140,10 +148,7 @@ local function GetResourceCooldown(spell)
     if enable == 0 then start, dur = 0, 0 end
 
     local startTime, duration = start, dur
-	
-	if type(charges) == "table" then 
-		print(spell, charges, GetSpellCharges(spell), C_Spell_GetSpellCount(spell))
-	end
+
     if charges == maxCharges then
         start, dur = 0, 0
         startCharges, durCharges = 0, 0
@@ -159,24 +164,39 @@ end
 -- 把Aura API 返回的方法转换成进度比 取值[0,100]
 local function GetProgress(startTime, duration)
     if startTime == 0 and duration == 0 then return 100 end
-    local nowTime = GetTime() -- nowTime
+    local nowTime = GetTime()   -- nowTime
     local startTime = startTime -- startTime
-    local expirTime = startTime + nowTime -- expirTime
 
     local progress = (nowTime - startTime) / (duration)
 
     return progress * 100
 end
 
+local function IsOverrideSpell(spell)
+    local overrideSpell = C_Spell.GetOverrideSpell(spell)
+    return overrideSpell == spell, overrideSpell
+end
+
+
 -- 颜色更改
 -- 需要在element.colors中声明
 -- 返回能量的颜色
 local function UpdateColor(element)
+    local spec = enableState.enable and enableState.spec or 0
     local color = element.__owner.colors.power[4]
 
     if (spec ~= 0 and element.colors) then
-        --color = element.colors[PlayerClass]
-        color = element.__owner.colors.power[4]
+        color = element.colors[PlayerClass]
+    end
+
+    if enableState.overrideSpellOptions then
+        local _, overrideSpell = IsOverrideSpell(enableState.spell)
+        local overrideSpellOptions = enableState.overrideSpellOptions
+        local overrideSpellColor = overrideSpellOptions[overrideSpell]
+        if overrideSpellColor then
+            color = overrideSpellColor
+
+        end
     end
 
     local r, g, b = color[1], color[2], color[3]
@@ -193,7 +213,6 @@ local function UpdateColor(element)
     end
 end
 local UsableUpdateEvents = {
-    ["SPELL_UPDATE_USABLE"] = true,
     ["PLAYER_TARGET_CHANGED"] = true,
     ["UNIT_POWER_FREQUENT"] = true,
 }
@@ -201,12 +220,22 @@ local UsableUpdateEvents = {
 local function UpdateUsableColor(element)
     if not enableState.enable then return end
     if not element.costColor then return end
+    local spec = enableState.spec or 0
     local costColor = element.noPowerCostColor
-    --local color = element.__owner.colors.power[4]
+    local color = element.__owner.colors.power[4]
     if (spec ~= 0 and element.colors) then
-        color = element.__owner.colors.power[4]
+        color = element.colors[PlayerClass]
     end
 
+    if enableState.overrideSpellOptions then
+        local _, overrideSpell = IsOverrideSpell(enableState.spell)
+        local overrideSpellOptions = enableState.overrideSpellOptions
+        local overrideSpellColor = overrideSpellOptions[overrideSpell]
+        if overrideSpellColor then
+            color = overrideSpellColor
+
+        end
+    end
 
     local usable, noMana = C_Spell.IsSpellUsable(enableState.spell)
 
@@ -225,8 +254,8 @@ local function UpdateUsableColor(element)
             bar:SetStatusBarColor(r, g, b)
         end
     end
-
 end
+
 
 -- 更新计时条的进度
 -- 仅在需要更新时进行
@@ -252,7 +281,6 @@ local function onUpdate(self, elapsed)
                 end
             end
         end
-
     end
     -- end
 end
@@ -265,7 +293,7 @@ local function Update(self, event, unit)
     -- 预留 PreUpdate
     local element = self.TankResource
     if element.PreUpdate then element:PreUpdate(event) end
-    if UsableUpdateEvents[event] then return UpdateUsableColor(element) end
+    if UsableUpdateEvents[event] then return UpdateUsableColor(element) else UpdateUsableColor(element) end
 
     local cur, maxCharges, oldMax, start, duration
 
@@ -319,16 +347,16 @@ local function Update(self, event, unit)
     end
 end
 
-local function EnableEvent(self,spell) end
+local function EnableEvent(self, spell) end
 
 local function DisableEvent(self) enableState = {} end
 
 -- 真实更新的转接方法 预留覆盖API
 local function Path(self, event, ...)
     if event == "TankResourceEnable" then
-        (self.TankResource.OverrideEnableEvent or EnableEvent)(self,...)
+        (self.TankResource.OverrideEnableEvent or EnableEvent)(self, ...)
     elseif event == "TankResourceDisable" then
-        return (self.TankResource.OverrideDisableEvent or DisableEvent)(self,...)
+        return (self.TankResource.OverrideDisableEvent or DisableEvent)(self, ...)
     end
 
     return (self.TankResource.Override or Update)(self, event, ...)
@@ -348,13 +376,15 @@ local function Visibility(self, event, unit)
         if enable and spell then
             shouleEnable = enable
             unit = 'player'
-            if not enableState.spec or  enableState.spec ~= GetSpecialization() then
+            if not enableState.spec or enableState.spec ~= GetSpecialization() then
                 enableState.spell = spell
                 enableState.spec = GetSpecialization()
             end
-
+            local overrideSpellOptions = element.overrideSpellOptions
+            if overrideSpellOptions[PlayerClass] then
+                enableState.overrideSpellOptions = overrideSpellOptions[PlayerClass]
+            end
         end
-
     end
     local isEnabled = element.isEnabled
     local spell = enableState.spell
@@ -390,7 +420,9 @@ do
         -- self:RegisterEvent('SPELL_UPDATE_CHARGES', Path, true)
         if self.TankResource.costColor then
             for k in pairs(UsableUpdateEvents) do
-                self:RegisterEvent(k, Path, true)
+                if  not self:IsEventRegistered(k) then
+                    self:RegisterEvent(k, Path, true)
+                end
             end
         end
 
@@ -444,7 +476,7 @@ end
 
 -- 模块开启
 local function Enable(self, unit)
-    -- 不是玩家自己就退出 
+    -- 不是玩家自己就退出
     if unit ~= "player" then return end
 
     local element = self.TankResource
@@ -454,7 +486,7 @@ local function Enable(self, unit)
         element.__owner = self
         element.__max = #element
         element.updateDelay = .2
-        element.noPowerCostColor = {.9, .1, .1, 1}
+        element.noPowerCostColor = { .9, .1, .1, 1 }
         element.costColor = true
         element.ForceUpdate = ForceUpdate
 
@@ -490,7 +522,7 @@ local function Disable(self)
     if self.TankResource then
         TankResourceDisable(self)
 
-        -- 这里解除注册用于判断是否显示的事件 
+        -- 这里解除注册用于判断是否显示的事件
         self:UnregisterEvent('PLAYER_TALENT_UPDATE', VisibilityPath)
         self:UnregisterEvent('SPELLS_CHANGED', VisibilityPath)
         self:UnregisterEvent('PLAYER_SPECIALIZATION_CHANGED', VisibilityPath)
