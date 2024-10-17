@@ -394,36 +394,22 @@ T.PostUpdatePlayerDebuffs = function(self, unit)
 	if not unit and UnitIsUnit(unit, "player") then return end
 	
 	local style = self.__owner.mystyle
-	local index = GetSpecialization() or 0
-	local id = GetSpecializationInfo(index)
+	local spec = F.SpecCheck()
 	
-	if (F.Multicheck(id, 268, 66) and not C.TankResource) or 
-	  (id == 66 and C.TankResource and not IsSpellKnown(432459)) or
-	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
-	  (F.Multicheck(id, 581, 73) and C.TankResource) or
-	  F.Multicheck(id, 102, 103, 104, 62, 269, 65, 70, 262) then
+	if spec == 1 then
 		-- 雙資源專精：
-		-- 關閉坦克資源的酒僧和防騎
-		-- 開坦克資源的防騎，但是聖殿騎士
-		-- 死騎、盜賊、術士、喚能
-		-- 開坦克資源的復仇、防戰
-		-- 鳥貓熊、秘法、御風、神聖、懲戒、元素
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPHeight + C.PPOffset*2, 1)
 		else
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight + C.PPOffset*2)
 		end
-	elseif (id == 268 and C.TankResource) or (id == 66 and C.TankResource and IsSpellKnown(432459)) then
-		-- 三資源專精：
-		-- 開坦克資源的釀酒，多個酒池，就你特別
-		-- 開坦克資源的防騎，且是光鑄師
+	elseif spec == 2 then
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPHeight*2 + C.PPOffset*3, 1)
 		else
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight*2 + C.PPOffset*3)
 		end
 	else
-		-- 單資源專精
 		if style == "VL" then
 			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPOffset, 1)
 		else
@@ -628,34 +614,6 @@ T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
 	end
 end
 ]]--
---[[
-T.PostUpdateTankResourceColor = function(self)
-	local index = GetSpecialization() or 0
-	local id = GetSpecializationInfo(index)
-	local r, g, b
-	
-	if id == 66 and C.TankResource and IsSpellKnown(432459) then
-		if FindSpellOverrideByID(432459) == 432472 then
-			r, g, b = 0, 1, 0.92
-			
-		elseif FindSpellOverrideByID(432459) == 432459 then
-			r, g, b = 1, 1, 0
-			
-		end
-
-		for i = 1, #self do
-			local bar = self[i]
-			bar:SetStatusBarColor(r, g, b)
-	
-			local bg = bar.bg
-			if bg then
-				local mu = bg.multiplier or 1
-				bg:SetVertexColor(r * mu, g * mu, b * mu)
-			end
-		end
-	end
-end
-]]--
 
 -- [[ 連擊點的天賦更新 ]] --
 
@@ -663,9 +621,6 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	if not max or not cur then return end
 	
 	local style = self.__owner.mystyle
-	local index = GetSpecialization() or 0
-	local id = GetSpecializationInfo(index)
-	
 	local cpColor = {
 		{1, .7, .1},
 		{1, .95, .4},		-- 滿星
@@ -681,7 +636,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
 			end
 		end
-
+		
 		if i == 1 and powerType == "HOLY_POWER" then
 			if C.TankResource and IsSpellKnown(432459) then
 				if style == "VL" then
@@ -710,10 +665,9 @@ end
 --[[
 T.PostUpdateHolyPower = function(self)
 	local style = self.__owner.mystyle
-	local index = GetSpecialization() or 0
-	local id = GetSpecializationInfo(index)
+	local spec = F.SpecCheck()
 	
-	if C.TankResource and IsSpellKnown(432459) then
+	if spec == 2 then
 		if style == "VL" then
 			self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
 		elseif style == "H" then
