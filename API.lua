@@ -18,12 +18,59 @@ F.Multicheck = function(check, ...)
 	return false
 end
 
--- [[ 獲取 npc id ]] --
+-- [[ 獲取NpcID]] --
 
 F.GetNPCID = function(guid)
 	local id = tonumber(strmatch((guid or ""), "%-(%d-)%-%x-$"))
 	return id
 end
+
+-- [[ 獲取專精ID ]] --
+
+-- 初始化
+local SpecBoolean = 3
+
+-- 提供調用函數
+function F.SpecCheck()
+	return SpecBoolean
+end
+
+-- 檢查專精返回值
+local function SpecUpdate()
+    local specIndex = GetSpecialization() or 0
+	local specID = GetSpecializationInfo(specIndex)
+
+	if (F.Multicheck(specID, 268, 66) and (not C.TankResource)) or 
+	  (specID == 66 and C.TankResource and (not IsSpellKnown(432459))) or
+	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
+	  (F.Multicheck(specID, 581, 73) and C.TankResource) or
+	  F.Multicheck(specID, 102, 103, 104, 62, 269, 65, 70, 262) then
+		-- 雙資源專精：
+		-- 關閉坦克資源的酒僧和防騎
+		-- 開坦克資源的防騎，但是聖殿騎士
+		-- 死騎、盜賊、術士、喚能
+		-- 開坦克資源的復仇、防戰
+		-- 鳥貓熊、秘法、御風、神聖、懲戒、元素
+		SpecBoolean = 1
+	  elseif (specID == 268 and C.TankResource) or (specID == 66 and C.TankResource and IsSpellKnown(432459)) then
+		-- 三資源專精：就你們特別
+		-- 開坦克資源的釀酒，多個酒池
+		-- 開坦克資源的防騎，且是光鑄師
+		SpecBoolean = 2  -- 专精ID为 268, 66
+	else
+		-- 單資源專精
+		SpecBoolean = 3
+	end
+end
+
+-- PEW和切專精時獲取當前值
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:SetScript("OnEvent", function(self, event, ...)
+    SpecUpdate()
+end)
+
 
 --===================================================--
 -----------------    [[ Format ]]    ------------------
