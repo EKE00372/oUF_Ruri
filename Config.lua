@@ -19,10 +19,11 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -- Global --
 ------------
 
-	C.UnitFrames = true		-- enable Unitframes, ture = enable, false = disable / 啟用頭像，enable = 啟用，disable = 停用
-	C.RaidFrames = false		-- enable Raidframes / 啟用團隊框架
-	C.PartyFrames = false
-	C.Nameplates = true		-- enable Nameplates/ 啟用名條
+	-- NOTE: ture = enable, false = disable / enable = 啟用，disable = 停用
+	C.UnitFrames = true		-- Enable Unitframes,  / 啟用單位框架
+	C.RaidFrames = false	-- Enable Raidframes / 啟用團隊框架
+	C.PartyFrames = false	-- Enable Partyframes / 啟用隊伍框架
+	C.Nameplates = true		-- Enable Nameplates/ 啟用名條
 
 -------------
 -- Texture --
@@ -45,125 +46,128 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		circle = MediaFolder.."crosshair_circle.blp",
 		arrows = MediaFolder.."crosshair_arrows.blp",
 		
-		role = MediaFolder.."UI-LFG-ICON-PORTRAITROLES.blp", -- from matty texture
+		role = MediaFolder.."UI-LFG-ICON-PORTRAITROLES.blp", -- from matty's texture
 	}
 
 -----------
 -- Fonts --
 -----------
 
-	G.Font = STANDARD_TEXT_FONT						-- general font / 字型
-	G.NameFS = 14									-- general font size / 字型大小
-	G.FontFlag = "OUTLINE"							-- general font flag / 描邊 "OUTLINE" or none
+	G.Font = STANDARD_TEXT_FONT						-- General font / 字型
+	G.NameFS = 14									-- General font size / 字型大小
+	G.FontFlag = "OUTLINE"							-- General font flag / 描邊 "OUTLINE" or none
 	
-	G.NFont = MediaFolder.."myriadHW.ttf"			-- number font for auras / 光環數字字型
+	G.NFont = MediaFolder.."myriadHW.ttf"			-- Number font for auras / 光環數字字型
 	G.NumberFS = 14
 	
-	G.NPNameFS = 12									-- nameplate font size / 名條的字型
-	G.NPFont = MediaFolder.."Infinity Gears.ttf"	-- number style nameplate health text font / 數字模式名條的血量字型
-	G.NPFS = 18										-- number style nameplate health text font size / 數字模式名條的血量字型大小
+	G.NPNameFS = 12									-- Nameplate font size / 名條的字型
+	G.NPFont = MediaFolder.."Infinity Gears.ttf"	-- Number style nameplate health text font / 數字模式名條的血量字型
+	G.NPFS = 16										-- Number style nameplate health text font size / 數字模式名條的血量字型大小
 
 ------------------------
 -- UnitFrame settings --
 ------------------------
 
-	-- [[ UnitFrames ]] --
+	-- [[ UnitFrames / 單位框架 ]] --
 	
-	C.vertPlayer = true			-- vertical player and pet frame / 直式玩家頭像
-	C.vertTarget = true			-- vertical target and tot frame / 直式目標頭像	
-	C.SimpleFocus = true		-- simply show fucos as simple number style / 簡易的數字模式焦點框體
+	C.vertPlayer = true			-- Vertical Player and Pet frame / 直式玩家
+	C.vertTarget = true			-- Vertical Target and ToT frame / 直式目標頭
+	C.SimpleFocus = true		-- Simply show fucos as simple number style / 簡易模式：數字形式的焦點目標
 	
-	C.Boss = true				-- enable boss frame
-	C.Arena = true				-- enable arena frame
+	C.Boss = true				-- Enable Boss frame / 首領
+	C.Arena = true				-- Enable Brena frame / 競技場
 	
-	-- size
-	C.PWidth = 220				-- player/target/focus frame width / 主框體(血量條)寬度(玩家/目標/焦點)
-	C.TOTWidth = 120			-- targettarget/focusetarget/pet frame width / 副框體寬度(寵物/目標的目標/焦點目標)
-	C.BWidth = 160				-- arena/boss frame width / 首領和競技場寬度
+	-- Size / 大小
+	C.PWidth = 220				-- Player/Target/Focus frame width / 主框體寬度：玩家/目標/焦點
+	C.TOTWidth = 120			-- Targettarget/Focusetarget/Pet frame width / 副框體寬度：寵物/目標的目標/焦點目標
+	C.BWidth = 160				-- Arena/Boss frame width / 首領和競技場寬度
 	
-	C.PHeight = 26				-- frame height /  通用框體高度
-	C.PPHeight = 4				-- power bar height / 能量條高度
-	C.PPOffset = 6				-- power bar offset / 能量條向下偏移
+	C.PHeight = 26				-- Frame height /  通用的框體高度
+	C.PPHeight = 4				-- Power bar height / 能量條高度
+	C.PPOffset = 6				-- Power bar offset / 能量條向下偏移
 
-	C.buSize = 26				-- aura icon size for all frames except player debuff / 光環圖示大小
-	C.maxAura = 14				-- how many auras show / 顯示光環數量
+	C.buSize = 26				-- Aura icon size for all frames, except player debuff / 光環圖示大小
+	C.maxAura = 14				-- How many auras show / 顯示光環數量
 	
-	-- options
-	C.PlayerDebuffs = true		-- show debuffs acting on the player frame / 顯示自身減益
-	--C.Totems = false			-- show player totems / 顯示玩家圖騰
-	C.TankResource = true		-- show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
+	-- Options / 選項
+	C.PlayerDebuffs = true		-- Show debuffs on the player frame / 顯示自身減益
+	--C.Totems = false			-- WIP: Show player totems / 顯示玩家圖騰
+	C.TankResource = true		-- Show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 
-	C.Fade = true				-- hide UFs when out of combat or not casting / 戰鬥外閒置狀態淡出頭象
-	C.FadeOutAlpha = 0			-- fade out value / 淡出值
+	C.Fade = true				-- Hide UFs when out of combat or not casting (Include Player/Target/Focus) / 戰鬥外閒置狀態淡出，作用於玩家/目標/焦點
+	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
 	
-	--[[ castbar ]] --
+	--[[ Castbar / 施法條 ]] --
 	
-	-- options
-	C.StandaloneCastbar = false	-- independent castbar for player and target / 獨立施法條
-	C.CastbarWidth = 200		-- castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
+	-- Options / 選項
+	-- NOTICE: when Vertical style and StandaloneCastbar both enable, castbar size will match vert frame height.
+	C.StandaloneCastbar = false	-- Independent castbar for player and target / 玩家與目標的獨立施法條
+	C.CastbarWidth = 200		-- Castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
 	
-	-- colors
-	-- NOTICE: this effect on BOTH unitframe standalone castbar and nameplates castbar.
-	C.CastNormal = {.6, .6, .6}	-- 一般施法條顏色 / normal castbar color
-	C.CastFailed = {.5, .2, .2}	-- 施法失敗顏色 / cast failed color
-	C.CastShield = {.9, 0, 1}	-- 不可打斷施法條顏色 / non-InterruptibleColor castbar color
+	-- Colors / 顏色
+	-- NOTICE: This effect on BOTH unitframe standalone castbar and nameplates castbar.
+	C.CastNormal = {.6, .6, .6}	-- Normal castbar / 普通施法條
+	C.CastFailed = {.5, .2, .2}	-- Cast failed / 施法失敗
+	C.CastShield = {.9, 0, 1}	-- Non-InterruptibleColor castbar / 不可打斷的施法條
 
 ------------------------
--- RaidFrame settings --
+-- GroupFrame settings --
 ------------------------
 	
-	C.RWidth = 128				-- raid frame width
-	C.RHeight = 44				-- raid frame height
+	C.RWidth = 128				-- Raid frame width / 團隊寬度
+	C.RHeight = 44				-- Raid frame height / 團隊高度
 	
-	C.RPHeight = 2				-- raid frame power height
-	C.RSpace = 6				-- frame space
-	C.sAuSize = 18				-- corner small aura size
-	--C.bAuSize = 20				-- middle big aura size
-	C.RangeAlpha = 0.4			-- alpha for out of range units
+	C.RPHeight = 2				-- Raid frame power height / 團隊能量條高度
+	C.RSpace = 6				-- Raid frame space / 團隊間距
+	C.sAuSize = 18				-- Raid corner small aura size / 團隊邊角光環大小
+	--C.bAuSize = 20				-- Middle big aura size
+	C.RangeAlpha = 0.4			-- Alpha for out of range units / 超距離淡出透明度
 	
-	C.PartyWidth = 162				-- raid frame width
-	C.PartyHeight = 44				-- raid frame height
+	C.PartyWidth = 162			-- Party frame width / 隊伍寬度
+	C.PartyHeight = 44			-- Party frame height / 隊伍高度
 	
-	C.PartyPHeight = 2				-- raid frame power height
-	C.PartySpace = 6
-	C.PartyBuffSize = 22
+	C.PartyPHeight = 2			-- Party frame power height / 隊伍能量條高度
+	C.PartySpace = 6			-- Party frame space / 隊伍間距
+	C.PartyBuffSize = 22		-- Party corner small aura size / 隊伍邊角光環大小
 	
 ------------------------
 -- Nameplate settings --
 ------------------------
 
-	C.NumberStyle = true	-- number style nameplates / 數字模式的名條
+	-- NOTICE: Will do some change since version 5.2, because the layout of number style is not good for mythic+.
+	-- maybe change size.
+	C.NumberStyle = false	-- Number style nameplates / 數字模式的名條
 	
 	-- Number style nameplate config
-	C.NPCastIcon = 32		-- number style nameplate cast icon size /  數字模式的施法圖示大小
+	C.NPCastIcon = 32		-- Nmber style nameplate cast icon size /  數字模式的施法圖示大小
 	
 	-- Bar style nameplate config
-	C.NPWidth = 110			-- nameplate frame width / 名條寬度
-	C.NPHeight = 8			-- nameplate frame height / 名條高度
+	C.NPWidth = 110			-- Nameplate frame width / 名條寬度
+	C.NPHeight = 8			-- Nameplate frame height / 名條高度
 	
-	-- auras
-	C.ShowAuras = true		-- show auras / 顯示光環
-	C.Auranum = 5			-- how many aura show / 顯示光環數量
-	C.AuraSize = 20			-- aura icon size / 光環大小
+	-- Auras / 光環
+	C.ShowAuras = true		-- Show auras / 顯示光環
+	C.Auranum = 5			-- How many aura show / 顯示光環數量
+	C.AuraSize = 20			-- Aura icon size / 光環大小
 
-	-- colors
-	C.friendlyCR = true		-- friendly unit class color / 友方職業染色
-	C.enemyCR = true		-- enemy unit class color / 敵方職業染色
+	-- Colors / 顏色
+	C.friendlyCR = true		-- Friendly unit class color / 友方職業染色
+	C.enemyCR = true		-- Enemy unit class color / 敵方職業染色
 	
-	C.HLTarget = true		-- highlight target and focus / 高亮目標和焦點
-	C.HLMouseover = true	-- highlight mouseover / 高亮滑鼠指向
+	C.HLTarget = true		-- Highlight target and focus / 高亮目標和焦點
+	C.HLMouseover = true	-- Highlight mouseover / 高亮滑鼠指向
 	
-	-- options
-	C.Crosshairs = true
+	-- Options / 選項
+	C.Crosshairs = true		-- Show crosshairs red line on target / 在目標名條上顯示準星
 	
-	-- [[ player plate ]] --
+	-- [[ Player plate ]] --
 	
-	C.PlayerPlate = false	-- enable player plate / 玩家名條(個人資源)
-	C.NumberstylePP = false	-- number style player plate / 數字模式的玩家名條
-	C.PlayerBuffs = true	-- show player buff on player plate / 顯示自身增益
-	C.PlayerNPWidth = 180	-- player plate width
+	C.PlayerPlate = false	-- Enable player plate / 玩家自身名條，即個人資源
+	C.NumberstylePP = false	-- Number style player plate / 數字模式的玩家名條
+	C.PlayerBuffs = true	-- Show player buff on player plate / 顯示自身增益
+	C.PlayerNPWidth = 180	-- Player plate width
 
-	--[[ nameplates cvar ]] --
+	--[[ Nameplates CVar ]] --
 	
 	C.Inset = true			-- Let Nameplates don't go off screen / 名條貼齊畫面邊緣
 	C.MaxDistance = 45		-- Max distance for nameplate show on / 名條顯示的最大距離
@@ -178,48 +182,49 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 		-- [[ 直式 / vertical ]] --
 		
+		-- Player / 玩家
 		VPlayer	= {"CENTER", -340, 0},
 		VPet	= {"TOPRIGHT", "oUF_Player", "TOPLEFT", -C.PHeight, 0},
-		
+		-- Target / 目標
 		VTarget	= {"CENTER", 340, 0},
 		VTOT	= {"TOPLEFT", "oUF_Target", "TOPRIGHT", C.PHeight, 0},
 		
 		-- [[ 橫式 / horizontal ]] --
-		
+
+		-- Player / 玩家
 		Player	= {"CENTER", -360, -180},
 		Pet		= {"TOPLEFT", "oUF_Player", "BOTTOMLEFT", 0, -(C.PHeight + C.PPOffset * 2)},
-		
+		-- Target / 目標
 		Target	= {"CENTER", 360, -180},
 		TOT		= {"TOPRIGHT", "oUF_Target", "BOTTOMRIGHT", 0, -(C.PHeight + C.PPOffset * 2)},
 		
 		-- [[ 焦點 / focus ]] --
 		
-		-- 橫式目標時，焦點與焦點目標座標 / focus and fot position when horizontal target frame.
+		-- 橫式目標時，焦點與焦點目標座標 / Focus and FoT position when horizontal target frame.
 		Focus	= {"CENTER", 360, 0},
 		FOT		= {"TOPRIGHT", "oUF_Focus", "BOTTOMRIGHT", 0, -(C.PHeight + C.PPOffset * 2)},
 
-		-- 直式目標時，焦點與焦點目標座標 / focus and fot position when vertical target frame.
+		-- 直式目標時，焦點與焦點目標座標 / Focus and FoT position when vertical target frame.
 		VFocus	= {"CENTER", 0, -250},
 		VFOT	= {"LEFT", "oUF_Focus", "RIGHT", C.PPOffset * 2, 0},
 		
-		-- 橫式的簡易焦點目標 / simple style focus postion
+		-- 橫式的簡易焦點目標 / Simple style focus postion
 		SFOT	= {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset},
 
-		-- [[ other / 其他 ]] --
+		-- [[ Other / 其他 ]] --
 		
 		Boss	= {"LEFT", 10, 80},
 		Arena	= {"LEFT", 10, 80},
 		
 		-- [[ Groups / 團隊 ]] --
-		--Party	= {},
-		--Raid	= {},
-		Groups	= {"CENTER", UIParent, 570, 120},
+		Party	= {"CENTER", UIParent, 570, 120},
+		Raid	= {"CENTER", UIParent, 570, 120},
 		
-		-- [[ 玩家個人資源 / player plate ]] --
+		-- [[ Player plate / 玩家個人資源 ]] --
 		
 		PlayerPlate	= {"CENTER", 0, -200},
 		
-		-- [[ 獨立施法條 / standalone castbar ]] --
+		-- [[ Standalone castbar / 獨立施法條 ]] --
 		
 		PlayerCastbar = {"LEFT", "oUF_Player", "RIGHT", C.PPOffset, 0},
 		TargetCastbar = {"RIGHT", "oUF_Target", "LEFT", -C.PPOffset, 0},

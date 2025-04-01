@@ -371,10 +371,10 @@ end
 -- 生成
 
 oUF:Factory(function(self)
-	local raidAnchor = CreateFrame("Frame", nil, UIParent)
-	raidAnchor:SetSize(20, 20)
-	raidAnchor:ClearAllPoints()
-	raidAnchor:SetPoint(unpack(C.Position.Groups))
+	local partyAnchor = CreateFrame("Frame", nil, UIParent)
+	partyAnchor:SetSize(20, 20)
+	partyAnchor:ClearAllPoints()
+	partyAnchor:SetPoint(unpack(C.Position.Party))
 	
 	-- show raid style partyframe
 	if C.PartyFrames then
@@ -403,7 +403,7 @@ oUF:Factory(function(self)
 			]]):format(C.PartyWidth, C.PartyHeight)
 		)
 		
-		party:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
+		party:SetPoint("TOPLEFT", partyAnchor, "BOTTOMRIGHT", -20, 4)
 	end
 
 	--[[
@@ -419,12 +419,16 @@ oUF:Factory(function(self)
 		party[i] = unit
 	end
 	]]--
+
+	local raidAnchor = CreateFrame("Frame", nil, UIParent)
+	raidAnchor:SetSize(20, 20)
+	raidAnchor:ClearAllPoints()
+	raidAnchor:SetPoint(unpack(C.Position.Raid))
 	
 	if C.RaidFrames then
 		self:SetActiveStyle("Raid")
 		local raid = {}
 		for i = 1, 8 do
-			--raid[i] = self:SpawnHeader("oUF_Raid"..i, nil, "party,raid,solo",
 			raid[i] = self:SpawnHeader("oUF_Raid"..i, nil, "raid,solo",
 				"showSolo",			false,
 				"showParty",		false,
