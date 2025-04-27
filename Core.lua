@@ -553,14 +553,14 @@ end
 
 -- [[ 平滑顯示的能量數值 ]] --
 
-T.PostUpdatePower = function(self, unit, min, max)
+T.PostUpdatePower = function(self, unit, cur, min, max)
 	local disconnected = not UnitIsConnected(unit)
 	local _, type = UnitPowerType(unit)
 	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
 	
 	self.value:SetText()
 	
-	if min == 0 or max == 0 or disconnected then
+	if cur == 0 or max == 0 or disconnected then
 		self:SetValue(0)
 		self.value:SetText("")
 	elseif UnitIsDead(unit) or UnitIsGhost(unit) then
@@ -569,9 +569,9 @@ T.PostUpdatePower = function(self, unit, min, max)
 	else
 		if type == "MANA" then
 			-- 法力值需要縮寫
-			self.value:SetText(F.Hex(unpack(color))..F.ShortValue(min))
+			self.value:SetText(F.Hex(unpack(color))..F.ShortValue(cur))
 		else
-			self.value:SetText(F.Hex(unpack(color))..min)
+			self.value:SetText(F.Hex(unpack(color))..cur)
 		end
 	end
 end
