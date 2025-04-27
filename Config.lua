@@ -136,10 +136,10 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- NOTICE: Will do some change since version 5.2, because the layout of number style is not good for mythic+.
 	-- maybe change size.
-	C.NumberStyle = false	-- Number style nameplates / 數字模式的名條
+	C.NumberStyle = true	-- Number style nameplates / 數字模式的名條
 	
 	-- Number style nameplate config
-	C.NPCastIcon = 32		-- Nmber style nameplate cast icon size /  數字模式的施法圖示大小
+	C.NPCastIcon = 28		-- Nmber style nameplate cast icon size /  數字模式的施法圖示大小
 	
 	-- Bar style nameplate config
 	C.NPWidth = 110			-- Nameplate frame width / 名條寬度
@@ -148,7 +148,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	-- Auras / 光環
 	C.ShowAuras = true		-- Show auras / 顯示光環
 	C.Auranum = 5			-- How many aura show / 顯示光環數量
-	C.AuraSize = 20			-- Aura icon size / 光環大小
+	C.AuraSize = 16			-- Aura icon size / 光環大小
 
 	-- Colors / 顏色
 	C.friendlyCR = true		-- Friendly unit class color / 友方職業染色
