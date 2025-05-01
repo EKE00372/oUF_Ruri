@@ -287,13 +287,16 @@ end
 
 -- 更新
 local function Update(self, event, unit)
-    if (unit and unit ~= self.unit) then return end
     if not enableState.enable then return end
 
     -- 预留 PreUpdate
     local element = self.TankResource
     if element.PreUpdate then element:PreUpdate(event) end
-    if UsableUpdateEvents[event] then return UpdateUsableColor(element) else UpdateUsableColor(element) end
+    if UsableUpdateEvents[event] then
+        return UpdateUsableColor(element)
+    elseif (unit and unit ~= self.unit) then
+        UpdateUsableColor(element)
+    end
 
     local cur, maxCharges, oldMax, start, duration
 
