@@ -1069,7 +1069,7 @@ oUF:Factory(function(self)
 		-- 首領
 		self:SetActiveStyle("Boss")
 		local boss = {}
-		for i = 1, MAX_BOSS_FRAMES do
+		for i = 1, 10 do
 			local unit = self:Spawn("boss"..i, "oUF_Boss"..i)
 			if i == 1 then
 				unit:SetPoint(unpack(C.Position.Boss))
