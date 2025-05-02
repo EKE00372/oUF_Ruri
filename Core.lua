@@ -458,6 +458,7 @@ end
 
 -- [[ 光環過濾 ]] --
 
+--[[
 T.BolsterPostUpdateInfo = function(element, unit, _, debuffsChanged)
 	-- 替激勵設一個初始層數並用於重置
 	element.bolsterStacks = 0
@@ -485,19 +486,21 @@ T.BolsterPostUpdateInfo = function(element, unit, _, debuffsChanged)
 		end
 	end
 end
+]]--
 
 -- 光環過濾
 T.CustomFilter = function(self, unit, data)
 	local style = self.__owner.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
-	if data.name and data.spellId == 209859 then
+	--if data.name and data.spellId == 209859 then
 		-- < 激勵為true，才能被postupdateinfo處理 >
 		-- 新光環是table，只在創建時才會fullupdate，導致名條需要update激勵時無法被postupdateinfo處理
 		-- 所以必需在filter裡返回true，才能觸發ouf的buffsChanged/debuffsChanged
 		-- 使已acvite但非fullupdate的auraupdate(add/remove)被postupdateinfo處理
-		return true
-	elseif style == "NP" or style == "BP" then
+		--return true
+	--elseif style == "NP" or style == "BP" then
+	if style == "NP" or style == "BP" then
 		if UnitIsUnit("player", unit) then
 			-- 當該名條單位是玩家自己時隱藏，預防有人把系統的個人資源打開搞事情
 			return false
