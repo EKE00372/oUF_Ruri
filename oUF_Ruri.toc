@@ -4,6 +4,7 @@
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
+## X-SavedVariables: Ruri_MovableDB
 ## X-SlashCmdList: /omf
 ## X-Credits: Siweia, Paopao, Dawn, HopeASD
 
@@ -14,7 +15,7 @@ API.lua
 Libs\oUF\oUF.xml
 Libs\oUF_TankResource.lua
 Libs\oUF_Fader.lua
-#Libs\oUF_MovableFrames.lua
+Libs\oUF_MovableFrames.lua
 Embeds\Crosshairs.lua
 #Embeds\FloatingCombatFeedback.lua
 #Embeds\Totems.lua
