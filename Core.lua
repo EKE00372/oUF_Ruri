@@ -327,6 +327,7 @@ end
 -- [[ 更新光環 ]] --
 
 T.PostUpdateIcon = function(self, button, unit, data)
+	if not unit then return end
 	local style = self.__owner.mystyle
 	local color = oUF.colors.debuff[data.dispelName] or oUF.colors.debuff.none
 	
@@ -490,6 +491,7 @@ end
 
 -- 光環過濾
 T.CustomFilter = function(self, unit, data)
+	if not unit then return end
 	local style = self.__owner.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
