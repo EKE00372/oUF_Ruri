@@ -1,4 +1,4 @@
-## Interface: 110100, 110105, 110107
+## Interface: 110105, 110107, 110200
 ## Title: oUF_|cff00ffffRuri|r
 ## Version: R5.2b
 ## Author: EK (Linodas@Illidan-US)
