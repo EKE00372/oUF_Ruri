@@ -10,14 +10,13 @@ Try layout as same as classpower/rune.
 ## Options
 
 .color
-.spacing
-.multiplier
-.updateInterval
-.PostUpdate(self, cur, max)
+.spacing - respacing
+.updateInterval - number, seconds between Charging_OnUpdate ticks (default 0.05)
+.PostUpdate(self, cur, max) - callback after every refresh, If you want more custom
 
 ## Sub-Widget Options
 
-.multiplier - Used to tint the background based on the widget's R, G and B values. Defaults to 1 (number)[0-1]
+.multiplier - Used to tint the background based on the main widgets R, G and B values. Defaults to 1 (number)[0-1]
 
 ## Examples
 
