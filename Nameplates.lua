@@ -2,6 +2,9 @@ local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
+local UnitGUID, UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected = UnitGUID, UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected
+local UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction = UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction
+
 if not C.Nameplates then return end
 
 --================================================--

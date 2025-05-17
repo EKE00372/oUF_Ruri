@@ -2,6 +2,11 @@
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
+local UnitGetIncomingHeals, UnitGetTotalAbsorbs, UnitClass, UnitAffectingCombat = UnitGetIncomingHeals, UnitGetTotalAbsorbs, UnitClass, UnitAffectingCombat
+local UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown = UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown
+local UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer = UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer
+local GetTime, format = GetTime, format
+
 -- core: replace ouf default post update function
 -- note:
 -- 在CreateCastbar等創建元素的的function裡，self.Castbar中的self指的是頭像本身
@@ -340,7 +345,7 @@ T.PostUpdateIcon = function(self, button, unit, data)
 	if style == "NPP" or style == "BPP" then
 		-- 玩家名條固定灰色
 		button.Overlay:SetVertexColor(.6, .6, .6)
-	elseif F.Multicheck(style, "NP", "BP") then
+	elseif F.IsAny(style, "NP", "BP") then
 		-- 名條上的光環一率按類型染色
 		button.Overlay:SetVertexColor(color[1], color[2], color[3])
 	else
@@ -439,7 +444,7 @@ T.SetPosition = function(element, from, to)
 		local button = element[i]
 		if not button then break end
 		
-		if F.Multicheck(style, "VR", "VL") then
+		if F.IsAny(style, "VR", "VL") then
 			-- 直式排列
 			local row = (i - 1) % rows
 			local col = math.floor((i - 1) / rows)
@@ -599,27 +604,6 @@ T.PostUpdateStagger = function(self, cur, max)
 	end
 end
 
--- [[ 坦克資源的天賦更新 ]] --
---[[
-T.PostUpdateTankResource = function(self, cur, max, MaxChanged)
-	if not max or not cur then return end
-	
-	local style = self.__owner.mystyle
-
-	for i = 1, 2 do
-		if MaxChanged then
-			if style == "VL" then
-				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
-			elseif style == "NPP" or style == "BPP" then
-				self[i]:SetWidth((C.NPWidth - (max-1) * C.PPOffset) / max)
-			else
-				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
-			end
-		end
-	end
-end
-]]--
-
 -- [[ 連擊點的天賦更新 ]] --
 
 T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
@@ -686,36 +670,6 @@ T.PostUpdateHolyPower = function(self)
 		end
 	end
 end
-]]--
---[[
-https://github.com/tomrus88/BlizzardInterfaceCode/blob/master/Interface/FrameXML/EssenceFramePlayer.lua
-
-T.PostUpdateEssence = function(self)
-	local index = UnitPower("player",19)
-	if index and index ~= 6 then
-		local peace, interrupted = GetPowerRegenForPowerType(Enum.PowerType.Essence)
-		if (peace == nil or peace == 0) then
-			peace = 0.2
-		end
-		local cooldownDuration = 1 / peace
-		
-		expirationTime = cooldownDuration + GetTime()
-		
-		self:SetValue(duration) ?????
-		
-		
-		-- 把Aura API 返回的方法转换成进度比 取值[0,100]
-local function GetProgress(startTime, duration)
-    if startTime == 0 and duration == 0 then return 100 end
-    local nowTime = GetTime() -- nowTime
-    local startTime = startTime -- startTime
-    local expirTime = startTime + nowTime -- expirTime
-
-    local progress = (nowTime - startTime) / (duration)
-
-    return progress * 100
-end
-
 ]]--
 
 -- [[ 符能 ]] --
@@ -792,28 +746,9 @@ T.PostUpdateHealthPrediction = function(self, unit, myIncomingHeal, otherIncomin
 			
 			if style == "VL" or style == "VR" then
 				self.overAbsorb:SetHeight(value * health:GetHeight())
-			elseif F.Multicheck(style, "H", "BP", "BPP", "R") then
+			elseif F.IsAny(style, "H", "BP", "BPP", "R") then
 				self.overAbsorb:SetWidth(value * health:GetWidth())
 			end
 		end
 	end
 end
-
--- [[ 圖騰 ]] --
-
---[[
-T.PostUpdateTotem = function(self, slot, haveTotem, name, start, duration, icon)
-	local totem = self[slot]
-	local haveTotem, name, start, duration, icon = GetTotemInfo(slot)
-	if (haveTotem and duration > 0) then
-		if(totem.Icon) then
-			totem.Icon.Border = F.CreateBD(totem, totem.Icon, 1, .6, .6, .6, 1)
-			totem.Icon.Shadow = F.CreateSD(totem, totem.Icon.Border, 3)
-		end
-
-		totem:Show()
-	else
-		totem:Hide()
-	end
-end
-]]--
