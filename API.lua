@@ -1,6 +1,9 @@
 local addon, ns = ... 
 local C, F, G, T = unpack(ns)
 
+local tonumber, strmatch, floor, format = tonumber, strmatch, math.floor, format
+--local GetSpecialization, GetSpecializationInfo, IsSpellKnown = GetSpecialization, GetSpecializationInfo, IsSpellKnown
+
 --======================================================--
 -----------------    [[ Functions ]]    ------------------
 --======================================================--
@@ -8,8 +11,8 @@ local C, F, G, T = unpack(ns)
 -- [[ 多重條件匹配 ]] --
 
 -- 使用範例：
--- F.Multicheck(unit, "player", "boss", "pet")
-F.Multicheck = function(check, ...)
+-- F.IsAny(unit, "player", "boss", "pet")
+F.IsAny = function(check, ...)
 	for i = 1, select("#", ...) do
 		if check == select(i, ...) then
 			return true
@@ -40,11 +43,11 @@ local function SpecUpdate()
     local specIndex = GetSpecialization() or 0
 	local specID = GetSpecializationInfo(specIndex)
 
-	if (F.Multicheck(specID, 268, 66) and (not C.TankResource)) or 
+	if (F.IsAny(specID, 268, 66) and (not C.TankResource)) or 
 	  (specID == 66 and C.TankResource and (not IsSpellKnown(432459))) or
-	  F.Multicheck(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
-	  (F.Multicheck(specID, 581, 73) and C.TankResource) or
-	  F.Multicheck(specID, 102, 103, 104, 62, 269, 65, 70, 262) then
+	  F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
+	  (F.IsAny(specID, 581, 73) and C.TankResource) or
+	  F.IsAny(specID, 102, 103, 104, 62, 269, 65, 70, 262) then
 		-- 雙資源專精：
 		-- 關閉坦克資源的酒僧和防騎
 		-- 開坦克資源的防騎，但是聖殿騎士
@@ -52,11 +55,11 @@ local function SpecUpdate()
 		-- 開坦克資源的復仇、防戰
 		-- 鳥貓熊、秘法、御風、神聖、懲戒、元素
 		SpecBoolean = 1
-	  elseif (specID == 268 and C.TankResource) or (specID == 66 and C.TankResource and IsSpellKnown(432459)) then
+	elseif (specID == 268 and C.TankResource) or (specID == 66 and C.TankResource and IsSpellKnown(432459)) then
 		-- 三資源專精：就你們特別
 		-- 開坦克資源的釀酒，多個酒池
 		-- 開坦克資源的防騎，且是光鑄師
-		SpecBoolean = 2  -- 专精ID为 268, 66
+		SpecBoolean = 2
 	else
 		-- 單資源專精
 		SpecBoolean = 3
@@ -83,9 +86,9 @@ F.ShortValue = function(val)
 	local round = function(val, idp)
 		if idp and idp > 0 then
 			local mult = 10^idp
-			return math.floor(val * mult + 0.5) / mult
+			return floor(val * mult + 0.5) / mult
 		end
-		return math.floor(val + 0.5)
+		return floor(val + 0.5)
 	end
 
 	if val >= 1e9 then

@@ -2,6 +2,12 @@
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
+local UnitAffectingCombat, UnitClass, UnitExists, UnitGUID, GetUnitName = UnitAffectingCombat, UnitClass, UnitExists, UnitGUID, GetUnitName
+local UnitGetTotalAbsorbs, UnitReaction, UnitThreatSituation = UnitGetTotalAbsorbs, UnitReaction, UnitThreatSituation
+local UnitHealth, UnitHealthMax, UnitPower, UnitPowerMax, UnitPowerType = UnitHealth, UnitHealthMax, UnitPower, UnitPowerMax, UnitPowerType
+local UnitIsAFK, UnitIsConnected, UnitIsDND, UnitIsDead, UnitIsGhost = UnitIsAFK, UnitIsConnected, UnitIsDND, UnitIsDead, UnitIsGhost
+local UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName = UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName
+
 --==================================================--
 -----------------    [[ Colors ]]    -----------------
 --==================================================--

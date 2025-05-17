@@ -2,6 +2,8 @@ local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
+local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
+
 -- elements: create elements
 
 --===================================================--
@@ -255,11 +257,12 @@ end
 -- [[ 職業資源 ]] --
 
 T.CreateClassPower = function(self, unit)
-	if not F.Multicheck(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROGUE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT", "EVOKER") then return end
-	--if F.Multicheck(G.myClass, "WARRIOR", "HUNTER", "SHAMAN") then return end
+	if not F.IsAny(G.myClass, "PRIEST", "MAGE", "WARLOCK", "ROGUE", "MONK", "DRUID", "PALADIN", "DEATHKNIGHT", "EVOKER") then return end
+	--if F.IsAny(G.myClass, "WARRIOR", "HUNTER", "SHAMAN") then return end
 	
 	local isDK = G.myClass == "DEATHKNIGHT"
-	local maxPoint = (isDK and 6) or 7
+	local isEVOKER = G.myClass == "EVOKER"
+	local maxPoint = (isDK and 6) or (isEVOKER and 5) or 7
 	local index = GetSpecialization() or 0
 	local id = GetSpecializationInfo(index)
 	
@@ -307,7 +310,7 @@ T.CreateClassPower = function(self, unit)
 			end
 		end
 		
-		if isDK then
+		if isDK or isEVOKER then
 			ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
 			ClassPower[i].bg:SetAllPoints()
 			ClassPower[i].bg:SetTexture(G.media.blank)
@@ -315,15 +318,6 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
 			ClassPower[i].timer:SetPoint("CENTER", 0, 0)
 		end
-		
-		--[[if G.myClass == "EVOKER" then
-			ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
-			ClassPower[i].bg:SetAllPoints()
-			ClassPower[i].bg:SetTexture(G.media.blank)
-			ClassPower[i].bg.multiplier = .4
-			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
-			ClassPower[i].timer:SetPoint("CENTER", 0, 0)
-		end]]--
 	end
 	
 	-- 註冊到ouf並整合符文顯示
@@ -333,9 +327,12 @@ T.CreateClassPower = function(self, unit)
 		--ClassPower.__max = 6
 		self.Runes = ClassPower
 		self.Runes.PostUpdate = T.PostUpdateRunes
+	elseif isEVOKER then
+		self.Essence = ClassPower
+		self.Essence.color   = {0.02, 0.9, 0.9}
+		self.updateInterval = .1
 	else
 		self.ClassPower = ClassPower
-		--self.ClassPower.PreUpdate = T.PostUpdateHolyPower
 		self.ClassPower.PostUpdate = T.PostUpdateClassPower
 	end
 end
@@ -343,7 +340,7 @@ end
 -- [[ 額外能量 暗牧鳥德薩滿的法力 ]] --
 
 T.CreateAddPower = function(self, unit)
-	if not F.Multicheck(G.myClass, "DRUID", "SHAMAN", "PRIEST") then return end
+	if not F.IsAny(G.myClass, "DRUID", "SHAMAN", "PRIEST") then return end
 	
 	-- 創建一個條
 	local AddPower = F.CreateStatusbar(self, G.addon..unit.."_AddPowerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
@@ -469,11 +466,11 @@ T.CreateHealthPrediction = function(self, unit)
 		abb:SetOrientation("VERTICAL")
 		abb:SetSize(self:GetSize())
 		abb:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.Multicheck(self.mystyle, "H", "R") then
+	elseif F.IsAny(self.mystyle, "H", "R") then
 		-- 橫式
 		abb:SetSize(self:GetSize())
 		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "LEFT")
-	elseif F.Multicheck(self.mystyle, "BP", "BPP") then
+	elseif F.IsAny(self.mystyle, "BP", "BPP") then
 		-- 條形名條
 		abb:SetSize(self.Health:GetSize())
 		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
@@ -483,16 +480,16 @@ T.CreateHealthPrediction = function(self, unit)
 	--[[local abbo = F.CreateStatusbar(self, G.addon..unit.."_OverAbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
 	abbo:SetFrameLevel(self:GetFrameLevel() + 2)
 	
-	if F.Multicheck(self.mystyle, "VL", "VR") then
+	if F.IsAny(self.mystyle, "VL", "VR") then
 		-- 直式
 		abbo:SetOrientation("VERTICAL")
 		abbo:SetSize(self:GetSize())
 		abbo:SetPoint("TOP", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.Multicheck(self.mystyle, "H", "R") then
+	elseif F.IsAny(self.mystyle, "H", "R") then
 		-- 橫式
 		abbo:SetSize(self:GetSize())
 		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "LEFT")
-	elseif F.Multicheck(self.mystyle, "BP", "BPP") then
+	elseif F.IsAny(self.mystyle, "BP", "BPP") then
 		-- 條形名條
 		abbo:SetSize(self.Health:GetSize())
 		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "RIGHT")
@@ -503,15 +500,15 @@ T.CreateHealthPrediction = function(self, unit)
 	abbo:SetBlendMode("ADD")
 	abbo:SetVertexColor( 0, .5, .8, .7)
 	
-	if F.Multicheck(self.mystyle, "VL", "VR") then
+	if F.IsAny(self.mystyle, "VL", "VR") then
 		-- 直式
 		abbo:SetSize(self:GetSize())
 		abbo:SetPoint("TOP", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.Multicheck(self.mystyle, "H", "R") then
+	elseif F.IsAny(self.mystyle, "H", "R") then
 		-- 橫式
 		abbo:SetSize(self:GetSize())
 		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "LEFT")
-	elseif F.Multicheck(self.mystyle, "BP", "BPP") then
+	elseif F.IsAny(self.mystyle, "BP", "BPP") then
 		-- 條形名條
 		abbo:SetSize(self.Health:GetSize())
 		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "RIGHT")
@@ -550,14 +547,14 @@ T.CreateTankResource = function(self, unit)
 		TankResource[i].bg = TankResource[i]:CreateTexture(nil, "BACKGROUND")
 		TankResource[i].bg:SetAllPoints()
 		TankResource[i].bg:SetTexture(G.media.blank)
-		TankResource[i].bg.multiplier = .3
+		TankResource[i].bg.multiplier = .4
 
 		if self.mystyle == "VL" then
 			-- 單獨的每個豆子
 			TankResource[i]:SetOrientation("VERTICAL")
 			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - C.PPOffset)/2)
 			
-			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
+			if F.IsAny(G.myClass, "DEATHKNIGHT", "MONK") then
 				-- DK的在符文前面，武僧的在酒池前面
 				if i == 1 then
 					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
@@ -574,7 +571,7 @@ T.CreateTankResource = function(self, unit)
 		else
 			TankResource[i]:SetSize((C.PWidth - C.PPOffset)/2, C.PPHeight)
 			
-			if F.Multicheck(G.myClass, "DEATHKNIGHT", "MONK") then
+			if F.IsAny(G.myClass, "DEATHKNIGHT", "MONK") then
 				-- DK的在符文上面，武僧的在酒池上面
 				if i == 1 then
 					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
