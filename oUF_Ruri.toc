@@ -20,7 +20,7 @@ Libs\oUF_MovableFrames.lua
 
 Embeds\Crosshairs.lua
 #Embeds\FloatingCombatFeedback.lua
-#Embeds\Totems.lua
+Embeds\Totems.lua
 
 Tags.lua
 Core.lua
