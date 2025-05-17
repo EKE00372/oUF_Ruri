@@ -43,10 +43,10 @@ local function TotemBar_Init()
 	totemBar:ClearAllPoints()
 	if vertical then
 		totemBar:SetSize(height, width)
-		totemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", -altOffset, 0)
+		totemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", -altOffset, 0) -- 直式在能量條左
 	else
 		totemBar:SetSize(width, height)
-		totemBar:SetPoint("BOTTOMLEFT", oUF_Player, "TOPLEFT", -Offset, 0)
+		totemBar:SetPoint("TOPRIGHT", oUF_Player, "BOTTOMRIGHT", -altOffset, -Offset) -- 橫式在能量條下
 	end
 
 	for i = 1, 4 do
@@ -81,9 +81,9 @@ local function TotemBar_Init()
 			end
 		else
 			if i == 1 then
-				totem:SetPoint("BOTTOMLEFT", Offset, Offset)
+				totem:SetPoint("BOTTOMRIGHT", Offset, Offset)
 			else
-				totem:SetPoint("LEFT", totems[i-1], "RIGHT", Offset, 0)
+				totem:SetPoint("RIGHT", totems[i-1], "LEFT", -Offset, 0)
 			end
 		end
 	end
@@ -128,42 +128,61 @@ local function TotemBar_Update(self)
 	end
 end
 
-local function UpdateTotemBarOffset()
-    if not Ruri_TotemBar then return end            -- 圖騰條還未建立時防呆
-
-    local extra = 0                                 -- 最終要再左移的距離
-    local alt = _G["oUF_Player_AltPowerBar"]
-    local pet = _G["ouf_pet"]
-
-    -- 1. AltPower：多移 (C.PPHeight + C.PPOffset)
-    if alt and alt:IsShown() then
-        extra = extra + C.PPHeight + C.PPOffset
-    end
-
-    -- 2. Pet：多移 (C.PHeight + C.PPOffset)
-    if pet and pet:IsShown() then
-        extra = extra + C.PHeight + C.PPOffset
-    end
-
-    -- 3. 兩者皆存在時，自然加總；皆不存在時 extra 為 0
-    local x = -C.PPOffset - extra                   -- 原始位移再減去 extra
-    Ruri_TotemBar:ClearAllPoints()
-    Ruri_TotemBar:SetPoint("BOTTOMLEFT", oUF_Player, "TOPLEFT", x, 0)
-end
-
-local alt = _G["oUF_Player_AltPowerBar"]
-if alt then
-alt:HookScript("OnShow", UpdateTotemBarOffset)
-alt:HookScript("OnHide", UpdateTotemBarOffset)
-end
-local pet = _G["oUF_Pet"]
-if pet then
-pet:HookScript("OnShow", UpdateTotemBarOffset)
-pet:HookScript("OnHide", UpdateTotemBarOffset)
-UpdateTotemBarOffset()   -- 登入時執行一次
-end
-
 T.CreateTotemBar = function(self)
 	TotemBar_Init()
 	hooksecurefunc(TotemFrame, "Update", TotemBar_Update)
 end
+
+-- 判斷是否顯示替代能量
+
+local function HasAltPower()
+    local barID = UnitPowerBarID("player")       -- 0 == 沒有 AltPowerBar
+    return barID and barID ~= 0
+end
+
+local function UpdateTotemBarOffset()
+    if not Ruri_TotemBar then return end         -- 圖騰條還未建立時防呆
+
+	local hasAlt = HasAltPower()
+	local hasPet = UnitExists("pet")
+
+	local vertical = C.vertPlayer
+	local offsetBase = C.PPOffset
+    local altOffset  = C.PPHeight + offsetBase
+    local petOffset  = C.PHeight  + offsetBase
+
+    Ruri_TotemBar:ClearAllPoints()
+	if vertical then
+		local x
+		if hasAlt and hasPet then
+			x = -(altOffset + petOffset)
+		elseif hasAlt then
+			x = -altOffset*2
+		elseif hasPet then
+			x = -petOffset
+		else
+			x = -offsetBase
+		end
+
+		Ruri_TotemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", x, 0)
+	else
+		local x, y
+		if hasAlt then
+			x, y = -OffsetBase, -altOffset*2
+		else
+			x, y = -offsetBase, -altOffset
+		end
+
+		Ruri_TotemBar:SetPoint("TOPRIGHT", oUF_Player, "BOTTOMRIGHT", x, y)
+	end
+end
+
+--========================================================
+-- 事件監聽：登入／寵物變化／AltPower 顯示 & 隱藏
+--========================================================
+local offsetWatcher = CreateFrame("Frame")
+offsetWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+offsetWatcher:RegisterEvent("UNIT_PET")
+offsetWatcher:RegisterEvent("UNIT_POWER_BAR_SHOW")
+offsetWatcher:RegisterEvent("UNIT_POWER_BAR_HIDE")
+offsetWatcher:SetScript("OnEvent", UpdateTotemBarOffset)
