@@ -91,7 +91,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	-- Options / 選項
 	C.PlayerDebuffs = true		-- Show debuffs on the player frame / 顯示自身減益
-	--C.Totems = false			-- WIP: Show player totems / 顯示玩家圖騰
+	C.Totems = false			-- Show player totems / 顯示玩家圖騰
 	C.TankResource = true		-- Show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 
 	C.Fade = true				-- Hide UFs when out of combat or not casting (Include Player/Target/Focus) / 戰鬥外閒置狀態淡出，作用於玩家/目標/焦點
