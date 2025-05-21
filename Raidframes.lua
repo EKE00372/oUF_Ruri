@@ -301,7 +301,6 @@ local function CreateRaid(self, unit)
 	self:Tag(self.DeadSkull, "[deadskull]")
 end
 
-
 local function CreatePartyStyle(self, unit)
 	self.mystyle = "R"
 	self.Range = {

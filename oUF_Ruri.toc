@@ -1,12 +1,12 @@
 ## Interface: 110105, 110107, 110200
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R5.2b
+## Version: R5.3
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
 ## X-SavedVariables: Ruri_MovableDB
 ## X-SlashCmdList: /omf
-## X-Credits: Siweia, Paopao, Dawn, HopeASD
+## X-Credits: Siweia, Paopao, Dawn, HopeASD, Rhythm
 
 Config.lua
 FilterList.lua
@@ -16,7 +16,7 @@ Libs\oUF\oUF.xml
 Libs\oUF_Essence.lua
 Libs\oUF_TankResource.lua
 Libs\oUF_Fader.lua
-Libs\oUF_MovableFrames.lua
+#Libs\oUF_MovableFrames.lua
 
 Embeds\Crosshairs.lua
 #Embeds\FloatingCombatFeedback.lua
