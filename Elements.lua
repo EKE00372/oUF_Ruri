@@ -461,7 +461,7 @@ T.CreateHealthPrediction = function(self, unit)
 	local abb = F.CreateStatusbar(self, G.addon..unit.."_AbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
 	abb:SetFrameLevel(self:GetFrameLevel() + 2)
 	
-	if self.mystyle == "VL" or self.mystyle == "VR" then
+	if F.IsAny(self.mystyle, "VL", "VR") then
 		-- 直式
 		abb:SetOrientation("VERTICAL")
 		abb:SetSize(self:GetSize())
@@ -476,25 +476,7 @@ T.CreateHealthPrediction = function(self, unit)
 		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
 	end
 	
-	-- 滿血時的吸收盾
-	--[[local abbo = F.CreateStatusbar(self, G.addon..unit.."_OverAbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
-	abbo:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	if F.IsAny(self.mystyle, "VL", "VR") then
-		-- 直式
-		abbo:SetOrientation("VERTICAL")
-		abbo:SetSize(self:GetSize())
-		abbo:SetPoint("TOP", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.IsAny(self.mystyle, "H", "R") then
-		-- 橫式
-		abbo:SetSize(self:GetSize())
-		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "LEFT")
-	elseif F.IsAny(self.mystyle, "BP", "BPP") then
-		-- 條形名條
-		abbo:SetSize(self.Health:GetSize())
-		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "RIGHT")
-	end]]--
-	
+	-- 過量吸收盾
 	local abbo = self.Health:CreateTexture(nil, "OVERLAY")
 	abbo:SetTexture(G.media.blank, true, true)
 	abbo:SetBlendMode("ADD")
@@ -597,6 +579,4 @@ T.CreateTankResource = function(self, unit)
 	]]--
     -- Register with oUF
     self.TankResource = TankResource
-    --self.TankResource.PostUpdate = T.PostUpdateTankResource
-    --self.TankResource.UpdateColor = T.PostUpdateTankResourceColor
 end

@@ -717,8 +717,8 @@ T.PostUpdateHealthPrediction = function(self, unit, myIncomingHeal, otherIncomin
 	local cur, max = UnitHealth(unit), UnitHealthMax(unit)
 	local ab, income = UnitGetTotalAbsorbs(unit) or 0, UnitGetIncomingHeals(unit) or 0
 	
-	-- 合併預估治療治吸收盾
-	-- 不要這麼做，會誤判血量的
+	-- 合併預估治療和吸收盾
+	-- 不要這麼做，會誤判血量
 	--self.absorbBar:SetValue(ab + income)
 	
 	if self.overAbsorb and hasOverAbsorb then
@@ -744,7 +744,7 @@ T.PostUpdateHealthPrediction = function(self, unit, myIncomingHeal, otherIncomin
 		else
 			self.overAbsorb:Show()
 			
-			if style == "VL" or style == "VR" then
+			if F.IsAny(style, "VL", "VR") then
 				self.overAbsorb:SetHeight(value * health:GetHeight())
 			elseif F.IsAny(style, "H", "BP", "BPP", "R") then
 				self.overAbsorb:SetWidth(value * health:GetWidth())
