@@ -2,9 +2,6 @@ local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
-local UnitGUID, UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected = UnitGUID, UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected
-local UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction = UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction
-
 if not C.Nameplates then return end
 
 --================================================--
@@ -299,7 +296,7 @@ local function CreateAuras(self, unit)
 	self.Auras.PostCreateButton = T.PostCreateIcon
 	self.Auras.PostUpdateButton = T.PostUpdateIcon
 	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
-	--self.Auras.PostUpdateInfo = T.BolsterPostUpdateInfo -- 激勵
+	self.Auras.PostUpdateInfo = T.BolsterPostUpdateInfo -- 激勵
 	
 end
 
@@ -437,13 +434,28 @@ local function CreateNumberPlates(self, unit)
 	if not unit:match("nameplate") then
 		return
 	end
-	
+
 	-- 框體
 	self:SetSize(C.NPWidth + 10, G.NPFS * 2)
 	self:SetPoint("CENTER", 0, 0)
 
+	-- 空殼
+	-- 數字模式沒有Healthbar，而大部份依附名條的組件都是用.health/.healthbar來判斷名條框體是否存在，所以創建一個空容器
+	local fakeAnchor = CreateFrame("Frame", nil, self)
+	fakeAnchor:SetFrameLevel(self:GetFrameLevel() + 1)
+	fakeAnchor:SetAllPoints(self)
+	fakeAnchor:EnableMouse(false)
+	self.fakeAnchor = fakeAnchor
+	-- 將fakeAnchor指向health
+	self.Health = self.fakeAnchor
+	-- 關閉health元素的所有更新
+	self.Health.Override = function() end
+	self.Health.UpdateColor = function() end
+	-- 空容器沒有Health元素的完整內容，所以必需先關閉Update函數，才能用DisableElement徹底關閉
+	self:DisableElement("Health")
+
 	-- 名字
-	self.Name = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
+	self.Name = F.CreateText(self.fakeAnchor, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", 0, 6)
 	self:Tag(self.Name, "[name]")
 	-- 使數字模式的狀態顏色在名字上更新
@@ -453,7 +465,6 @@ local function CreateNumberPlates(self, unit)
 	self.HealthText:SetPoint("BOTTOM", self.Name,"TOP", 0, 2)
 	self.HealthText.frequentUpdates = .1
 	self:Tag(self.HealthText, "[np:hp]")
-	
 	-- 能量
 	self.PowerText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPNameFS, G.FontFlag, "LEFT")
 	self.PowerText:SetPoint("LEFT", self.Name, "RIGHT", 2, 0)
