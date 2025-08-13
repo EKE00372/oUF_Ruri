@@ -89,7 +89,7 @@ local function TotemBar_Init()
 	end
 end
 
--- 更新
+-- 圖騰更新
 local function TotemBar_Update(self)
 	local activeTotems = 0
 	for button in _G.TotemFrame.totemPool:EnumerateActive() do
@@ -134,12 +134,12 @@ T.CreateTotemBar = function(self)
 end
 
 -- 判斷是否顯示替代能量
-
 local function HasAltPower()
     local barID = UnitPowerBarID("player")       -- 0 == 沒有 AltPowerBar
     return barID and barID ~= 0
 end
 
+-- 位置更新
 local function UpdateTotemBarOffset()
     if not Ruri_TotemBar then return end         -- 圖騰條還未建立時防呆
 
@@ -177,9 +177,10 @@ local function UpdateTotemBarOffset()
 	end
 end
 
---========================================================
--- 事件監聽：登入／寵物變化／AltPower 顯示 & 隱藏
---========================================================
+--=================================================--
+-----------------    [[ Event ]]    -----------------
+--=================================================--
+
 local offsetWatcher = CreateFrame("Frame")
 offsetWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
 offsetWatcher:RegisterEvent("UNIT_PET")
