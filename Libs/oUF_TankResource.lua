@@ -79,12 +79,13 @@ local SPEC_WARRIOR_PROTECTION = SPEC_WARRIOR_PROTECTION or 3
 local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
 local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
 
-local GetSpellCharges, UnitSpellHaste, GetTime, UnitIsUnit, GetSpecialization, UnitHasVehicleUI,
-IsPlayerSpell, CreateFrame = GetSpellCharges, UnitSpellHaste, GetTime,
-    UnitIsUnit, GetSpecialization, UnitHasVehicleUI, IsPlayerSpell, CreateFrame
+local UnitSpellHaste, GetTime, UnitIsUnit, UnitHasVehicleUI, CreateFrame = UnitSpellHaste, GetTime, UnitIsUnit, UnitHasVehicleUI, CreateFrame
 local C_Spell_GetSpellCharges = C_Spell.GetSpellCharges
 local C_Spell_GetSpellCastCount = C_Spell.GetSpellCastCount
 local C_Spell_GetSpellCooldown = C_Spell.GetSpellCooldown
+local C_SpellBook_IsSpellKnown = C_SpellBook.IsSpellKnown
+local C_SpecializationInfo_GetSpecialization = C_SpecializationInfo.GetSpecialization
+
 
 
 local TankResourceEnable, TankResourceDisable
@@ -120,7 +121,7 @@ local enableClassAndSpec = {
 local function GetEnableStateAndSpell()
     if enableClassAndSpec[PlayerClass] then
         local spec, spell = unpack(enableClassAndSpec[PlayerClass])
-        if spec == GetSpecialization() and IsPlayerSpell(spell) then
+        if spec == C_SpecializationInfo_GetSpecialization() and C_SpellBook_IsSpellKnown(spell) then
             return true, spell
         end
     end
@@ -379,9 +380,9 @@ local function Visibility(self, event, unit)
         if enable and spell then
             shouleEnable = enable
             unit = 'player'
-            if not enableState.spec or enableState.spec ~= GetSpecialization() then
+            if not enableState.spec or enableState.spec ~= C_SpecializationInfo_GetSpecialization() then
                 enableState.spell = spell
-                enableState.spec = GetSpecialization()
+                enableState.spec = C_SpecializationInfo_GetSpecialization()
             end
             local overrideSpellOptions = element.overrideSpellOptions
             if overrideSpellOptions[PlayerClass] then
