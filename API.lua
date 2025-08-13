@@ -40,8 +40,9 @@ end
 
 -- 檢查專精返回值
 local function SpecUpdate()
-    local specIndex = GetSpecialization() or 0
-	local specID = GetSpecializationInfo(specIndex)
+    local specIndex = C_SpecializationInfo.GetSpecialization() or 0
+	local specID = C_SpecializationInfo.GetSpecializationInfo(specIndex)
+	local IsSpellKnown = C_SpellBook.IsSpellKnown
 
 	if (F.IsAny(specID, 268, 66) and (not C.TankResource)) or 
 	  (specID == 66 and C.TankResource and (not IsSpellKnown(432459))) or
