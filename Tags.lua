@@ -24,7 +24,7 @@ oUF.colors.class["EVOKER"] = {.33, .68, .68}
 
 oUF.colors.threat[0] = {.1, .7, .9} -- 非當前仇恨，低威脅值
 oUF.colors.threat[1] = {.4, .1, .9} -- 非當前仇恨，但已OT即將獲得仇恨，或坦克正在獲得仇恨
-oUF.colors.threat[2] = {.9, .1, .9} -- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨
+oUF.colors.threat[2] = {.9, .1, .9} -- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨 (over threat 遠程130/近戰110)
 oUF.colors.threat[3] = {.9, .1, .4} -- 當前仇恨，威脅值穩定
 
 -- [[ 光環 ]] --

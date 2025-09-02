@@ -4,6 +4,7 @@ local C, F, G, T = unpack(ns)
 
 local UnitGUID, UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected = UnitGUID, UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected
 local UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction = UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction
+--local IsAddOnLoaded = C_AddOns.IsAddOnLoaded
 
 if not C.Nameplates then return end
 
