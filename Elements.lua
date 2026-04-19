@@ -314,7 +314,7 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
 			ClassPower[i].bg:SetAllPoints()
 			ClassPower[i].bg:SetTexture(G.media.blank)
-			ClassPower[i].bg.multiplier = .4
+			ClassPower[i].bg.multiplier = .3
 			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
 			ClassPower[i].timer:SetPoint("CENTER", 0, 0)
 		end
@@ -405,7 +405,7 @@ T.CreateAltPowerBar = function(self, unit)
 	self.AlternativePower.PostUpdate = T.PostUpdateAltPower
 	-- 文本
 	self.AlternativePower.value = F.CreateText(self.AlternativePower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
-	--self:Tag(self.AlternativePower.value, "[altpower]") --不用這個，用postupdate
+	self:Tag(self.AlternativePower.value, "[altpower]") --不用這個，用postupdate
 end
 
 -- [[ 酒池 ]] --

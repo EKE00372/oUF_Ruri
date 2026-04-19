@@ -45,10 +45,10 @@ local function SpecUpdate()
 	local IsSpellKnown = C_SpellBook.IsSpellKnown
 
 	if (F.IsAny(specID, 268, 66) and (not C.TankResource)) or 
-	  (specID == 66 and C.TankResource and (not IsSpellKnown(432459))) or
-	  F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
-	  (F.IsAny(specID, 581, 73) and C.TankResource) or
-	  F.IsAny(specID, 102, 103, 104, 62, 269, 65, 70, 262) then
+		(specID == 66 and C.TankResource and (not IsSpellKnown(432459))) or
+		F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
+		(F.IsAny(specID, 581, 73) and C.TankResource) or
+		F.IsAny(specID, 102, 103, 104, 62, 269, 65, 70, 262) then
 		-- 雙資源專精：
 		-- 關閉坦克資源的酒僧和防騎
 		-- 開坦克資源的防騎，但是聖殿騎士
@@ -69,12 +69,11 @@ end
 
 -- PEW和切專精時獲取當前值
 local frame = CreateFrame("Frame")
-frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:SetScript("OnEvent", function(self, event, ...)
-    SpecUpdate()
-end)
-
+	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	frame:SetScript("OnEvent", function(self, event, ...)
+		SpecUpdate()
+	end)
 
 --===================================================--
 -----------------    [[ Format ]]    ------------------
@@ -82,6 +81,23 @@ end)
 
 -- [[ 數值 ]] --
 
+local NumberAbbrConfig = {
+    config = CreateAbbreviateConfig({
+        { breakpoint = 1e12, abbreviation = "T", significandDivisor = 1e10, fractionDivisor = 1e2, abbreviationIsGlobal = false },
+        { breakpoint = 1e9,  abbreviation = "B", significandDivisor = 1e7,  fractionDivisor = 1e2, abbreviationIsGlobal = false },
+        { breakpoint = 1e6,  abbreviation = "M", significandDivisor = 1e4,  fractionDivisor = 1e2, abbreviationIsGlobal = false },
+        { breakpoint = 1e3,  abbreviation = "K", significandDivisor = 1e2,  fractionDivisor = 1e1, abbreviationIsGlobal = false },
+    })
+}
+
+F.ShortValue = function(value)
+	-- 將字串轉換為數字
+	value = tonumber(value)
+    if not value then return "" end
+    return AbbreviateNumbers(value, NumberAbbrConfig)
+end
+
+--[[
 F.ShortValue = function(val)
 	-- 讓20k不顯示為20.0k
 	local round = function(val, idp)
@@ -109,6 +125,7 @@ F.ShortValue = function(val)
 		return ("%d"):format(val)
 	end
 end
+]]--
 
 -- [[ 顏色 ]] --
 
@@ -194,7 +211,7 @@ F.CreateBD = function(parent, anchor, size, r, g, b, a)
 	bd:ClearAllPoints()
 	bd:SetPoint("TOPLEFT", anchor, "TOPLEFT", -size, size)
 	bd:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", size, -size)
-	bd:SetFrameLevel(framelvl == 0 and 0 or framelvl-1)
+	bd:SetFrameLevel(framelvl == 0 and 0 or framelvl-2)
 	bd:SetBackdrop({
 		bgFile = G.media.blank,		-- 背景
 		edgeFile = G.media.blank,	-- 邊框
