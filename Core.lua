@@ -15,49 +15,37 @@ local GetTime, format = GetTime, format
 -- 有些仍寫為function(castbar, unit)，例如ouf_mlight、farva等
 -- 將來要統一替換為不混淆的寫法
 
+
+-- [[ 通用的 multiplier postupdate ]] -- 
+
+T.PostUpdateMultiBGColor = function(element, unit, color)
+	if color and element.bg then
+		local mu = element.bg.multiplier or 1
+		local r, g, b = color:GetRGB()
+		element.bg:SetVertexColor(r * mu, g * mu, b * mu)
+	end
+end
+
 --==================================================--
 -----------------    [[ Health ]]    -----------------
 --==================================================--
 
--- [[ 重寫PreUpdate，為透明模式的反轉血量漸變色打造一個專用的顯示方式 ]] --
+-- [[ 在背景更新血量漸變色 ]] --
 
-T.OverrideHealthbar = function(self, event, unit)
-	if (not unit or self.unit ~= unit) then return end
-	
-	local health = self.Health	-- 這裡的self是頭像本身
-	local cur, max = UnitHealth(unit), UnitHealthMax(unit)
+local bgCurve = C_CurveUtil.CreateColorCurve()
+bgCurve:SetType(Enum.LuaCurveType.Linear)
+bgCurve:AddPoint(0.0, CreateColor(1, 0, 0))
+bgCurve:AddPoint(0.5, CreateColor(1, .8, .1))
+bgCurve:AddPoint(1.0, CreateColor(1, .8, .1))
+
+T.PostUpdateHealth = function(element, unit)
 	local disconnected = not UnitIsConnected(unit)
-	local perc
-	
-	health:SetMinMaxValues(0, max)
-	
-	if disconnected then
-		-- 離線時顯示為滿血
-		health:SetValue(0)
+	local isGhost = UnitIsGhost(unit)
+	if disconnected or isGhost then
+		self.bg:SetVertexColor(0.3, 0.3, 0.3)
 	else
-		-- 血量反轉為顯示損失量
-		if max == cur then
-			health:SetValue(0)
-		else
-			health:SetValue(max - cur)
-		end
-	end
-end
-
--- [[ 更新血量 ]] --
-
-T.PostUpdateHealth = function(self, unit, min, max)
-	local disconnected = not UnitIsConnected(unit)
-	
-	if disconnected then
-		self:SetValue(0)
-	else
-		-- 血量反轉為顯示損失量
-		if max == min then
-			self:SetValue(0)
-		else
-			self:SetValue(max - min)
-		end
+		local color = UnitHealthPercent(unit, true, bgCurve)
+		element.bg:SetVertexColor(color:GetRGB())
 	end
 end
 
@@ -560,31 +548,6 @@ end
 --=================================================--
 -----------------    [[ Power ]]    -----------------
 --=================================================--
-
--- [[ 平滑顯示的能量數值 ]] --
-
-T.PostUpdatePower = function(self, unit, cur, min, max)
-	local disconnected = not UnitIsConnected(unit)
-	local _, type = UnitPowerType(unit)
-	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
-	
-	self.value:SetText()
-	
-	if cur == 0 or max == 0 or disconnected then
-		self:SetValue(0)
-		self.value:SetText("")
-	elseif UnitIsDead(unit) or UnitIsGhost(unit) then
-		self:SetValue(0)
-		self.value:SetText("")
-	else
-		if type == "MANA" then
-			-- 法力值需要縮寫
-			self.value:SetText(F.Hex(unpack(color))..F.ShortValue(cur))
-		else
-			self.value:SetText(F.Hex(unpack(color))..cur)
-		end
-	end
-end
 
 -- [[ 特殊能量文本 ]] --
 

@@ -1,0 +1,41 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Button name="GlowAuraTemplate" inherits="SecureActionButtonTemplate, BackdropTemplate" virtual="true" framelevel="4" registerForClicks="RightButtonUp, RightButtonDown">
+		<Size x="30" y="30"/>
+		<Attributes>
+			<Attribute name="type" value="cancelaura"/>
+		</Attributes>
+		<Scripts>
+			<OnLoad>
+				GlowAura_CreateIcon(self)
+			</OnLoad>
+		</Scripts>
+	</Button>
+
+	<Button name="GlowAuraTemplate24" inherits="GlowAuraTemplate" virtual="true"><Size x="24" y="24"/></Button>
+	<Button name="GlowAuraTemplate25" inherits="GlowAuraTemplate" virtual="true"><Size x="25" y="25"/></Button>
+	<Button name="GlowAuraTemplate26" inherits="GlowAuraTemplate" virtual="true"><Size x="26" y="26"/></Button>
+	<Button name="GlowAuraTemplate27" inherits="GlowAuraTemplate" virtual="true"><Size x="27" y="27"/></Button>
+	<Button name="GlowAuraTemplate28" inherits="GlowAuraTemplate" virtual="true"><Size x="28" y="28"/></Button>
+	<Button name="GlowAuraTemplate29" inherits="GlowAuraTemplate" virtual="true"><Size x="29" y="29"/></Button>
+	<Button name="GlowAuraTemplate30" inherits="GlowAuraTemplate" virtual="true"><Size x="30" y="30"/></Button>
+	<Button name="GlowAuraTemplate31" inherits="GlowAuraTemplate" virtual="true"><Size x="31" y="31"/></Button>
+	<Button name="GlowAuraTemplate32" inherits="GlowAuraTemplate" virtual="true"><Size x="32" y="32"/></Button>
+	<Button name="GlowAuraTemplate33" inherits="GlowAuraTemplate" virtual="true"><Size x="33" y="33"/></Button>
+	<Button name="GlowAuraTemplate34" inherits="GlowAuraTemplate" virtual="true"><Size x="34" y="34"/></Button>
+	<Button name="GlowAuraTemplate35" inherits="GlowAuraTemplate" virtual="true"><Size x="35" y="35"/></Button>
+	<Button name="GlowAuraTemplate36" inherits="GlowAuraTemplate" virtual="true"><Size x="36" y="36"/></Button>
+	<Button name="GlowAuraTemplate37" inherits="GlowAuraTemplate" virtual="true"><Size x="37" y="37"/></Button>
+	<Button name="GlowAuraTemplate38" inherits="GlowAuraTemplate" virtual="true"><Size x="38" y="38"/></Button>
+	<Button name="GlowAuraTemplate39" inherits="GlowAuraTemplate" virtual="true"><Size x="39" y="39"/></Button>
+	<Button name="GlowAuraTemplate40" inherits="GlowAuraTemplate" virtual="true"><Size x="40" y="40"/></Button>
+	<Button name="GlowAuraTemplate41" inherits="GlowAuraTemplate" virtual="true"><Size x="41" y="41"/></Button>
+	<Button name="GlowAuraTemplate42" inherits="GlowAuraTemplate" virtual="true"><Size x="42" y="42"/></Button>
+	<Button name="GlowAuraTemplate43" inherits="GlowAuraTemplate" virtual="true"><Size x="43" y="43"/></Button>
+	<Button name="GlowAuraTemplate44" inherits="GlowAuraTemplate" virtual="true"><Size x="44" y="44"/></Button>
+	<Button name="GlowAuraTemplate45" inherits="GlowAuraTemplate" virtual="true"><Size x="45" y="45"/></Button>
+	<Button name="GlowAuraTemplate46" inherits="GlowAuraTemplate" virtual="true"><Size x="46" y="46"/></Button>
+	<Button name="GlowAuraTemplate47" inherits="GlowAuraTemplate" virtual="true"><Size x="47" y="47"/></Button>
+	<Button name="GlowAuraTemplate48" inherits="GlowAuraTemplate" virtual="true"><Size x="48" y="48"/></Button>
+	<Button name="GlowAuraTemplate49" inherits="GlowAuraTemplate" virtual="true"><Size x="49" y="49"/></Button>
+	<Button name="GlowAuraTemplate50" inherits="GlowAuraTemplate" virtual="true"><Size x="50" y="50"/></Button>
+</Ui>
