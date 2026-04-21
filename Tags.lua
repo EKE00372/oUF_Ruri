@@ -19,54 +19,55 @@ oUF.colors.health:SetCurve({
 })
 
 -- [[ 職業 ]] --
---[[
-oUF.colors.class["SHAMAN"] = {0, .6, 1}
-oUF.colors.class["MAGE"] = {.48, .84, .94}
-oUF.colors.class["DEATHKNIGHT"] = {1, .23, .23}
-oUF.colors.class["DEMONHUNTER"] = {.74, .35, .95}
-oUF.colors.class["EVOKER"] = {.33, .68, .68}
-]]--
+
+oUF.colors.class["SHAMAN"] = oUF:CreateColor(0, .6, 1)
+oUF.colors.class["MAGE"] = oUF:CreateColor(.48, .84, .94)
+oUF.colors.class["DEATHKNIGHT"] = oUF:CreateColor(1, .23, .23)
+oUF.colors.class["DEMONHUNTER"] = oUF:CreateColor(.74, .35, .95)
+oUF.colors.class["EVOKER"] = oUF:CreateColor(.33, .68, .68)
+
 -- [[ 威脅 ]] --
 
-oUF.colors.threat[0] = {.1, .7, .9} -- 非當前仇恨，低威脅值
-oUF.colors.threat[1] = {.4, .1, .9} -- 非當前仇恨，但已OT即將獲得仇恨，或坦克正在獲得仇恨
-oUF.colors.threat[2] = {.9, .1, .9} -- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨 (over threat 遠程130/近戰110)
-oUF.colors.threat[3] = {.9, .1, .4} -- 當前仇恨，威脅值穩定
+oUF.colors.threat[0] = oUF:CreateColor(.1, .7, .9) -- 非當前仇恨，低威脅值
+oUF.colors.threat[1] = oUF:CreateColor(.4, .1, .9) -- 非當前仇恨，但已OT即將獲得仇恨，或坦克正在獲得仇恨
+oUF.colors.threat[2] = oUF:CreateColor(.9, .1, .9) -- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨 (over threat 遠程130/近戰110)
+oUF.colors.threat[3] = oUF:CreateColor(.9, .1, .4) -- 當前仇恨，威脅值穩定
 
 -- [[ 光環 ]] --
 
---oUF.colors.debuff.none = {.6, .6, .6}
+oUF.colors.dispel[oUF.Enum.DispelType.None] = oUF:CreateColor(1, 0, 0)
 
 -- [[ 能量 ]] --
 
--- 資源類型
-oUF.colors.power["MANA"] = {0, .8, 1}						-- 0 法力
-oUF.colors.power[0] = oUF.colors.power["MANA"]
-oUF.colors.power["RAGE"] = {.9, .1, .1}						-- 1 戰士熊德 怒氣
-oUF.colors.power["FOCUS"] = {.9, .5, .1}					-- 2 獵人 集中值
-oUF.colors.power["ENERGY"] = {.9, .9, .1}					-- 3 盜賊武僧貓德 能量
-oUF.colors.power["RUNIC_POWER"] = {.1, .9, .9}				-- 6 死騎 符能
-oUF.colors.power["LUNAR_POWER"] = {0, .6, 1}				-- 8 鳥德 月能
-oUF.colors.power["MAELSTROM"] = {0, .6, 1}					-- 11 薩滿旋渦值
-oUF.colors.power["INSANITY"] = {.74, .35, .95}				-- 13 暗牧 瘋狂值(共用dh職業色)
-oUF.colors.power["ARCANE_CHARGES"] = {0, .8, 1}				-- 16 秘法 充能
+local function ReplacePowerColor(name, index, r, g, b)
+	oUF.colors.power[name] = oUF:CreateColor(r, g, b)
+	oUF.colors.power[index] = oUF.colors.power[name]
+end
+
+ReplacePowerColor("MANA", 0, 0, .8, 1)						-- 0 法力
+ReplacePowerColor("RAGE", 1, .9, .1, .1)					-- 1 戰士熊德 怒氣
+ReplacePowerColor("FOCUS", 2, .9, .5, .1)					-- 2 獵人 集中值
+ReplacePowerColor("ENERGY", 3, .9, .9, .1)					-- 3 盜賊武僧貓德 能量
+ReplacePowerColor("RUNIC_POWER", 6, .1, .9, .9)				-- 6 死騎 符能
+ReplacePowerColor("LUNAR_POWER", 8, 0, .6, 1)				-- 8 鳥德 月能
+ReplacePowerColor("MAELSTROM", 11, 0, .6, 1)				-- 11 薩滿旋渦值
+ReplacePowerColor("INSANITY", 13, .74, .35, .95)            -- 13 暗牧 瘋狂值(共用dh職業色)
+ReplacePowerColor("ARCANE_CHARGES", 16, 0, .8, 1)			-- 16 秘法 充能
+ReplacePowerColor("ARCANE_CHARGES", 19, .02, .9, .9)		-- 19 喚能師 龍能
 -- 載具類型
-oUF.colors.power["FUEL"] = {0, .75, .7}						-- 同時用於npc無屬能量
-oUF.colors.power["AMMOSLOT"] = {.8, .6, 0}
--- 幹啥用的?
-oUF.colors.power["POWER_TYPE_STEAM"] = {.6, .6, .6}
-oUF.colors.power["POWER_TYPE_PYRITE"] = {.70, .1, .1}
+oUF.colors.power["FUEL"] = oUF:CreateColor(0, .75, .7)		-- 同時用於npc無屬能量
+oUF.colors.power["AMMOSLOT"] = oUF:CreateColor(.8, .6, 0)
 
 -- [[ 陣營 ]] --
 
-oUF.colors.reaction[1] = {1, .12, .25}
-oUF.colors.reaction[2] = {1, .12, .25}
-oUF.colors.reaction[3] = {1, .5, .25}
-oUF.colors.reaction[4] = {1, 1, 0}
-oUF.colors.reaction[5] = {.26, 1, .22}
-oUF.colors.reaction[6] = {.26, 1, .22}
-oUF.colors.reaction[7] = {.26, 1, .22}
-oUF.colors.reaction[8] = {.26, 1, .22}
+oUF.colors.reaction[1] = oUF:CreateColor(1, .12, .25)
+oUF.colors.reaction[2] = oUF:CreateColor(1, .12, .25)
+oUF.colors.reaction[3] = oUF:CreateColor(1, .5, .25)
+oUF.colors.reaction[4] = oUF:CreateColor(1, 1, 0)
+oUF.colors.reaction[5] = oUF:CreateColor(.26, 1, .22)
+oUF.colors.reaction[6] = oUF:CreateColor(.26, 1, .22)
+oUF.colors.reaction[7] = oUF:CreateColor(.26, 1, .22)
+oUF.colors.reaction[8] = oUF:CreateColor(.26, 1, .22)
 
 --[[
 	["HUNTER"] = { r = 0.58, g = 0.86, b = 0.49 },

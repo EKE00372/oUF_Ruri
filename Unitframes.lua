@@ -170,7 +170,6 @@ local function CreatePlayerStyle(self, unit)
 	-- 框體
     CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
-	
 	-- 文本
 	self.Health.value:SetPoint("LEFT", self.Power, 0, 2)
 	self.Power.value:SetPoint("RIGHT", self.Power, 0, 2)
@@ -178,18 +177,15 @@ local function CreatePlayerStyle(self, unit)
 	-- 特殊能量
 	--T.CreateAltPowerBar(self, unit)
 	--self.AlternativePower.value:SetPoint("CENTER",  0, -3)
-	
-	-- 吸收盾
-	--T.CreateHealthPrediction(self, unit)	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
-	--T.CreateAddPower(self, unit)
+	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
 	--if C.TankResource then T.CreateTankResource(self, unit) end
 	--if C.Totems then T.CreateTotemBar(self) end
 
 	-- 施法條
-	--[[if C.StandaloneCastbar then
+	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)
 		self.Castbar:SetWidth(C.CastbarWidth)
 		self.Castbar.Icon:SetPoint(unpack(C.Position.PlayerCastbar))
@@ -202,19 +198,19 @@ local function CreatePlayerStyle(self, unit)
 		self.Castbar.Text:SetWidth(self:GetWidth())
 		self.Castbar.Time:SetPoint("CENTER", self.Power, "CENTER", 0, 2)
 		self.Castbar.Time:SetJustifyH("CENTER")
-	end]]--
+	end
 	
 	-- 減益
-	--[[if C.PlayerDebuffs then
+	if C.PlayerDebuffs then
 		T.CreateDebuffs(self)		
 		self.Debuffs["growth-x"] = "RIGHT"
 		self.Debuffs["growth-y"] = "UP"
 		self.Debuffs.num = 6
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs:SetSize(C.PWidth, C.buSize + 4)
-		--self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
-		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
-	end]]--
+		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
+		--self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
+	end
 	
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("TOP", self.Health, 0, 16)
@@ -224,19 +220,92 @@ local function CreatePlayerStyle(self, unit)
 	self.RestingIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
 end
 
+-- 目標橫式 / Target
+local function CreateTargetStyle(self, unit)
+	self.mystyle = "H"
+	-- 框體
+	CreateUnitShared(self, unit)		-- 繼承通用樣式
+	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
+	
+	-- 特殊能量
+	--T.CreateAltPowerBar(self, unit)
+	--self.AlternativePower.value:SetPoint("CENTER",  0, -3)
+	
+	-- 吸收盾
+	--T.CreateHealthPrediction(self, unit)
+	
+	-- 文本
+	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
+	self.Name:SetJustifyH("RIGHT")
+	self.Status:SetPoint("RIGHT", self.Name, "LEFT", 0, 0)
+	self.Health.value:SetPoint("RIGHT", self.Power, 0, 2)
+	self.Health.value:SetJustifyH("RIGHT")
+	self.Power.value:SetPoint("LEFT", self.Power, 0, 2)
+	self.Power.value:SetJustifyH("LEFT")
+	
+	-- 施法條
+	if C.StandaloneCastbar then
+		T.CreateStandaloneCastbar(self, unit)
+		self.Castbar:SetWidth(C.CastbarWidth)
+		self.Castbar.Icon:SetPoint(unpack(C.Position.TargetCastbar))
+		self.Castbar:SetPoint("RIGHT", self.Castbar.Icon, "LEFT", -C.PPOffset, 0)
+	else
+		T.CreateCastbar(self, unit)
+		self.Castbar.Icon:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, -1)
+		self.Castbar.Text:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2+C.PPHeight)
+		self.Castbar.Text:SetJustifyH("RIGHT")
+		self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
+		self.Castbar.Time:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2 + C.PPHeight)
+		self.Castbar.Time:SetJustifyH("LEFT")
+		self.Castbar.Time:SetWidth(self:GetWidth() * 0.5)
+	end
+	
+	-- 光環
+	--T.CreateAuras(self)
+	
+	-- 圖示和標記
+	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
+	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
+	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
+end
+
 --===================================================--
 --------------    [[ RegisterStyle ]]     -------------
 --===================================================--
--- 註冊樣式
-
---oUF:RegisterStyle(G.addon, CreateUnitShared)
 
 if C.vertPlayer then
 	oUF:RegisterStyle("Player", CreateVPlayerStyle)
+	--oUF:RegisterStyle("Pet", CreateVPetStyle)
 else
 	oUF:RegisterStyle("Player", CreatePlayerStyle)
+	--oUF:RegisterStyle("Pet", CreatePetStyle)
 end
 
+if C.vertTarget then
+	oUF:RegisterStyle("Target", CreateVTargetStyle)
+	--oUF:RegisterStyle("ToT", CreateVToTStyle)
+else
+	oUF:RegisterStyle("Target", CreateTargetStyle)
+	--oUF:RegisterStyle("ToT", CreateToTStyle)
+end
+
+--[[
+if C.SimpleFocus then
+	oUF:RegisterStyle("Focus", CreateSFocusStyle)
+	oUF:RegisterStyle("FoT", CreateSFoTStyle)
+else
+	oUF:RegisterStyle("Focus", CreateFocusStyle)
+	oUF:RegisterStyle("FoT", CreateFoTStyle)
+end
+
+if C.Boss then
+	oUF:RegisterStyle("Boss", CreateBossStyle)
+end
+
+if C.Arena then
+	oUF:RegisterStyle("Arena", CreateArenaStyle)
+end
+]]--
 --===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
@@ -251,12 +320,96 @@ oUF:Factory(function(self)
 		self:SetActiveStyle("Player")
 		local player = self:Spawn("player", "oUF_Player")
 		player:SetPoint(unpack(C.Position.VPlayer))
-
+		-- 寵物
+		--self:SetActiveStyle("Pet")
+		--local pet = self:Spawn("pet", "oUF_Pet")
+		--pet:SetPoint(unpack(C.Position.VPet))
 	else
 		-- 玩家
 		self:SetActiveStyle("Player")
 		local player = self:Spawn("player", "oUF_Player")
 		player:SetPoint(unpack(C.Position.Player))
-
+		-- 寵物
+		--self:SetActiveStyle("Pet")
+		--local pet = self:Spawn("pet", "oUF_Pet")
+		--pet:SetPoint(unpack(C.Position.Pet))
 	end
+	
+	if C.vertTarget then
+		-- 目標
+		self:SetActiveStyle("Target")
+		local target = self:Spawn("target", "oUF_Target")
+		target:SetPoint(unpack(C.Position.VTarget))
+		-- 目標的目標
+		--[[self:SetActiveStyle("ToT")
+		local targettarget = self:Spawn("targettarget", "oUF_ToT")
+		targettarget:SetPoint(unpack(C.Position.VTOT))
+		-- 焦點
+		self:SetActiveStyle("Focus")
+		local focus = self:Spawn("focus", "oUF_Focus")
+		focus:SetPoint(unpack(C.Position.VFocus))
+		-- 焦點目標
+		if C.SimpleFocus then
+			self:SetActiveStyle("FoT")
+			local focustarget = self:Spawn("focustarget", "oUF_FoT")
+			focustarget:SetPoint(unpack(C.Position.SFOT))
+		else
+			self:SetActiveStyle("FoT")
+			local focustarget = self:Spawn("focustarget", "oUF_FoT")
+			focustarget:SetPoint(unpack(C.Position.VFOT))
+		end]]--
+	else
+	-- 目標
+		self:SetActiveStyle("Target")
+		local target = self:Spawn("target", "oUF_Target")
+		target:SetPoint(unpack(C.Position.Target))
+		-- 目標的目標
+		--[[self:SetActiveStyle("ToT")
+		local targettarget = self:Spawn("targettarget", "oUF_ToT")
+		targettarget:SetPoint(unpack(C.Position.TOT))
+		-- 焦點
+		self:SetActiveStyle("Focus")
+		local focus = self:Spawn("focus", "oUF_Focus")
+		focus:SetPoint(unpack(C.Position.Focus))
+		-- 焦點目標
+		if C.SimpleFocus then
+			self:SetActiveStyle("FoT")
+			local focustarget = self:Spawn("focustarget", "oUF_FoT")
+			focustarget:SetPoint(unpack(C.Position.SFOT))
+		else
+			self:SetActiveStyle("FoT")
+			local focustarget = self:Spawn("focustarget", "oUF_FoT")
+			focustarget:SetPoint(unpack(C.Position.FOT))
+		end]]--
+	end
+	--[[
+	if C.Boss then
+		-- 首領
+		self:SetActiveStyle("Boss")
+		local boss = {}
+		for i = 1, 10 do
+			local unit = self:Spawn("boss"..i, "oUF_Boss"..i)
+			if i == 1 then
+				unit:SetPoint(unpack(C.Position.Boss))
+			else
+				unit:SetPoint("TOP", boss[i-1], "BOTTOM", 0, -(C.PHeight+C.buSize+C.PPOffset*2))
+			end
+			boss[i] = unit
+		end
+	end
+	
+	if C.Arena then
+		-- 競技場
+		self:SetActiveStyle("Arena")
+		local arena = {}
+		for i = 1, 5 do
+			local unit = self:Spawn("arena"..i, "oUF_Arena"..i)
+			if i == 1 then
+				unit:SetPoint(unpack(C.Position.Arena))
+			else
+				unit:SetPoint("TOP", arena[i-1], "BOTTOM", 0, -(C.PHeight+C.buSize+C.PPOffset*2))
+			end
+			arena[i] = unit
+		end
+	end]]--
 end)
