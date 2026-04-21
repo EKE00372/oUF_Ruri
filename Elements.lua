@@ -273,7 +273,11 @@ T.CreateClassPower = function(self, unit)
 		ClassPower[i] = F.CreateStatusbar(self, G.addon..unit.."_ClassPowerBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 4)
 		ClassPower[i]:SetFrameLevel(self:GetFrameLevel() + 2)
-		
+		ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
+		ClassPower[i].bg:SetAllPoints()
+		ClassPower[i].bg:SetTexture(G.media.blank)
+		ClassPower[i].bg.multiplier = .3
+
 		if self.mystyle == "VL" then
 			-- 單獨的每個豆子
 			ClassPower[i]:SetOrientation("VERTICAL")
@@ -311,10 +315,6 @@ T.CreateClassPower = function(self, unit)
 		end
 		
 		if isDK or isEVOKER then
-			ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
-			ClassPower[i].bg:SetAllPoints()
-			ClassPower[i].bg:SetTexture(G.media.blank)
-			ClassPower[i].bg.multiplier = .3
 			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
 			ClassPower[i].timer:SetPoint("CENTER", 0, 0)
 		end
@@ -324,20 +324,21 @@ T.CreateClassPower = function(self, unit)
 	if isDK then
 		ClassPower.colorSpec = true
 		ClassPower.sortOrder = "asc"
-		--ClassPower.__max = 6
 		self.Runes = ClassPower
 		self.Runes.PostUpdate = T.PostUpdateRunes
+		self.Runes.PostUpdateColor = T.PostUpdatemMultiBGColor
 	elseif isEVOKER then
 		self.Essence = ClassPower
 		self.Essence.color   = {0.02, 0.9, 0.9}
 		self.updateInterval = .1
 	else
 		self.ClassPower = ClassPower
-		self.ClassPower.PostUpdate = T.PostUpdateClassPower
+		--self.ClassPower.PostUpdate = T.PostUpdateClassPower
+		self.ClassPower.PostUpdateColor = T.PostUpdatemMultiBGColor
 	end
 end
 
--- [[ 額外能量 暗牧鳥德薩滿的法力 ]] --
+-- [[ 額外能量：暗牧鳥德元薩的法力 ]] --
 
 T.CreateAddPower = function(self, unit)
 	if not F.IsAny(G.myClass, "DRUID", "SHAMAN", "PRIEST") then return end
@@ -368,6 +369,7 @@ T.CreateAddPower = function(self, unit)
 	AddPower.border = F.CreateSD(AddPower, AddPower, 4)
 	-- 註冊到ouf
 	self.AdditionalPower = AddPower
+	self.AdditionalPower.PostUpdateColor = T.PostUpdatemMultiBGColor
 	-- 文本
 	self.AdditionalPower.value = F.CreateText(self.AdditionalPower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 end
@@ -403,6 +405,7 @@ T.CreateAltPowerBar = function(self, unit)
 	-- 註冊到ouf
 	self.AlternativePower = AltPower
 	self.AlternativePower.PostUpdate = T.PostUpdateAltPower
+	self.AlternativePower.PostUpdateColor = T.PostUpdatemMultiBGColor
 	-- 文本
 	self.AlternativePower.value = F.CreateText(self.AlternativePower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
 	self:Tag(self.AlternativePower.value, "[altpower]") --不用這個，用postupdate
@@ -434,19 +437,19 @@ T.CreateStagger = function(self, unit)
 	Stagger.bg.multiplier = .3
 	-- 陰影
 	Stagger.border = F.CreateSD(Stagger, Stagger, 4)
-	
-	-- 註冊到ouf	
+	-- 文本
+	Stagger.value = F.CreateText(Stagger, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
+	if self.mystyle == "VL" then
+		Stagger.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS + 2)*2)
+		Stagger.value:SetJustifyH("RIGHT")
+	else
+		Stagger.value:SetPoint("CENTER", Stagger, 0, 0)
+		Stagger.value:SetJustifyH("CENTER")
+	end
+	-- 註冊到ouf
 	self.Stagger = Stagger
 	self.Stagger.PostUpdate = T.PostUpdateStagger
-	-- 文本
-	self.Stagger.value = F.CreateText(self.Stagger, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	if self.mystyle == "VL" then
-		self.Stagger.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS + 2)*2)
-		self.Stagger.value:SetJustifyH("RIGHT")
-	else
-		self.Stagger.value:SetPoint("CENTER", self.Stagger, 0, 0)
-		self.Stagger.value:SetJustifyH("CENTER")
-	end
+	self.Stagger.PostUpdateColor = T.PostUpdatemMultiBGColor
 end
 
 -- [[ 預估治療 ]] --
