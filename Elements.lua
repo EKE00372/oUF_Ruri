@@ -17,7 +17,7 @@ T.CreateCastbar = function(self, unit)
 	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, 0, 0, 0, 0)
 	Castbar:SetAllPoints(self.Health)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)
-	
+
 	-- 圖示
 	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY", nil, 1)
 	Castbar.Icon:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
@@ -26,21 +26,18 @@ T.CreateCastbar = function(self, unit)
 	Castbar.Border = F.CreateBD(Castbar, Castbar.Icon, 1, 0, 0, 0, 1)
 	-- 陰影
 	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Border, 4)
-	
 	-- 文本
 	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	
+	-- 隊列
+	--Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
+	--Castbar.SafeZone:SetAlpha(.6)
 	-- 進度高亮
 	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
 	Castbar.Spark:SetTexture(G.media.spark)
 	Castbar.Spark:SetBlendMode("ADD")
 	Castbar.Spark:SetVertexColor(1, 1, .85, .8)
-	
-	-- 隊列
-	--Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
-	--Castbar.SafeZone:SetAlpha(.6)
-	
+	Castbar.Spark:SetAlpha(.8)
 	-- 橫豎的spark不一樣
 	if self.mystyle ~= "H" then
 		Castbar:SetOrientation("VERTICAL")
@@ -57,7 +54,7 @@ T.CreateCastbar = function(self, unit)
 	-- 註冊到ouf
 	self.Castbar = Castbar
 	self.Castbar.PostCastStart = T.PostCastStart			-- 開始施法
-	self.Castbar.PostCastStop = T.PostCastStop			-- 施法結束
+	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
 	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
 	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
@@ -73,22 +70,22 @@ T.CreateStandaloneCastbar = function(self, unit)
 	-- 創建一個條
 	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, .6, .6, .6, 1)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)	
+	
 	-- 背景與邊框
-	Castbar.BarBG = F.CreateBD(Castbar, Castbar, 1, .15, .15, .15, .4)
+	Castbar.BarBG = F.CreateBD(Castbar, Castbar, 1, .15, .15, .15, .6)
 	-- 陰影
 	Castbar.BarShadow = F.CreateSD(Castbar, Castbar, 4)
-	
 	-- 圖示
 	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY", nil, 1)
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
 	-- 圖示邊框
 	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Icon, 4)
-	
 	-- 進度高亮
 	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
 	Castbar.Spark:SetTexture(G.media.spark)
 	Castbar.Spark:SetBlendMode("ADD")
 	Castbar.Spark:SetVertexColor(1, 1, .85, .5)
+	Castbar.Spark:SetAlpha(.5)
 	
 	-- 不同模式的布局
 	if self.mystyle == "S" then
@@ -132,10 +129,10 @@ T.CreateStandaloneCastbar = function(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar	
-	self.Castbar.PostCastStart = T.PostStandaloneCastStart			-- 施法開始
-	self.Castbar.CustomTimeText = T.CustomTimeText					-- 施法時間	
-	self.Castbar.PostCastFail = T.PostStandaloneCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterruptible = T.PostUpdateStandaloneCast	-- 打斷狀態更新
+	self.Castbar.PostCastStart = T.PostCastStart			-- 施法開始
+	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間	
+	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterruptible = T.PostUpdateCast	-- 打斷狀態更新
 end
 
 --===================================================--
