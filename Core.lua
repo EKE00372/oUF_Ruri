@@ -7,13 +7,9 @@ local UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown = UnitHealth, Un
 local UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer = UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer
 local GetTime, format = GetTime, format
 
--- core: replace ouf default post update function
--- note:
--- 在CreateCastbar等創建元素的的function裡，self.Castbar中的self指的是頭像本身
--- 而在施法條、光環、副資源等元素的PostUpdate中，self指的是self.Castbar，即施法條元素自身
--- 為了防止搞混，這裡的function(self, unit)有些會寫為function(element, unit)，例如ouf core、ndui等
--- 有些仍寫為function(castbar, unit)，例如ouf_mlight、farva等
--- 將來要統一替換為不混淆的寫法
+-- 在 CreateCastbar 等創建元素的的 function 裡，self.Castbar 中的 self 指的是頭像本身
+-- 而在施法條、光環、副資源等元素的 PostUpdate 中，self 指的是 self.Castbar，即施法條元素自身
+-- 為了防止搞混，這裡的 function(self, unit) 寫為function (element, unit)
 
 --===============================-===================--
 -----------------    [[ General ]]    -----------------
@@ -44,10 +40,10 @@ end
 -- [[ 在背景更新血量漸變色 ]] --
 
 local bgCurve = C_CurveUtil.CreateColorCurve()
-bgCurve:SetType(Enum.LuaCurveType.Linear)
-bgCurve:AddPoint(0.0, CreateColor(1, 0, 0))
-bgCurve:AddPoint(0.5, CreateColor(1, .8, .1))
-bgCurve:AddPoint(1.0, CreateColor(1, .8, .1))
+	bgCurve:SetType(Enum.LuaCurveType.Linear)
+	bgCurve:AddPoint(0.0, CreateColor(1, 0, 0))
+	bgCurve:AddPoint(0.5, CreateColor(1, .8, .1))
+	bgCurve:AddPoint(1.0, CreateColor(1, .8, .1))
 
 T.PostUpdateHealth = function(element, unit)
 	local disconnected = not UnitIsConnected(unit)
@@ -76,7 +72,7 @@ end
 --===================================================--
 
 -- [[ 更新施法目標 ]] --
-
+--[[
 T.UpdateSpellTarget = function(element, unit)
 	if not unit then return end
 	if (F.GetNPCID(UnitGUID(unit)) ~= C.UnitSpellTarget[element.npcID]) then return end
@@ -93,158 +89,132 @@ T.UpdateSpellTarget = function(element, unit)
 		element.Text:SetText(nameString)
 	end
 end
-
+]]--
 -- [[ 重置施法目標 ]] --
-
+--[[
 T.ResetSpellTarget = function(element)
 	if element.Text then
 		element.Text:SetText("")
 	end
 end
-
--- [[ 獨立施法條：開始施法 ]] --
-
-T.PostStandaloneCastStart = function(element, unit)
-	local frame = element:GetParent()
-
-	if frame.mystyle == "NP" then
-		-- 數字模式名條名字上移
-		frame.Name:SetPoint("BOTTOM", 0, 6+G.NPNameFS)
-	elseif frame.mystyle == "BP" then
-		-- 條形模式施法目標
-		T.UpdateSpellTarget(element, unit)
-	else
-		element.Spark:SetAlpha(.5)
-	end
-
-	if unit == "player" then
-		element:SetStatusBarColor(unpack(C.CastNormal))
-	else
-		if element.notInterruptible then
-			element:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
-		else
-			element:SetStatusBarColor(unpack(C.CastNormal))
-		end
-	end
-end
-
--- [[ 嵌入施法條：開始施法 ]] --
+]]--
+-- [[ 開始施法 ]] --
 
 T.PostCastStart = function(element, unit)
-	-- 進度高亮
-	element.Spark:SetAlpha(.8)
+	local frame = element:GetParent()
+	local standalone = C.StandaloneCastbar
+	local castingColor
+	local notInterruptColor
 	
-	-- 施法開始時隱藏名字
-	element:GetParent().Name:Hide()
-	element:GetParent().Status:Hide()
-	
-	-- 打斷染色
-	if unit == "player" then
-		element:SetStatusBarColor(.6, .6, .6, .5)
-		element.Border:SetBackdropBorderColor(.6, .6, .6)
-	else
-		if element.notInterruptible then
-			element:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
-			element.Border:SetBackdropBorderColor(.9, 0, 1)	-- 紫色邊框
+	if standalone then
+		castingColor = CreateColor(unpack(C.CastNormal))
+		notInterruptColor = CreateColor(unpack(C.CastShield))
+		if unit == "player" then
+			element:SetStatusBarColor(unpack(C.CastNormal))
 		else
-			element:SetStatusBarColor(.6, .6, .6, .5)
-			element.Border:SetBackdropBorderColor(.6, .6, .6)
+			element:GetStatusBarTexture():SetVertexColorFromBoolean(element.notInterruptible, notInterruptColor, castingColor)
+		end
+	else
+		-- 嵌入式施法條：施法開始時隱藏名字
+		frame.Name:Hide()
+		frame.Status:Hide()
+
+		castingColor = CreateColor(.6, .6, .6, .6)
+		notInterruptColor = CreateColor(.7, .3, .6, .6)
+		if unit == "player" then
+			element:SetStatusBarColor(.6, .6, .6, .6)
+		else
+			element:GetStatusBarTexture():SetVertexColorFromBoolean(element.notInterruptible, notInterruptColor, castingColor)
 		end
 	end
 end
 
--- [[ 施法條：停止施法 ]] --
+-- [[ 停止施法 ]] --
 
 T.PostCastStop = function(element, unit)
 	local frame = element:GetParent()
-	if frame.mystyle == "NP" then
+	local standalone = C.StandaloneCastbar
+	if standalone == true then return end
+	
+	--[[if frame.mystyle == "NP" then
 		-- 使數字模式名條的名字復位
 		frame.Name:SetPoint("BOTTOM", 0, 6)
 	elseif frame.mystyle == "BP" then
 		-- 清空施法目標
 		T.ResetSpellTarget(element)
 	else
-		-- 施法結束時顯示名字
+		
 		frame.Name:Show()
 		frame.Status:Show()
-	end
+	end]]--
+	-- 嵌入式施法條：施法結束時顯示名字
+	frame.Name:Show()
+	frame.Status:Show()
 end
 
 -- [[ 狀態更新 ]] --
 
 T.PostCastStopUpdate = function(element, event, unit)
-	-- 用於頭像上的依附型施法條
-	-- 施法過程中切換目標、新生成的名條，按施法結束處理
+	-- 嵌入式施法條：施法過程中切換目標、新生成的名條，按施法結束處理
 	if unit ~= element.unit then return end
+	local standalone = C.StandaloneCastbar
+	if standalone == true then return end
+
 	return T.PostCastStop(element.Castbar, unit)
 end
 
 -- [[ 名條條形施法條：施法目標更新 ]] --
-
+--[[
 T.PostCastUpdate = function(element, unit)
 	T.ResetSpellTarget(element)
 	T.UpdateSpellTarget(element, unit)
 end
-
--- [[ 嵌入施法條：施法失敗 ]] --
+]]--
+-- [[ 施法失敗 ]] --
 
 T.PostCastFailed = function(element, unit)
 	local frame = element:GetParent()
-	if frame.mystyle == "NP" then
-		-- 使數字模式名條的名字復位
-		frame.Name:SetPoint("BOTTOM", 0, 6)
+	local standalone = C.StandaloneCastbar
+
+	if standalone == true then
+		if frame.mystyle == "BP" then
+			-- 條形模式清空施法目標
+			T.ResetSpellTarget(element)
+		end
+		-- 一閃而過的施法失敗紅色條
+		element:SetStatusBarColor(unpack(C.CastFailed))
+		element:SetValue(100)
+		element:Show()
 	else
-		-- 施法結束時顯示名字
+		--[[if frame.mystyle == "NP" then
+			-- 使數字模式名條的名字復位
+			frame.Name:SetPoint("BOTTOM", 0, 6)
+		else
+			-- 施法結束時顯示名字
+			frame.Name:Show()
+			frame.Status:Show()
+		end]]--
+		-- 嵌入式施法條：施法結束時顯示名字
 		frame.Name:Show()
 		frame.Status:Show()
+		-- 一閃而過的施法失敗紅色條
+		element:SetStatusBarColor(.5, .2, .2, .6)
+		element:SetValue(100)
+		element.Spark:SetAlpha(0)
+		-- 不要顯示"被打斷"
+		element.Text:SetText("")
+		element:Show()
 	end
-	
-	-- 一閃而過的施法失敗紅色條
-	element:SetStatusBarColor(.5, .2, .2, .4)
-	element:SetValue(element.max)
-	element.Spark:SetAlpha(0)
-	-- 不要顯示"被打斷"
-	element.Text:SetText("")
-	element:Show()
 end
 
--- [[ 獨立施法條：施法失敗 ]] --
-
-T.PostStandaloneCastFailed = function(element, unit)
-	local frame = element:GetParent()
-	if frame.mystyle == "BP" then
-		-- 條形模式清空施法目標
-		T.ResetSpellTarget(element)
-	end
-	
-	-- 一閃而過的施法失敗紅色條
-	element:SetStatusBarColor(unpack(C.CastFailed))
-	element:SetValue(element.max)
-	element:Show()
-end
-
--- [[ 嵌入施法條：施法過程中打斷狀態更新 ]] --
+-- [[ 施法過程中打斷狀態更新 ]] --
 
 -- 例子：燃燒王座三王小怪
 T.PostUpdateCast = function(element, unit)
-	if not UnitIsUnit(unit, "player") and element.notInterruptible then
-		element:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
-		element.Border:SetBackdropBorderColor(.9, 0, 1)	-- 紫色邊框
-	else
-		element:SetStatusBarColor(.6, .6, .6, .5)
-		element.Border:SetBackdropBorderColor(.6, .6, .6)
-	end
-end
-
--- [[ 獨立施法條：施法過程中打斷狀態更新 ]] --
-
--- 例子：燃燒王座三王小怪
-T.PostUpdateStandaloneCast = function(element, unit)
-	if not UnitIsUnit(unit, "player") and element.notInterruptible then
-		element:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
-	else
-		element:SetStatusBarColor(unpack(C.CastNormal))
-	end
+	-- 打斷狀態更新
+	if not UnitIsUnit(unit, "player")  then T.PostCastStart(element, unit) end
+	-- 被誰打斷
+	
 end
 
 -- [[ 自定格式的施法時間 ]] --
@@ -257,7 +227,7 @@ T.CustomTimeText = function(element, durationObject)
 		if element.delay ~= 0 then
 			delayText = format("|cffff0000%s%.2f|r", element.channeling and '-' or '+', element.delay)
 		end
-		element.Time:SetFormattedText('%.1f%s%.1f', duration, delayText, total)
+		element.Time:SetFormattedText('%.1f%s/%.1f', duration, delayText, total)
 	end
 end
 

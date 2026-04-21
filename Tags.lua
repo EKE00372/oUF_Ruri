@@ -161,14 +161,10 @@ oUF.Tags.Methods["unit:pp"]  = function(unit)
 	local _, type = UnitPowerType(unit)
 	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
 
-	if max == 0 then
-		return ""
+	if type == "MANA" then -- 法力
+		return F.Hex(unpack(color))..F.NumberAbbrValue(cur).."|r"
 	else
-		if type == "MANA" then -- 法力
-			return F.Hex(unpack(color))..F.NumberAbbrValue(cur).."|r"
-		else
-			return F.Hex(unpack(color))..cur.."|r"
-		end
+		return F.Hex(unpack(color))..cur.."|r"
 	end
 end
 oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
