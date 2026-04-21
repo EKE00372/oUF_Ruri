@@ -19,13 +19,13 @@ oUF.colors.health:SetCurve({
 })
 
 -- [[ 職業 ]] --
-
+--[[
 oUF.colors.class["SHAMAN"] = {0, .6, 1}
 oUF.colors.class["MAGE"] = {.48, .84, .94}
 oUF.colors.class["DEATHKNIGHT"] = {1, .23, .23}
 oUF.colors.class["DEMONHUNTER"] = {.74, .35, .95}
 oUF.colors.class["EVOKER"] = {.33, .68, .68}
-
+]]--
 -- [[ 威脅 ]] --
 
 oUF.colors.threat[0] = {.1, .7, .9} -- 非當前仇恨，低威脅值
@@ -115,14 +115,11 @@ oUF.Tags.Events["deadskull"] = "UNIT_HEALTH"
 oUF.Tags.Methods["afkdnd"] = function(unitnit)
 	if not unit then return end
 	
-	if UnitIsAFK(unitnit) then
-		-- 暫離
+	if UnitIsAFK(unitnit) then					-- 暫離
 		return "|T"..FRIENDS_TEXTURE_AFK..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif UnitIsDND(unitnit) then
-		-- 忙錄
+	elseif UnitIsDND(unitnit) then				-- 忙錄
 		return "|T"..FRIENDS_TEXTURE_DND..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif (not UnitIsConnected(unitnit)) then
-		-- 離線
+	elseif (not UnitIsConnected(unitnit)) then	-- 離線
 		return "|T"..FRIENDS_TEXTURE_OFFLINE..":14:14:0:0:16:16:1:15:1:15|t"
 	end
 end
@@ -132,25 +129,21 @@ oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED UNIT_CONNECTION"
 -----------------    [[ Values ]]    -----------------
 --==================================================--
 
--- [[ 血量 ]] --
+-- [[ Unitframes ]] --
 
--- unitframes
+-- health: cur-per
 oUF.Tags.Methods["unit:hp"] = function(unit)
-	local max = F.ShortValue(UnitHealthMax(unit))
-	local cur = F.ShortValue(UnitHealth(unit))
+	local max = F.NumberAbbrValue(UnitHealthMax(unit))
+	local cur = F.NumberAbbrValue(UnitHealth(unit))
 	local per = format("%d", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
 
-	if UnitIsDead(unit) then
-		-- 死亡
-		return "|cff559655RIP|r"	-- or DEAD
-	elseif UnitIsGhost(unit) then
-		-- 鬼魂
+	if UnitIsDead(unit) then				-- 死亡
+		return "|cff559655RIP|r"			-- or DEAD
+	elseif UnitIsGhost(unit) then			-- 鬼魂
 		return "|cff559655GHO|r"
-	elseif not UnitIsConnected(unit) then
-		-- 離線
-		return "|cff559655OFF|r"	-- or PLAYER_OFFLINE
-	else
-		-- 血量
+	elseif not UnitIsConnected(unit) then	-- 離線
+		return "|cff559655OFF|r"			-- or PLAYER_OFFLINE
+	else -- 血量
 		if C.verticalTarget and unit == "target" then
 			return F.Hex(1, 1, 0)..per.."|r "..F.Hex(1, 1, 1)..cur.."|r"
 		else
@@ -158,7 +151,34 @@ oUF.Tags.Methods["unit:hp"] = function(unit)
 		end
 	end
 end
-oUF.Tags.Events["unit:mp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION PLAYER_FLAGS_CHANGED PARTY_MEMBER_ENABLE PARTY_MEMBER_DISABLE"
+oUF.Tags.Events["unit:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION PLAYER_FLAGS_CHANGED PARTY_MEMBER_ENABLE PARTY_MEMBER_DISABLE"
+
+-- power: cur
+oUF.Tags.Methods["unit:pp"]  = function(unit)
+	local cur, max = UnitPower(unit), UnitPowerMax(unit)
+	local _, class = UnitClass(unit)
+	local _, type = UnitPowerType(unit)
+	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
+
+	if max == 0 then
+		return ""
+	else
+		if type == "MANA" then -- 法力
+			return F.Hex(unpack(color))..F.NumberAbbrValue(cur).."|r"
+		else
+			return F.Hex(unpack(color))..cur.."|r"
+		end
+	end
+end
+oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
+
+
+-- [[ Nameplates ]] --
+
+
+
+
+
 
 -- bar style nameplates
 oUF.Tags.Methods["bp:hp"] = function(unit)
@@ -220,25 +240,7 @@ oUF.Tags.Events["np:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 -- [[ 能量 ]] --
 
 -- unitframes
-oUF.Tags.Methods["unit:pp"]  = function(unit)
-	local cur, max = UnitPower(unit), UnitPowerMax(unit)
-	local _, class = UnitClass(unit)
-	local _, type = UnitPowerType(unit)
-	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
 
-	if max == 0 then
-		return ""
-	else
-		if type == "MANA" then
-			-- 魔力
-			return F.Hex(unpack(color))..F.ShortValue(cur).."|r"
-		else
-			-- 其他
-			return F.Hex(unpack(color))..cur.."|r"
-		end
-	end
-end
-oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
 
 -- nameplates
 oUF.Tags.Methods["np:pp"] = function(unitnit)

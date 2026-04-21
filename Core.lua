@@ -15,15 +15,24 @@ local GetTime, format = GetTime, format
 -- 有些仍寫為function(castbar, unit)，例如ouf_mlight、farva等
 -- 將來要統一替換為不混淆的寫法
 
+--===============================-===================--
+-----------------    [[ General ]]    -----------------
+--=====================================-=============--
 
 -- [[ 通用的 multiplier postupdate ]] -- 
 
-T.PostUpdateMultiBGColor = function(element, unit, color)
-	if color and element.bg then
-		local mu = element.bg.multiplier or 1
-		local r, g, b = color:GetRGB()
-		element.bg:SetVertexColor(r * mu, g * mu, b * mu)
+T.PostUpdatemMultiBGColor = function(element, arg1, arg2)
+	if not element.bg then return end
+
+	local r, g, b
+	if arg2 == nil then
+		r, g, b = arg1:GetRGB() -- function(element, color)
+	else
+		r, g, b = arg2:GetRGB() -- function(element, unit, color)
 	end
+
+	local mu = element.bg.multiplier or .3
+	element.bg:SetVertexColor(r * mu, g * mu, b * mu)
 end
 
 --==================================================--
@@ -575,7 +584,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	local style = self.__owner.mystyle
 	local cpColor = {
 		{1, .7, .1},
-		{1, .95, .4},		-- 滿星
+		{1, .95, .4},	-- 滿星
 	}
 	
 	for i = 1, 7 do
@@ -614,6 +623,7 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 		end
 	end
 end
+
 --[[
 T.PostUpdateHolyPower = function(self)
 	local style = self.__owner.mystyle
@@ -652,11 +662,11 @@ T.OnUpdateRunes = function(self, elapsed)
 	end
 end
 
--- [[ 把ouf/rune整段搬過來 ]] --
+-- [[ 把符能整段搬過來 ]] --
 
-T.PostUpdateRunes = function(self, runemap)
+T.PostUpdateRunes = function(element, runemap)
 	for index, runeID in next, runemap do
-		local rune = self[index]
+		local rune = element[index]
 		local start, duration, runeReady = GetRuneCooldown(runeID)
 		if rune:IsShown() then
 			if runeReady then

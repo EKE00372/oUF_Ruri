@@ -3,10 +3,20 @@ local C, F, G, T = unpack(ns)
 
 local tonumber, strmatch, floor, format = tonumber, strmatch, math.floor, format
 --local GetSpecialization, GetSpecializationInfo, IsSpellKnown = GetSpecialization, GetSpecializationInfo, IsSpellKnown
+local SetCVar = C_CVar.SetCVar
+local SecretValueTestMode = true
 
 --======================================================--
 -----------------    [[ Functions ]]    ------------------
 --======================================================--
+
+if SecretValueTestMode then
+	SetCVar("secretChallengeModeRestrictionsForced", 1)
+	SetCVar("secretCombatRestrictionsForced", 1)
+	SetCVar("secretEncounterRestrictionsForced", 1)
+	SetCVar("secretMapRestrictionsForced", 1)
+	SetCVar("secretPvPMatchRestrictionsForced", 1)
+end
 
 -- [[ 多重條件匹配 ]] --
 
@@ -90,14 +100,13 @@ local NumberAbbrConfig = {
     })
 }
 
-F.ShortValue = function(value)
+F.NumberAbbrValue = function(value)
 	-- 將字串轉換為數字
 	value = tonumber(value)
     if not value then return "" end
     return AbbreviateNumbers(value, NumberAbbrConfig)
 end
 
---[[
 F.ShortValue = function(val)
 	-- 讓20k不顯示為20.0k
 	local round = function(val, idp)
@@ -125,7 +134,6 @@ F.ShortValue = function(val)
 		return ("%d"):format(val)
 	end
 end
-]]--
 
 -- [[ 顏色 ]] --
 

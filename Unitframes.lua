@@ -10,9 +10,9 @@ if not C.UnitFrames then return end
 
 -- 框體共享的設定
 local function CreateUnitShared(self, unit)
-	local u = unit:match("[^%d]+") -- boss1 -> boss
 
 	-- [[ 前置作業 ]] --	
+	local u = unit:match("[^%d]+") -- boss1 -> boss
 	self:RegisterForClicks("AnyUp")	-- Make mouse active
 	
 	-- [[ 高亮 ]] --
@@ -22,7 +22,7 @@ local function CreateUnitShared(self, unit)
 	hl:SetTexture(G.media.barhightlight)
 	hl:SetVertexColor(1, 1, 1, .5)
 	hl:SetBlendMode("ADD")
-	
+	-- 高亮方向
 	if self.mystyle == "VL" then
 		hl:SetTexCoord(0, 1, 1, 1, 0, 0, 1, 0)  -- -90度
 	elseif  self.mystyle == "VR" then
@@ -30,10 +30,8 @@ local function CreateUnitShared(self, unit)
 	else
 		hl:SetTexCoord(1, 0, 0, 1)
 	end
-	
+	-- 指向高亮
 	self.Highlight = hl
-	--self.Mouseover = hl
-	
 	self:HookScript("OnEnter", function()
 		UnitFrame_OnEnter(self)
 		self.Highlight:Show()
@@ -54,6 +52,7 @@ local function CreateUnitShared(self, unit)
 	-- 背景
 	local bg = Health:CreateTexture(nil, "BACKGROUND")
     bg:SetTexture(G.media.blank)
+	-- 背景的位置：在反轉血量條中，血條是透明的，背景才是表示血量的實質，其長度依附於血量條本體，隨血量而變化
     if self.mystyle == "VL" or self.mystyle == "VR" then
 		-- 直式血條：由下往上
 		bg:SetPoint("BOTTOMLEFT", Health:GetStatusBarTexture(), "TOPLEFT", 0, 0)
@@ -74,31 +73,30 @@ local function CreateUnitShared(self, unit)
 	
 	-- 創建一個條
 	local Power = F.CreateStatusbar(self, G.addon..unit.."_PowerBar", "ARTWORK", nil, nil, 1, 1, 1, 1)	-- 不透明的
-	-- 直式判定
+	-- 直式判定：橫式與血量條等寬，直式與血量條等高
 	if self.mystyle == "H" then
 		Power:SetHeight(C.PPHeight)
-		Power:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, -C.PPOffset)	-- 與血量條等寬
+		Power:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, -C.PPOffset)
 		Power:SetPoint("TOPRIGHT", self.Health, "BOTTOMRIGHT", 0, -C.PPOffset)
 	else
 		Power:SetWidth(C.PPHeight)
 		Power:SetOrientation("VERTICAL")
-		
+
 		if self.mystyle == "VL" then
-			Power:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset, 0)	-- 與血量條等寬
+			Power:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset, 0)	
 			Power:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -C.PPOffset, 0)
 		elseif  self.mystyle == "VR" then
-			Power:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)		-- 與血量條等寬
+			Power:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)
 			Power:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0)
 		end
 	end
 	-- 若要使其浮於血量條之上，應使其框體層級高於父級框體
 	Power:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
-	--Power.frequentUpdates = true	-- 更新速率
-	Power.colorPower = false		-- 能量類型染色
+	Power.frequentUpdates = true	-- 更新速率
 	Power.colorClass = true			-- 職業染色
 	Power.colorReaction = true		-- 陣營染色
-	Power.colorDisconnected = true
+	Power.colorDisconnected = true	-- 離線染色
 	-- 背景
 	Power.bg = Power:CreateTexture(nil, "BACKGROUND")
 	Power.bg:SetAllPoints()
@@ -108,7 +106,7 @@ local function CreateUnitShared(self, unit)
 	Power.border = F.CreateSD(Power, Power, 4)
 	-- 註冊到ouf
 	self.Power = Power
-	self.Power.PostUpdateColor = T.PostUpdateMultiBGColor	-- 背景顏色
+	self.Power.PostUpdateColor = T.PostUpdatemMultiBGColor	-- 背景顏色
 
 	-- [[ 圖示 ]] --
 	
@@ -156,15 +154,13 @@ local function CreateUnitShared(self, unit)
 	self:Tag(self.Health.value, "[unit:hp]")
 	-- 能量
 	self.Power.value = F.CreateText(StringParent, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "RIGHT")
-	self:Tag(self.Power.value, "[unit:pp]") --不用這個，用postupdate
+	self:Tag(self.Power.value, "[unit:pp]")
 	-- 名字
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	self:Tag(self.Name, "[namecolor][name]")
 	-- 狀態：暫離/忙錄/等級
 	self.Status = F.CreateText(self.Health, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	self:Tag(self.Status, "[afkdnd][difficulty][smartlevel][quest] ")
-
-
 end
 
 -- 玩家橫式 / Player
@@ -188,7 +184,7 @@ local function CreatePlayerStyle(self, unit)
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	--T.CreateAddPower(self, unit)
-	--T.CreateStagger(self, unit)
+	T.CreateStagger(self, unit)
 	--if C.TankResource then T.CreateTankResource(self, unit) end
 	--if C.Totems then T.CreateTotemBar(self) end
 
