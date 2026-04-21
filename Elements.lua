@@ -57,7 +57,7 @@ T.CreateCastbar = function(self, unit)
 	-- 註冊到ouf
 	self.Castbar = Castbar
 	self.Castbar.PostCastStart = T.PostCastStart			-- 開始施法
-	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
+	self.Castbar.PostCastStop = T.PostCastStop			-- 施法結束
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
 	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
 	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
@@ -156,7 +156,7 @@ T.CreateDebuffs = function(self, button)
 	self.Debuffs = Debuffs
 	self.Debuffs.PostCreateButton = T.PostCreateIcon
 	self.Debuffs.PostUpdateButton = T.PostUpdateIcon
-	self.Debuffs.FilterAura = T.CustomFilter
+	--self.Debuffs.FilterAura = T.CustomFilter
 end
 
 -- [[ 增益 ]] --
@@ -273,13 +273,13 @@ T.CreateClassPower = function(self, unit)
 		ClassPower[i] = F.CreateStatusbar(self, G.addon..unit.."_ClassPowerBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 4)
 		ClassPower[i]:SetFrameLevel(self:GetFrameLevel() + 2)
+		-- 背景
 		ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
 		ClassPower[i].bg:SetAllPoints()
 		ClassPower[i].bg:SetTexture(G.media.blank)
 		ClassPower[i].bg.multiplier = .3
-
+		-- 直式判斷：定位每個豆子
 		if self.mystyle == "VL" then
-			-- 單獨的每個豆子
 			ClassPower[i]:SetOrientation("VERTICAL")
 			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint)
 			
@@ -326,15 +326,13 @@ T.CreateClassPower = function(self, unit)
 		ClassPower.sortOrder = "asc"
 		self.Runes = ClassPower
 		self.Runes.PostUpdate = T.PostUpdateRunes
-		self.Runes.PostUpdateColor = T.PostUpdatemMultiBGColor
 	elseif isEVOKER then
 		self.Essence = ClassPower
-		self.Essence.color   = {0.02, 0.9, 0.9}
+		self.Essence.color = {0.02, 0.9, 0.9}
 		self.updateInterval = .1
 	else
 		self.ClassPower = ClassPower
-		--self.ClassPower.PostUpdate = T.PostUpdateClassPower
-		self.ClassPower.PostUpdateColor = T.PostUpdatemMultiBGColor
+		self.ClassPower.PostUpdate = T.PostUpdateClassPower
 	end
 end
 

@@ -14,8 +14,7 @@ local GetAuraDuration = C_UnitAuras.GetAuraDuration
 local issecretvalue = issecretvalue
 
 local MIN_SPELL_COUNT, MAX_SPELL_COUNT = 2, 999
-local FALLBACK_DEBUFFCOLOR = {r=38, g=0, b=0}
-local TexCoord = {0.08, 0.92, 0.08, 0.92}
+local FALLBACK_DEBUFFCOLOR = {r=1, g=0, b=0}
 
 --==========================================--
 --------------- [[ Function ]] ---------------
@@ -328,7 +327,7 @@ function GlowAura_CreateIcon(button)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetPoint("TOPLEFT", 1, -1)
     button.icon:SetPoint("BOTTOMRIGHT", -1, 1)
-    button.icon:SetTexCoord(unpack(TexCoord))
+    button.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
     button.count = button:CreateFontString(nil, "ARTWORK")
     button.count:SetPoint("BOTTOMRIGHT", 1, -5)

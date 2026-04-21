@@ -31,8 +31,10 @@ T.PostUpdatemMultiBGColor = function(element, arg1, arg2)
 		r, g, b = arg2:GetRGB() -- function(element, unit, color)
 	end
 
-	local mu = element.bg.multiplier or .3
-	element.bg:SetVertexColor(r * mu, g * mu, b * mu)
+	if element.bg then
+		local mu = element.bg.multiplier or 0.3
+		element.bg:SetVertexColor(r * mu, g * mu, b * mu)
+	end
 end
 
 --==================================================--
@@ -51,7 +53,7 @@ T.PostUpdateHealth = function(element, unit)
 	local disconnected = not UnitIsConnected(unit)
 	local isGhost = UnitIsGhost(unit)
 	if disconnected or isGhost then
-		self.bg:SetVertexColor(0.3, 0.3, 0.3)
+		element.bg:SetVertexColor(0.3, 0.3, 0.3)
 	else
 		local color = UnitHealthPercent(unit, true, bgCurve)
 		element.bg:SetVertexColor(color:GetRGB())
@@ -60,12 +62,12 @@ end
 
 -- [[ 戰鬥狀態隱藏休息指示器 ]] --
 
-T.CombatPostUpdate = function(self, inCombat)
+T.CombatPostUpdate = function(element, inCombat)
 	local rest = IsResting() 
 	if inCombat then
-		self.__owner.RestingIndicator:Hide()
+		element.__owner.RestingIndicator:Hide()
 	elseif rest then
-		self.__owner.RestingIndicator:Show()
+		element.__owner.RestingIndicator:Show()
 	end
 end
 
@@ -75,9 +77,9 @@ end
 
 -- [[ 更新施法目標 ]] --
 
-T.UpdateSpellTarget = function(self, unit)
+T.UpdateSpellTarget = function(element, unit)
 	if not unit then return end
-	if (F.GetNPCID(UnitGUID(unit)) ~= C.UnitSpellTarget[self.npcID]) then return end
+	if (F.GetNPCID(UnitGUID(unit)) ~= C.UnitSpellTarget[element.npcID]) then return end
 	
 	local unitTarget = unit.."target"
 	if UnitExists(unitTarget) then
@@ -88,79 +90,79 @@ T.UpdateSpellTarget = function(self, unit)
 			local class = select(2, UnitClass(unitTarget))
 			nameString = F.Hex(oUF.colors.class[class])..UnitName(unitTarget)
 		end
-		self.Text:SetText(nameString)
+		element.Text:SetText(nameString)
 	end
 end
 
 -- [[ 重置施法目標 ]] --
 
-T.ResetSpellTarget = function(self)
-	if self.Text then
-		self.Text:SetText("")
+T.ResetSpellTarget = function(element)
+	if element.Text then
+		element.Text:SetText("")
 	end
 end
 
 -- [[ 獨立施法條：開始施法 ]] --
 
-T.PostStandaloneCastStart = function(self, unit)
-	local frame = self:GetParent()
+T.PostStandaloneCastStart = function(element, unit)
+	local frame = element:GetParent()
 
 	if frame.mystyle == "NP" then
 		-- 數字模式名條名字上移
 		frame.Name:SetPoint("BOTTOM", 0, 6+G.NPNameFS)
 	elseif frame.mystyle == "BP" then
 		-- 條形模式施法目標
-		T.UpdateSpellTarget(self, unit)
+		T.UpdateSpellTarget(element, unit)
 	else
-		self.Spark:SetAlpha(.5)
+		element.Spark:SetAlpha(.5)
 	end
 
 	if unit == "player" then
-		self:SetStatusBarColor(unpack(C.CastNormal))
+		element:SetStatusBarColor(unpack(C.CastNormal))
 	else
-		if self.notInterruptible then
-			self:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
+		if element.notInterruptible then
+			element:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
 		else
-			self:SetStatusBarColor(unpack(C.CastNormal))
+			element:SetStatusBarColor(unpack(C.CastNormal))
 		end
 	end
 end
 
 -- [[ 嵌入施法條：開始施法 ]] --
 
-T.PostCastStart = function(self, unit)
+T.PostCastStart = function(element, unit)
 	-- 進度高亮
-	self.Spark:SetAlpha(.8)
+	element.Spark:SetAlpha(.8)
 	
 	-- 施法開始時隱藏名字
-	self:GetParent().Name:Hide()
-	self:GetParent().Status:Hide()
+	element:GetParent().Name:Hide()
+	element:GetParent().Status:Hide()
 	
 	-- 打斷染色
 	if unit == "player" then
-		self:SetStatusBarColor(.6, .6, .6, .5)
-		self.Border:SetBackdropBorderColor(.6, .6, .6)
+		element:SetStatusBarColor(.6, .6, .6, .5)
+		element.Border:SetBackdropBorderColor(.6, .6, .6)
 	else
-		if self.notInterruptible then
-			self:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
-			self.Border:SetBackdropBorderColor(.9, 0, 1)	-- 紫色邊框
+		if element.notInterruptible then
+			element:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
+			element.Border:SetBackdropBorderColor(.9, 0, 1)	-- 紫色邊框
 		else
-			self:SetStatusBarColor(.6, .6, .6, .5)
-			self.Border:SetBackdropBorderColor(.6, .6, .6)
+			element:SetStatusBarColor(.6, .6, .6, .5)
+			element.Border:SetBackdropBorderColor(.6, .6, .6)
 		end
 	end
 end
 
 -- [[ 施法條：停止施法 ]] --
 
-T.PostCastStop = function(self, unit)
-	local frame = self:GetParent()
+T.PostCastStop = function(element, unit)
+	local frame = element:GetParent()
 	if frame.mystyle == "NP" then
 		-- 使數字模式名條的名字復位
 		frame.Name:SetPoint("BOTTOM", 0, 6)
 	elseif frame.mystyle == "BP" then
 		-- 清空施法目標
-		T.ResetSpellTarget(self)
+		T.ResetSpellTarget(element)
 	else
 		-- 施法結束時顯示名字
 		frame.Name:Show()
@@ -170,24 +172,24 @@ end
 
 -- [[ 狀態更新 ]] --
 
-T.PostCastStopUpdate = function(self, event, unit)
+T.PostCastStopUpdate = function(element, event, unit)
 	-- 用於頭像上的依附型施法條
 	-- 施法過程中切換目標、新生成的名條，按施法結束處理
-	if unit ~= self.unit then return end
-	return T.PostCastStop(self.Castbar, unit)
+	if unit ~= element.unit then return end
+	return T.PostCastStop(element.Castbar, unit)
 end
 
 -- [[ 名條條形施法條：施法目標更新 ]] --
 
-T.PostCastUpdate = function(self, unit)
-	T.ResetSpellTarget(self)
-	T.UpdateSpellTarget(self, unit)
+T.PostCastUpdate = function(element, unit)
+	T.ResetSpellTarget(element)
+	T.UpdateSpellTarget(element, unit)
 end
 
 -- [[ 嵌入施法條：施法失敗 ]] --
 
-T.PostCastFailed = function(self, unit)
-	local frame = self:GetParent()
+T.PostCastFailed = function(element, unit)
+	local frame = element:GetParent()
 	if frame.mystyle == "NP" then
 		-- 使數字模式名條的名字復位
 		frame.Name:SetPoint("BOTTOM", 0, 6)
@@ -198,68 +200,64 @@ T.PostCastFailed = function(self, unit)
 	end
 	
 	-- 一閃而過的施法失敗紅色條
-	self:SetStatusBarColor(.5, .2, .2, .4)
-	self:SetValue(self.max)
-	self.Spark:SetAlpha(0)
+	element:SetStatusBarColor(.5, .2, .2, .4)
+	element:SetValue(element.max)
+	element.Spark:SetAlpha(0)
 	-- 不要顯示"被打斷"
-	self.Text:SetText("")
-	self:Show()
+	element.Text:SetText("")
+	element:Show()
 end
 
 -- [[ 獨立施法條：施法失敗 ]] --
 
-T.PostStandaloneCastFailed = function(self, unit)
-	local frame = self:GetParent()
+T.PostStandaloneCastFailed = function(element, unit)
+	local frame = element:GetParent()
 	if frame.mystyle == "BP" then
 		-- 條形模式清空施法目標
-		T.ResetSpellTarget(self)
+		T.ResetSpellTarget(element)
 	end
 	
 	-- 一閃而過的施法失敗紅色條
-	self:SetStatusBarColor(unpack(C.CastFailed))
-	self:SetValue(self.max)
-	self:Show()
+	element:SetStatusBarColor(unpack(C.CastFailed))
+	element:SetValue(element.max)
+	element:Show()
 end
 
 -- [[ 嵌入施法條：施法過程中打斷狀態更新 ]] --
 
 -- 例子：燃燒王座三王小怪
-T.PostUpdateCast = function(self, unit)
-	if not UnitIsUnit(unit, "player") and self.notInterruptible then
-		self:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
-		self.Border:SetBackdropBorderColor(.9, 0, 1)	-- 紫色邊框
+T.PostUpdateCast = function(element, unit)
+	if not UnitIsUnit(unit, "player") and element.notInterruptible then
+		element:SetStatusBarColor(.54, 0, .6, .5)			-- 淡紫色條
+		element.Border:SetBackdropBorderColor(.9, 0, 1)	-- 紫色邊框
 	else
-		self:SetStatusBarColor(.6, .6, .6, .5)
-		self.Border:SetBackdropBorderColor(.6, .6, .6)
+		element:SetStatusBarColor(.6, .6, .6, .5)
+		element.Border:SetBackdropBorderColor(.6, .6, .6)
 	end
 end
 
 -- [[ 獨立施法條：施法過程中打斷狀態更新 ]] --
 
 -- 例子：燃燒王座三王小怪
-T.PostUpdateStandaloneCast = function(self, unit)
-	if not UnitIsUnit(unit, "player") and self.notInterruptible then
-		self:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
+T.PostUpdateStandaloneCast = function(element, unit)
+	if not UnitIsUnit(unit, "player") and element.notInterruptible then
+		element:SetStatusBarColor(unpack(C.CastShield))	-- 紫色條
 	else
-		self:SetStatusBarColor(unpack(C.CastNormal))
+		element:SetStatusBarColor(unpack(C.CastNormal))
 	end
 end
 
 -- [[ 自定格式的施法時間 ]] --
 
-T.CustomTimeText = function(self, duration)
-	if self.__owner.unit == "player" and self.delay ~= 0 then
-		if self.casting then
-			self.Time:SetFormattedText("%.1f/%.1f |cffff0000+%.1f|r", duration, self.max, self.delay)
-		elseif self.channeling then
-			self.Time:SetFormattedText("%.1f/%.1f |cffff0000+%.1f|r", self.max - duration, self.max, self.delay)
+T.CustomTimeText = function(element, durationObject)
+	if durationObject then
+		local duration = durationObject:GetRemainingDuration()
+		local total = durationObject:GetTotalDuration()
+		local delayText = ""
+		if element.delay ~= 0 then
+			delayText = format("|cffff0000%s%.2f|r", element.channeling and '-' or '+', element.delay)
 		end
-	else
-		if self.casting then
-			self.Time:SetFormattedText("%.1f/%.1f", duration, self.max)
-		elseif self.channeling then
-			self.Time:SetFormattedText("%.1f/%.1f", self.max - duration, self.max)
-		end
+		element.Time:SetFormattedText('%.1f%s%.1f', duration, delayText, total)
 	end
 end
 
@@ -268,7 +266,7 @@ end
 --===================================================--
 
 -- [[ 顯示光環時間 ]] --
-
+--[[
 T.CreateAuraTimer = function(self, elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed
 	
@@ -283,9 +281,9 @@ T.CreateAuraTimer = function(self, elapsed)
 	self.elapsed = 0
 	end
 end
-
+]]--
 -- [[ 顯示團隊框架光環時間 ]] --
-
+--[[
 T.CreateRaidAuraTimer = function(self, elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed
 	
@@ -301,10 +299,10 @@ T.CreateRaidAuraTimer = function(self, elapsed)
 	self.elapsed = 0
 	end
 end
-
+]]--
 -- [[ 獲得光環時創建光環 ]] --
 
-T.PostCreateIcon = function(self, button)
+T.PostCreateIcon = function(element, button)
 	-- 切邊
 	button.Icon:SetTexCoord(.08, .92, .08, .92)
 	-- 邊框
@@ -328,58 +326,49 @@ end
 
 -- [[ 更新光環 ]] --
 
-T.PostUpdateIcon = function(self, button, unit, data)
-	if not unit then return end
-	local style = self.__owner.mystyle
-	local color = oUF.colors.debuff[data.dispelName] or oUF.colors.debuff.none
+T.PostUpdateIcon = function(element, button, unit, data)
+	local style = element.__owner.mystyle
+	local color = C_UnitAuras.GetAuraDispelTypeColor(unit, data.auraInstanceID, element.dispelColorCurve)
+	local duration = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
+
+	-- 顯示陰影
+	if data.duration then button.shadow:Show() end
 	
-	-- 更新陰影
-	if data.duration then
-		button.shadow:Show()
-	end
-	
-	-- 更新overlay
+	-- 邊框顏色
 	if style == "NPP" or style == "BPP" then
 		-- 玩家名條固定灰色
 		button.Overlay:SetVertexColor(.6, .6, .6)
 	elseif F.IsAny(style, "NP", "BP") then
 		-- 名條上的光環一率按類型染色
-		button.Overlay:SetVertexColor(color[1], color[2], color[3])
+		button.Overlay:SetVertexColor(0, 0, 0)
+		button.shadow:SetBackdropBorderColor(color.r, color.g, color.b)
 	else
-		if data.icon then
-			-- 只在有圖示的時候才顯示overlay，並顯示debuff type
-			-- 避免啟用gap時，間隔buff和debuff的占位空aura icon出現陰影
-			button.Overlay:Show()
-			-- 頭像上減益效果按類型染色，增益效果固定灰色
-			if data.isHarmful then
-				button.Overlay:SetVertexColor(color[1], color[2], color[3])
-			else
-				button.Overlay:SetVertexColor(.6, .6, .6)
-			end
+		-- 只在有圖示的時候才顯示overlay，並顯示debuff type
+		-- 避免啟用gap時，間隔buff和debuff的占位空aura icon出現陰影
+		button.Overlay:Show()
+		-- 頭像上減益效果按類型染色，增益效果固定灰色
+		if data.isHarmfulAura and element.showDebuffType then
+			button.Overlay:SetVertexColor(0, 0, 0)
+			button.shadow:SetBackdropBorderColor(color.r, color.g, color.b)
 		else
-			button.Overlay:Hide()
+			button.shadow:SetBackdropBorderColor(.6, .6, .6)
 		end
 	end
 	
 	-- 更新時間
-	if data.duration and data.duration > 0 then
+	--[[if data.duration and data.duration > 0 then
 		button.timeLeft = data.expirationTime
 		button:SetScript("OnUpdate", (style == "R" and T.CreateRaidAuraTimer) or T.CreateAuraTimer)
 		button.Cooldown:Show()
 	else
 		button:SetScript("OnUpdate", nil)
 		button.Cooldown:Hide()
-	end
-	
-	-- 更新激勵層數
-	if self.bolsterInstanceID and self.bolsterInstanceID == button.auraInstanceID then
-		button.Count:SetText(self.bolsterStacks)
-	end
+	end]]--
 end
 
 --[[ 隱藏gap的文字和陰影 ]] --
 
-T.PostUpdateGapIcon = function(self, unit, gapButton)
+T.PostUpdateGapIcon = function(element, _, gapButton)
 	-- gap是人為製造、用來隔開buff和debuff的隱藏圖示
 	-- 其繼承debuff的持續時間，所以一併隱藏
 	if gapButton.shadow and gapButton.shadow:IsShown() then
@@ -393,30 +382,29 @@ end
 
 -- [[ 視不同專精的副資源存在與否，調整玩家頭像旁減益光環的位置 ]] --
 
-T.PostUpdatePlayerDebuffs = function(self, unit)
+T.PostUpdatePlayerDebuffs = function(element, unit)
 	if not unit and UnitIsUnit(unit, "player") then return end
 	
-	local style = self.__owner.mystyle
+	local style = element.__owner.mystyle
 	local spec = F.SpecCheck()
 	
-	if spec == 1 then
-		-- 雙資源專精：
+	if spec == 1 then	-- 雙資源專精
 		if style == "VL" then
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPHeight + C.PPOffset*2, 1)
+			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "BOTTOMRIGHT", C.PPHeight + C.PPOffset*2, 1)
 		else
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight + C.PPOffset*2)
+			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "TOPLEFT", 1, C.PPHeight + C.PPOffset*2)
 		end
 	elseif spec == 2 then
 		if style == "VL" then
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPHeight*2 + C.PPOffset*3, 1)
+			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "BOTTOMRIGHT", C.PPHeight*2 + C.PPOffset*3, 1)
 		else
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPHeight*2 + C.PPOffset*3)
+			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "TOPLEFT", 1, C.PPHeight*2 + C.PPOffset*3)
 		end
 	else
 		if style == "VL" then
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "BOTTOMRIGHT", C.PPOffset, 1)
+			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "BOTTOMRIGHT", C.PPOffset, 1)
 		else
-			self:SetPoint("BOTTOMLEFT", self.__owner.Health, "TOPLEFT", 1, C.PPOffset)
+			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "TOPLEFT", 1, C.PPOffset)
 		end
 	end
 end
@@ -492,6 +480,7 @@ end
 ]]--
 
 -- 光環過濾
+--[[
 T.CustomFilter = function(self, unit, data)
 	if not unit then return end
 	local style = self.__owner.mystyle
@@ -553,35 +542,35 @@ T.CustomFilter = function(self, unit, data)
 		return true
 	end
 end
-
+]]--
 --=================================================--
 -----------------    [[ Power ]]    -----------------
 --=================================================--
 
 -- [[ 特殊能量文本 ]] --
 
-T.PostUpdateAltPower = function(self, unit, cur)
-	self.value:SetText(cur)
+T.PostUpdateAltPower = function(element, unit, cur)
+	element.value:SetText(cur)
 end
 
 -- [[ 酒池文本 ]] --
 
-T.PostUpdateStagger = function(self, cur, max)
+T.PostUpdateStagger = function(element, cur, max)
 	local perc = cur / max
 	
 	if cur == 0 then
-		self.value:SetText("")
+		element.value:SetText("")
 	else
-		self.value:SetText(F.ShortValue(cur) .. " |cff70C0F5" .. F.ShortValue(perc * 100) .. "|r")
+		element.value:SetText(F.ShortValue(cur) .. " |cff70C0F5" .. F.ShortValue(perc * 100) .. "|r")
 	end
 end
 
 -- [[ 連擊點的天賦更新 ]] --
 
-T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
+T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
 	if not max or not cur then return end
 	
-	local style = self.__owner.mystyle
+	local style = element.__owner.mystyle
 	local cpColor = {
 		{1, .7, .1},
 		{1, .95, .4},	-- 滿星
@@ -590,36 +579,42 @@ T.PostUpdateClassPower = function(self, cur, max, MaxChanged, powerType)
 	for i = 1, 7 do
 		if MaxChanged then
 			if style == "VL" then
-				self[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
+				element[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
 			elseif style == "NPP" or style == "BPP" then
-				self[i]:SetWidth((C.PlayerNPWidth - (max-1) * C.PPOffset) / max)
+				element[i]:SetWidth((C.PlayerNPWidth - (max-1) * C.PPOffset) / max)
 			else
-				self[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
+				element[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
 			end
 		end
-		
+		--[[ -- 坦克資源和神聖能量
 		if i == 1 and powerType == "HOLY_POWER" then
 			if C.TankResource and IsSpellKnown(432459) then
 				if style == "VL" then
-					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
 				elseif style == "H" then
-					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
 				end
 			else
 				if style == "VL" then
-					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "BOTTOMRIGHT", C.PPOffset, 0)
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "BOTTOMRIGHT", C.PPOffset, 0)
 				elseif style == "H" then
-					self[i]:SetPoint("BOTTOMLEFT", self.__owner, "TOPLEFT", 0, C.PPOffset)
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "TOPLEFT", 0, C.PPOffset)
 				end
 			end
-		end
-
+		end]]--
+		-- 連擊點滿星變色
 		if powerType == "COMBO_POINTS" then
 			if max > 0 and cur == max then
-				self[i]:SetStatusBarColor(unpack(cpColor[2]))
+				element[i]:SetStatusBarColor(unpack(cpColor[2]))
 			else
-				self[i]:SetStatusBarColor(unpack(cpColor[1]))
+				element[i]:SetStatusBarColor(unpack(cpColor[1]))
 			end
+		end
+		-- 背景
+		if element[i].bg then
+			local mu = element[i].bg.multiplier or 0.3
+			local r, g, b = element[i]:GetStatusBarColor()
+			element[i].bg:SetVertexColor(r * mu, g * mu, b * mu)
 		end
 	end
 end
@@ -645,27 +640,28 @@ T.PostUpdateHolyPower = function(self)
 end
 ]]--
 
--- [[ 符能 ]] --
+-- [[ 符文 ]] --
 
-T.OnUpdateRunes = function(self, elapsed)
-	local duration = self.duration + elapsed
-	self.duration = duration
-	self:SetValue(duration)
+T.OnUpdateRunes = function(element, elapsed)
+	local duration = element.duration + elapsed
+	element.duration = duration
+	element:SetValue(duration)
 
-	if self.timer then
-		local remain = self.runeDuration - duration
+	if element.timer then
+		local remain = element.runeDuration - duration
 		if remain > 0 then
-			self.timer:SetText(F.FormatTime(remain))
+			element.timer:SetText(F.FormatTime(remain))
 		else
-			self.timer:SetText(nil)
+			element.timer:SetText(nil)
 		end
 	end
 end
 
--- [[ 把符能整段搬過來 ]] --
+-- [[ 符文更新 ]] --
 
 T.PostUpdateRunes = function(element, runemap)
 	for index, runeID in next, runemap do
+		-- 把符文整段搬過來
 		local rune = element[index]
 		local start, duration, runeReady = GetRuneCooldown(runeID)
 		if rune:IsShown() then
@@ -679,11 +675,17 @@ T.PostUpdateRunes = function(element, runemap)
 				rune:SetScript("OnUpdate", T.OnUpdateRunes)
 			end
 		end
+		-- 背景
+		if element[index].bg then
+			local mu = element[index].bg.multiplier or 0.3
+			local r, g, b = element[index]:GetStatusBarColor()
+			element[index].bg:SetVertexColor(r * mu, g * mu, b * mu)
+		end
 	end
 end
 
 -- [[ 更新預估治療 ]] --
-
+--[[
 T.PostUpdateHealthPrediction = function(self, unit, myIncomingHeal, otherIncomingHeal, absorb, healAbsorb, hasOverAbsorb, hasOverHealAbsorb)
 	local health = self.__owner.Health
 	local style = self.__owner.mystyle
@@ -725,3 +727,4 @@ T.PostUpdateHealthPrediction = function(self, unit, myIncomingHeal, otherIncomin
 		end
 	end
 end
+]]--
