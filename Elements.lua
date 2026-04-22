@@ -70,7 +70,7 @@ T.CreateStandaloneCastbar = function(self, unit)
 	-- 創建一個條
 	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, .6, .6, .6, 1)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)	
-	
+
 	-- 背景與邊框
 	Castbar.BarBG = F.CreateBD(Castbar, Castbar, 1, .15, .15, .15, .6)
 	-- 陰影
@@ -147,7 +147,7 @@ T.CreateDebuffs = function(self, button)
 	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
 	
 	-- 選項
-	Debuffs.disableCooldown = true
+	--Debuffs.disableCooldown = true
 	Debuffs.showDebuffType = true
 	-- 註冊到ouf
 	self.Debuffs = Debuffs
@@ -231,7 +231,7 @@ T.CreateAuras = function(self, button)
 	end
 	
 	-- 選項
-	Auras.disableCooldown = true
+	--Auras.disableCooldown = true
 	Auras.showDebuffType = true
 	-- 註冊到ouf
 	self.Auras = Auras
@@ -243,8 +243,7 @@ T.CreateAuras = function(self, button)
 		self.Auras.PostUpdateGapButton = T.PostUpdateGapIcon	-- 間隔圖示
 	end
 	
-	self.Auras.FilterAura = T.CustomFilter					-- 光環過濾	
-	--self.Auras.PostUpdateInfo = T.BolsterPostUpdateInfo		-- 激勵
+	--self.Auras.FilterAura = T.CustomFilter					-- 光環過濾	
 end
 
 --===================================================--
