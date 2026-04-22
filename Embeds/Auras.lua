@@ -360,7 +360,7 @@ function GlowAura_CreateIcon(button)
     end
 
     button.border = F.CreateBD(button, button, 1, .1, .1, .1, 1)
-    button.shadow = F.CreateSD(button, button, 3)
+    button.shadow = F.CreateSD(button, button, 4)
 
     button:SetScript("OnAttributeChanged", OnAttributeChanged)
     button:SetScript("OnEnter", Button_OnEnter)

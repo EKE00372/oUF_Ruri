@@ -35,7 +35,7 @@ oUF.colors.threat[3] = oUF:CreateColor(.9, .1, .4) -- 當前仇恨，威脅值�
 
 -- [[ 光環 ]] --
 
-oUF.colors.dispel[oUF.Enum.DispelType.None] = oUF:CreateColor(1, 0, 0)
+oUF.colors.dispel[oUF.Enum.DispelType.None] = oUF:CreateColor(.9, .05, .05)
 
 -- [[ 能量 ]] --
 

@@ -213,7 +213,7 @@ local function CreatePlayerStyle(self, unit)
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs:SetSize(C.PWidth, C.buSize + 4)
 		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
-		--self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
+		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 	end
 	
 	-- 圖示和標記
@@ -337,7 +337,7 @@ local function CreateTargetStyle(self, unit)
 	end
 	
 	-- 光環
-	--T.CreateAuras(self)
+	T.CreateAuras(self)
 	
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)

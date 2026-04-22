@@ -281,17 +281,31 @@ T.PostCreateIcon = function(element, button)
 	button.Overlay:SetPoint("TOPLEFT", button.Icon, "TOPLEFT", -1, 1)
 	button.Overlay:SetPoint("BOTTOMRIGHT", button.Icon, "BOTTOMRIGHT", 1, -1)
 	button.Overlay:SetTexCoord(0, 1, 0, 1)
-	-- 時間
-	button.Cooldown = F.CreateText(button, "OVERLAY", G.NFont, G.NumberFS, G.FontFlag, "LEFT")
-	button.Cooldown:ClearAllPoints()
-	button.Cooldown:SetPoint("TOP", button, 0, 4)
+	button.Overlay:SetVertexColor(.3, .3, .3)
+	-- 陰影
+	button.shadow = F.CreateSD(button, button, 4) 	-- 不能錨在 button.Overlay 上所以陰影要大1px
+	button.shadow:SetBackdropBorderColor(0, 0, 0)
+
+	-- 冷卻計時
+	local cd = CreateFrame("Cooldown", "$parentCooldown", button, "CooldownFrameTemplate")
+	cd:SetAllPoints()
+	cd:SetDrawSwipe(false)
+    cd:SetDrawEdge(false)
+	cd:SetReverse(true)
+	cd:SetDrawBling(false)
+	cd:SetHideCountdownNumbers(false)
+	-- 冷卻計時文字
+	local cdText = cd:GetRegions()
+	cdText:SetFont(G.NFont, G.NumberFS, G.FontFlag)
+	cdText:ClearAllPoints()
+	cdText:SetPoint("TOP", button, 0, 3)
+	button.Cooldown = cd
+
 	-- 層數
 	button.Count = F.CreateText(button, "OVERLAY", G.NFont, G.NumberFS, G.FontFlag, "RIGHT")
 	button.Count:ClearAllPoints()
 	button.Count:SetPoint("BOTTOMRIGHT", button, 0, -2)
 	button.Count:SetTextColor(.9, .9, .1)
-	-- 陰影
-	button.shadow = F.CreateSD(button, button.Overlay, 3)
 end
 
 -- [[ 更新光環 ]] --
@@ -302,26 +316,17 @@ T.PostUpdateIcon = function(element, button, unit, data)
 	local duration = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
 
 	-- 顯示陰影
-	if data.duration then button.shadow:Show() end
-	
+	if data.duration then button.Overlay:Show() button.shadow:Show() end
+
 	-- 邊框顏色
-	if style == "NPP" or style == "BPP" then
-		-- 玩家名條固定灰色
-		button.Overlay:SetVertexColor(.6, .6, .6)
-	elseif F.IsAny(style, "NP", "BP") then
-		-- 名條上的光環一率按類型染色
-		button.Overlay:SetVertexColor(0, 0, 0)
+	if F.IsAny(style, "NP", "BP") then
+		-- Nameplates 的光環一律按類型染色
 		button.shadow:SetBackdropBorderColor(color.r, color.g, color.b)
 	else
-		-- 只在有圖示的時候才顯示overlay，並顯示debuff type
-		-- 避免啟用gap時，間隔buff和debuff的占位空aura icon出現陰影
-		button.Overlay:Show()
-		-- 頭像上減益效果按類型染色，增益效果固定灰色
+		-- Unitframes 的減益效果按類型染色
 		if data.isHarmfulAura and element.showDebuffType then
 			button.Overlay:SetVertexColor(0, 0, 0)
 			button.shadow:SetBackdropBorderColor(color.r, color.g, color.b)
-		else
-			button.shadow:SetBackdropBorderColor(.6, .6, .6)
 		end
 	end
 	
