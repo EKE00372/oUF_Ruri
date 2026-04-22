@@ -75,15 +75,14 @@ local function SpecUpdate()
 		-- 單資源專精
 		SpecBoolean = 3
 	end
+	print(SpecBoolean)
 end
 
 -- PEW和切專精時獲取當前值
 local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	frame:SetScript("OnEvent", function(self, event, ...)
-		SpecUpdate()
-	end)
+	frame:SetScript("OnEvent", SpecUpdate)
 
 --===================================================--
 -----------------    [[ Format ]]    ------------------
