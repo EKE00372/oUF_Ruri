@@ -2,253 +2,197 @@ local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
+local UnitGetIncomingHeals, UnitGetTotalAbsorbs, UnitClass, UnitAffectingCombat = UnitGetIncomingHeals, UnitGetTotalAbsorbs, UnitClass, UnitAffectingCombat
+local UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown = UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown
+local UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer = UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer
+local GetTime, format = GetTime, format
 local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
 
--- elements: create elements
+-- 在 CreateCastbar 等創建元素的的 function 裡，self.Castbar 中的 self 指的是頭像本身
+-- 而在施法條、光環、副資源等元素的 PostUpdate 中，self 指的是 self.Castbar，即施法條元素自身
+-- 為了防止搞混，PostUpdate 寫為 function(element, unit)
+
 
 --===================================================--
------------------    [[ Castbar ]]    -----------------
+-----------------    [[ General ]]    -----------------
 --===================================================--
 
--- [[ 嵌入施法條 ]] --
+-- [[ 通用的 multiplier postupdate ]] -- 
 
-T.CreateCastbar = function(self, unit)
-	-- 創建一個條
-	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, 0, 0, 0, 0)
-	Castbar:SetAllPoints(self.Health)
-	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)
+T.PostUpdatemMultiBGColor = function(element, arg1, arg2)
+	if not element.bg then return end
 
-	-- 圖示
-	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY", nil, 1)
-	Castbar.Icon:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
-	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
-	-- 邊框
-	Castbar.Border = F.CreateBD(Castbar, Castbar.Icon, 1, 0, 0, 0, 1)
-	-- 陰影
-	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Border, 4)
-	-- 文本
-	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	-- 隊列
-	--Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
-	--Castbar.SafeZone:SetAlpha(.6)
-	-- 進度高亮
-	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
-	Castbar.Spark:SetTexture(G.media.spark)
-	Castbar.Spark:SetBlendMode("ADD")
-	Castbar.Spark:SetVertexColor(1, 1, .85, .8)
-	Castbar.Spark:SetAlpha(.8)
-	-- 橫豎的spark不一樣
-	if self.mystyle ~= "H" then
-		Castbar:SetOrientation("VERTICAL")
-		Castbar.Spark:SetRotation(math.rad(90))	-- spark材質也要轉90度
-		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
-		Castbar.Spark:SetPoint("TOP", Castbar:GetStatusBarTexture(), 0, 0)
+	local r, g, b
+	if arg2 == nil then
+		r, g, b = arg1:GetRGB() -- function(element, color)
 	else
-		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
-		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
+		r, g, b = arg2:GetRGB() -- function(element, unit, color)
 	end
-	
-	-- 選項
-	Castbar.timeToHold = 0.05
-	-- 註冊到ouf
-	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostCastStart			-- 開始施法
-	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
-	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
-	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
-	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterruptible = T.PostUpdateCast	-- 打斷狀態刷新
-	-- 當前目標正在施法時，切換目標會重新獲取名字，防止丟失
-	self:RegisterEvent("UNIT_NAME_UPDATE", T.PostCastStopUpdate)
-	table.insert(self.__elements, T.PostCastStopUpdate)
-end
 
--- [[ 獨立施法條 ]] --
-
-T.CreateStandaloneCastbar = function(self, unit)
-	-- 創建一個條
-	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, .6, .6, .6, 1)
-	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)	
-
-	-- 背景與邊框
-	Castbar.BarBG = F.CreateBD(Castbar, Castbar, 1, .15, .15, .15, .6)
-	-- 陰影
-	Castbar.BarShadow = F.CreateSD(Castbar, Castbar, 4)
-	-- 圖示
-	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY", nil, 1)
-	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
-	-- 圖示邊框
-	Castbar.Shadow = F.CreateSD(Castbar, Castbar.Icon, 4)
-	-- 進度高亮
-	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
-	Castbar.Spark:SetTexture(G.media.spark)
-	Castbar.Spark:SetBlendMode("ADD")
-	Castbar.Spark:SetVertexColor(1, 1, .85, .5)
-	Castbar.Spark:SetAlpha(.5)
-	
-	-- 不同模式的布局
-	if self.mystyle == "S" then
-		-- 簡易焦點
-		Castbar:SetSize(C.PWidth/2, C.PHeight)
-		Castbar.Icon:SetSize(C.PHeight * 1.5, C.PHeight * 1.5)
-		
-		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
-		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
-
-		Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
-		Castbar.Text:SetPoint("LEFT", 5, 0)
-		Castbar.Text:SetWidth(self:GetWidth())		
-	elseif self.mystyle == "H" then
-		-- 橫式
-		Castbar:SetHeight(C.PHeight)
-		Castbar.Icon:SetSize(C.PHeight, C.PHeight)
-		
-		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
-		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
-
-		Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
-		Castbar.Text:SetPoint("LEFT", 5, 0)
-		Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "RIGHT")
-		Castbar.Time:SetPoint("RIGHT", -5, 0)
-	else
-		-- 直式
-		Castbar:SetSize(C.PHeight, C.PWidth-C.PHeight-C.PPOffset)
-		Castbar.Icon:SetSize(C.PHeight, C.PHeight)
-		Castbar:SetOrientation("VERTICAL")
-		
-		Castbar.Spark:SetRotation(math.rad(90))	-- spark材質也要轉90度
-		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
-		Castbar.Spark:SetPoint("TOP", Castbar:GetStatusBarTexture(), 0, 0)
-
-		Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-		Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
+	if element.bg then
+		local mu = element.bg.multiplier or 0.3
+		element.bg:SetVertexColor(r * mu, g * mu, b * mu)
 	end
-	
-	-- 選項
-	Castbar.timeToHold = 0.05
-	-- 註冊到ouf
-	self.Castbar = Castbar	
-	self.Castbar.PostCastStart = T.PostCastStart			-- 施法開始
-	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間	
-	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterruptible = T.PostUpdateCast	-- 打斷狀態更新
 end
 
---===================================================--
--------------------    [[ Auras ]]    -----------------
---===================================================--
+--==================================================--
+-----------------    [[ Health ]]    -----------------
+--==================================================--
 
--- [[ 減益 ]] --
+-- [[ 在背景更新血量漸變色 ]] --
 
-T.CreateDebuffs = function(self, button)
-	local Debuffs = CreateFrame("Frame", nil, self)
-	Debuffs.spacing = 6
-	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	
-	-- 選項
-	--Debuffs.disableCooldown = true
-	Debuffs.showDebuffType = true
-	-- 註冊到ouf
-	self.Debuffs = Debuffs
-	self.Debuffs.PostCreateButton = T.PostCreateIcon
-	self.Debuffs.PostUpdateButton = T.PostUpdateIcon
-	--self.Debuffs.FilterAura = T.CustomFilter
-end
+local bgCurve = C_CurveUtil.CreateColorCurve()
+	bgCurve:SetType(Enum.LuaCurveType.Linear)
+	bgCurve:AddPoint(0.0, CreateColor(1, 0, 0))
+	bgCurve:AddPoint(0.5, CreateColor(1, .8, .1))
+	bgCurve:AddPoint(1.0, CreateColor(1, .8, .1))
 
--- [[ 增益 ]] --
-
-T.CreateBuffs = function(self, button)
-	local Buffs = CreateFrame("Frame", nil, self)
-	Buffs.spacing = 6
-	Buffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	
-	-- 選項
-	Buffs.disableCooldown = true
-	-- 註冊到ouf
-	self.Buffs = Buffs
-	self.Buffs.PostCreateButton = T.PostCreateIcon
-	self.Buffs.PostUpdateButton = T.PostUpdateIcon
-	self.Buffs.FilterAura = T.CustomFilter
-end
-
--- [[ 光環 ]] --
-
-T.CreateAuras = function(self, button)
-	local Auras = CreateFrame("Frame", nil, self)
-	Auras.spacing = 6
-	Auras.size = C.buSize
-	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
-	
-	if self.mystyle == "S" then
-		-- Simple focus
-		Auras.numBuffs = 2
-		Auras.numDebuffs = 4
-		Auras.numTotal = 4
-		Auras.gap = false
-		
-		Auras.iconsPerRow = 4
-		Auras.initialAnchor = "BOTTOMLEFT"
-		Auras.tooltipAnchor = "ANCHOR_TOPRIGHT"
-		Auras["growth-x"] = "RIGHT"
-		Auras["growth-y"] = "UP"
-		Auras:SetPoint("BOTTOMLEFT", self.HealthText, "TOPLEFT", 3, 0)
-		Auras:SetWidth(C.buSize * Auras.numTotal + Auras.spacing * (Auras.numTotal - 1))
-		Auras:SetHeight(C.buSize)
+T.PostUpdateHealth = function(element, unit)
+	local disconnected = not UnitIsConnected(unit)
+	local isGhost = UnitIsGhost(unit)
+	if disconnected or isGhost then
+		element.bg:SetVertexColor(0.3, 0.3, 0.3)
 	else
-		if self.mystyle == "H" then
-			-- Player/Target/Focus
-			local iconsPerLine = math.floor(self:GetWidth() / (C.buSize + Auras.spacing) + 0.5)
-			
-			Auras.numBuffs = iconsPerLine
-			Auras.numDebuffs = C.maxAura
-			Auras.numTotal = C.maxAura
-			Auras.gap = true
+		local color = UnitHealthPercent(unit, true, bgCurve)
+		element.bg:SetVertexColor(color:GetRGB())
+	end
+end
 
-			Auras.initialAnchor = "BOTTOMLEFT"
-			Auras.tooltipAnchor = "ANCHOR_TOPLEFT"
-			Auras["growth-x"] = "RIGHT"
-			Auras["growth-y"] = "UP"
-			Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
-			Auras:SetWidth(self:GetWidth())
-			Auras:SetHeight(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
-		else
-			-- VL=Player/VR=Target
-			local iconsPerLine = math.floor(self:GetHeight() / (C.buSize + Auras.spacing) + 0.5)
-			
-			Auras.numBuffs = iconsPerLine
-			Auras.numDebuffs = C.maxAura
-			Auras.numTotal = C.maxAura
-			Auras.gap = true
+-- [[ 戰鬥狀態隱藏休息指示器 ]] --
+
+T.CombatPostUpdate = function(element, inCombat)
+	local rest = IsResting() 
+	if inCombat then
+		element.__owner.RestingIndicator:Hide()
+	elseif rest then
+		element.__owner.RestingIndicator:Show()
+	end
+end
+
+
+--==================================================================--
+------------------    [[ Resource: Post update ]]    -----------------
+--==================================================================--
+
+-- [[ 特殊能量文本 ]] --
+
+T.PostUpdateAltPower = function(element, unit, cur)
+	element.value:SetText(cur)
+end
+
+-- [[ 酒池文本 ]] --
+
+T.PostUpdateStagger = function(element, cur, max)
+	local perc = cur / max
 	
-			Auras.initialAnchor = "BOTTOMRIGHT"
-			Auras["growth-x"] = "LEFT"
-			Auras["growth-y"] = "UP"
-			Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
-			Auras:SetWidth(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
-			Auras:SetHeight(self:GetHeight())
+	if cur == 0 then
+		element.value:SetText("")
+	else
+		element.value:SetText(F.ShortValue(cur) .. " |cff70C0F5" .. F.ShortValue(perc * 100) .. "|r")
+	end
+end
+
+-- [[ 連擊點的天賦更新 ]] --
+
+T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
+	if not max or not cur then return end
+	
+	local style = element.__owner.mystyle
+	local cpColor = {
+		{1, .7, .1},
+		{1, .95, .4},	-- 滿星
+	}
+	
+	for i = 1, 7 do
+		if MaxChanged then
+			if style == "VL" then
+				element[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
+			elseif style == "NPP" or style == "BPP" then
+				element[i]:SetWidth((C.PlayerNPWidth - (max-1) * C.PPOffset) / max)
+			else
+				element[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
+			end
+		end
+		--[[ -- 坦克資源和神聖能量
+		if i == 1 and powerType == "HOLY_POWER" then
+			if C.TankResource and IsSpellKnown(432459) then
+				if style == "VL" then
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
+				elseif style == "H" then
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
+				end
+			else
+				if style == "VL" then
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "BOTTOMRIGHT", C.PPOffset, 0)
+				elseif style == "H" then
+					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "TOPLEFT", 0, C.PPOffset)
+				end
+			end
+		end]]--
+		-- 連擊點滿星變色
+		if powerType == "COMBO_POINTS" then
+			if max > 0 and cur == max then
+				element[i]:SetStatusBarColor(unpack(cpColor[2]))
+			else
+				element[i]:SetStatusBarColor(unpack(cpColor[1]))
+			end
+		end
+		-- 背景
+		if element[i].bg then
+			local mu = element[i].bg.multiplier or 0.3
+			local r, g, b = element[i]:GetStatusBarColor()
+			element[i].bg:SetVertexColor(r * mu, g * mu, b * mu)
 		end
 	end
-	
-	-- 選項
-	--Auras.disableCooldown = true
-	Auras.showDebuffType = true
-	-- 註冊到ouf
-	self.Auras = Auras
-	self.Auras.SetPosition = T.SetPosition					-- 為垂直排列重寫set position
-	self.Auras.PostCreateButton = T.PostCreateIcon
-	self.Auras.PostUpdateButton = T.PostUpdateIcon
-	
-	if self.mystyle ~= "S" then
-		self.Auras.PostUpdateGapButton = T.PostUpdateGapIcon	-- 間隔圖示
-	end
-	
-	--self.Auras.FilterAura = T.CustomFilter					-- 光環過濾	
 end
 
---===================================================--
-------------------    [[ Others ]]    -----------------
---===================================================--
+-- [[ 符文 ]] --
+
+T.OnUpdateRunes = function(element, elapsed)
+	local duration = element.duration + elapsed
+	element.duration = duration
+	element:SetValue(duration)
+
+	if element.timer then
+		local remain = element.runeDuration - duration
+		if remain > 0 then
+			element.timer:SetText(F.FormatTime(remain))
+		else
+			element.timer:SetText(nil)
+		end
+	end
+end
+
+-- [[ 符文更新 ]] --
+
+T.PostUpdateRunes = function(element, runemap)
+	for index, runeID in next, runemap do
+		-- 把符文整段搬過來
+		local rune = element[index]
+		local start, duration, runeReady = GetRuneCooldown(runeID)
+		if rune:IsShown() then
+			if runeReady then
+				--rune:SetAlpha(1)
+				rune:SetScript("OnUpdate", nil)
+				if rune.timer then rune.timer:SetText(nil) end
+			elseif start then
+				--rune:SetAlpha(.6)
+				rune.runeDuration = duration
+				rune:SetScript("OnUpdate", T.OnUpdateRunes)
+			end
+		end
+		-- 背景
+		if element[index].bg then
+			local mu = element[index].bg.multiplier or 0.3
+			local r, g, b = element[index]:GetStatusBarColor()
+			element[index].bg:SetVertexColor(r * mu, g * mu, b * mu)
+		end
+	end
+end
+
+--======================================================================--
+------------------    [[ Resource: Create elements ]]    -----------------
+--======================================================================--
 
 -- [[ 職業資源 ]] --
 
@@ -399,10 +343,10 @@ T.CreateAltPowerBar = function(self, unit)
 	-- 註冊到ouf
 	self.AlternativePower = AltPower
 	self.AlternativePower.PostUpdate = T.PostUpdateAltPower
-	self.AlternativePower.PostUpdateColor = T.PostUpdatemMultiBGColor
+	--self.AlternativePower.PostUpdateColor = T.PostUpdatemMultiBGColor
 	-- 文本
 	self.AlternativePower.value = F.CreateText(self.AlternativePower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
-	self:Tag(self.AlternativePower.value, "[altpower]") --不用這個，用postupdate
+	--self:Tag(self.AlternativePower.value, "[altpower]") --不用這個，用postupdate
 end
 
 -- [[ 酒池 ]] --
@@ -445,6 +389,8 @@ T.CreateStagger = function(self, unit)
 	self.Stagger.PostUpdate = T.PostUpdateStagger
 	self.Stagger.PostUpdateColor = T.PostUpdatemMultiBGColor
 end
+
+
 
 -- [[ 預估治療 ]] --
 
