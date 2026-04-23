@@ -179,8 +179,8 @@ local function CreatePlayerStyle(self, unit)
 	self.Power.value:SetPoint("RIGHT", self.Power, 0, 2)
 	
 	-- 特殊能量
-	--T.CreateAltPowerBar(self, unit)
-	--self.AlternativePower.value:SetPoint("CENTER",  0, -3)
+	T.CreateAltPowerBar(self, unit)
+	self.AlternativePower.value:SetPoint("CENTER",  0, -3)
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
@@ -192,11 +192,11 @@ local function CreatePlayerStyle(self, unit)
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)
 		self.Castbar:SetWidth(C.CastbarWidth)
-		self.Castbar.Icon:SetPoint(unpack(C.Position.PlayerCastbar))
-		self.Castbar:SetPoint("LEFT", self.Castbar.Icon, "RIGHT", C.PPOffset, 0)
+		self.Castbar.IconBG:SetPoint(unpack(C.Position.PlayerCastbar))
+		self.Castbar:SetPoint("LEFT", self.Castbar.IconBG, "RIGHT", C.PPOffset, 0)
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 6, -1)
+		self.Castbar.IconBG:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 6, -1)
 		self.Castbar.Text:SetPoint("CENTER", self.Health, 0, 2)
 		self.Castbar.Text:SetJustifyH("CENTER")
 		self.Castbar.Text:SetWidth(self:GetWidth())
@@ -213,7 +213,8 @@ local function CreatePlayerStyle(self, unit)
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs:SetSize(C.PWidth, C.buSize + 4)
 		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
-		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
+		self:RegisterEvent("PLAYER_ENTERING_WORLD", T.PostCastStopUpdate)
+		self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", T.PostCastStopUpdate)
 	end
 	
 	-- 圖示和標記
@@ -239,17 +240,14 @@ local function CreateVPlayerStyle(self, unit)
 	self.Power.value:SetJustifyH("RIGHT")
 	
 	-- 特殊能量
-	T.CreateAltPowerBar(self, unit)
-	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
-	
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)	
+	--T.CreateAltPowerBar(self, unit)
+	--self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	if C.TankResource then T.CreateTankResource(self, unit) end
-	if C.Totems then T.CreateTotemBar(self) end
+	--if C.TankResource then T.CreateTankResource(self, unit) end
+	--if C.Totems then T.CreateTotemBar(self) end
 	
 	-- 減益
 	if C.PlayerDebuffs then
@@ -261,22 +259,23 @@ local function CreateVPlayerStyle(self, unit)
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs.spacing = 5
 		self.Debuffs:SetSize(C.buSize + 4, C.PWidth)
-		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
+		self:RegisterEvent("PLAYER_ENTERING_WORLD", T.PostCastStopUpdate)
+		self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", T.PostCastStopUpdate)
 	end
 
 	-- 施法條
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)	
-		self.Castbar.Icon:SetPoint(unpack(C.Position.VPlayerCastbar))
-		--self.Castbar.Icon:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", self.Debuffs:GetWidth() + C.PPOffset*3 + C.PPHeight, 0)
-		self.Castbar:SetPoint("BOTTOM", self.Castbar.Icon, "TOP", 0, C.PPOffset)
-		self.Castbar.Text:SetPoint("BOTTOMLEFT", self.Castbar.Icon, "BOTTOMRIGHT", C.PPOffset, 0)
+		self.Castbar.IconBG:SetPoint(unpack(C.Position.VPlayerCastbar))
+		--self.Castbar.IconBG:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", self.Debuffs:GetWidth() + C.PPOffset*3 + C.PPHeight, 0)
+		self.Castbar:SetPoint("BOTTOM", self.Castbar.IconBG, "TOP", 0, C.PPOffset)
+		self.Castbar.Text:SetPoint("BOTTOMLEFT", self.Castbar.IconBG, "BOTTOMRIGHT", C.PPOffset, 0)
 		self.Castbar.Text:SetJustifyH("LEFT")
-		self.Castbar.Time:SetPoint("BOTTOMLEFT", self.Castbar.Icon, "BOTTOMRIGHT", C.PPOffset, G.NameFS+2)
+		self.Castbar.Time:SetPoint("BOTTOMLEFT", self.Castbar.IconBG, "BOTTOMRIGHT", C.PPOffset, G.NameFS+2)
 		self.Castbar.Time:SetJustifyH("LEFT")
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOP", self.Health, "BOTTOM", -(C.PPHeight + 1), -6)
+		self.Castbar.IconBG:SetPoint("TOP", self.Health, "BOTTOM", -(C.PPHeight + 1), -6)
 		self.Castbar.Text:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*3)
 		self.Castbar.Text:SetJustifyH("RIGHT")
 		self.Castbar.Time:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*4)
@@ -295,7 +294,6 @@ local function CreateVPlayerStyle(self, unit)
 	self.RestingIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
 end
 
-
 -- 目標橫式 / Target
 local function CreateTargetStyle(self, unit)
 	self.mystyle = "H"
@@ -304,11 +302,8 @@ local function CreateTargetStyle(self, unit)
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
 	
 	-- 特殊能量
-	--T.CreateAltPowerBar(self, unit)
-	--self.AlternativePower.value:SetPoint("CENTER",  0, -3)
-	
-	-- 吸收盾
-	--T.CreateHealthPrediction(self, unit)
+	T.CreateAltPowerBar(self, unit)
+	self.AlternativePower.value:SetPoint("CENTER",  0, -3)
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -323,11 +318,11 @@ local function CreateTargetStyle(self, unit)
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)
 		self.Castbar:SetWidth(C.CastbarWidth)
-		self.Castbar.Icon:SetPoint(unpack(C.Position.TargetCastbar))
-		self.Castbar:SetPoint("RIGHT", self.Castbar.Icon, "LEFT", -C.PPOffset, 0)
+		self.Castbar.IconBG:SetPoint(unpack(C.Position.TargetCastbar))
+		self.Castbar:SetPoint("RIGHT", self.Castbar.IconBG, "LEFT", -C.PPOffset, 0)
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, -1)
+		self.Castbar.IconBG:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, -1)
 		self.Castbar.Text:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2+C.PPHeight)
 		self.Castbar.Text:SetJustifyH("RIGHT")
 		self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
@@ -357,11 +352,6 @@ local function CreateVTargetStyle(self, unit)
 	T.CreateAltPowerBar(self, unit)
 	self.AlternativePower.value:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*5)
 	
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	--self.HealthPrediction.absorbBar:SetHeight(C.PWidth)
-	--self.HealthPrediction.overAbsorb:SetHeight(C.PWidth)
-	
 	-- 光環
 	T.CreateAuras(self)
 	self.Auras.tooltipAnchor = "ANCHOR_BOTTOMLEFT"
@@ -369,16 +359,16 @@ local function CreateVTargetStyle(self, unit)
 	-- 施法條
 	if C.StandaloneCastbar then
 		T.CreateStandaloneCastbar(self, unit)
-		self.Castbar.Icon:SetPoint(unpack(C.Position.VTargetCastbar))
-		--self.Castbar.Icon:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -(C.PPOffset*2+self.Auras:GetWidth()), 0)
-		self.Castbar:SetPoint("BOTTOM", self.Castbar.Icon, "TOP", 0, C.PPOffset)
-		self.Castbar.Text:SetPoint("BOTTOMRIGHT", self.Castbar.Icon, "BOTTOMLEFT", -C.PPOffset, 0)
+		self.Castbar.IconBG:SetPoint(unpack(C.Position.VTargetCastbar))
+		--self.Castbar.IconBG:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -(C.PPOffset*2+self.Auras:GetWidth()), 0)
+		self.Castbar:SetPoint("BOTTOM", self.Castbar.IconBG, "TOP", 0, C.PPOffset)
+		self.Castbar.Text:SetPoint("BOTTOMRIGHT", self.Castbar.IconBG, "BOTTOMLEFT", -C.PPOffset, 0)
 		self.Castbar.Text:SetJustifyH("RIGHT")
-		self.Castbar.Time:SetPoint("BOTTOMRIGHT", self.Castbar.Icon, "BOTTOMLEFT", -C.PPOffset, G.NameFS+2)
+		self.Castbar.Time:SetPoint("BOTTOMRIGHT", self.Castbar.IconBG, "BOTTOMLEFT", -C.PPOffset, G.NameFS+2)
 		self.Castbar.Time:SetJustifyH("RIGHT")
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOP", self.Health, "BOTTOM", C.PPHeight + 1, -6)
+		self.Castbar.IconBG:SetPoint("TOP", self.Health, "BOTTOM", C.PPHeight + 1, -6)
 		self.Castbar.Text:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*3)
 		self.Castbar.Text:SetJustifyH("LEFT")
 		self.Castbar.Time:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, (G.NameFS+2)*4)
@@ -425,18 +415,18 @@ local function CreateFocusStyle(self, unit)
 	if C.StandaloneCastbar then
 		if C.vertTarget then
 			T.CreateStandaloneCastbar(self, unit)
-			self.Castbar:SetWidth(C.PWidth-self.Castbar.Icon:GetWidth()-C.PPOffset)
-			self.Castbar.Icon:SetPoint(unpack(C.Position.VFocusCastbar))
-			self.Castbar:SetPoint("LEFT", self.Castbar.Icon, "RIGHT", C.PPOffset, 0)
+			self.Castbar:SetWidth(C.PWidth-self.Castbar.IconBG:GetWidth()-C.PPOffset)
+			self.Castbar.IconBG:SetPoint(unpack(C.Position.VFocusCastbar))
+			self.Castbar:SetPoint("LEFT", self.Castbar.IconBG, "RIGHT", C.PPOffset, 0)
 		else
 			T.CreateStandaloneCastbar(self, unit)
 			self.Castbar:SetWidth(C.CastbarWidth)
-			self.Castbar.Icon:SetPoint(unpack(C.Position.FocusCastbar))
-			self.Castbar:SetPoint("RIGHT", self.Castbar.Icon, "LEFT", -C.PPOffset, 0)
+			self.Castbar.IconBG:SetPoint(unpack(C.Position.FocusCastbar))
+			self.Castbar:SetPoint("RIGHT", self.Castbar.IconBG, "LEFT", -C.PPOffset, 0)
 		end
 	else
 		T.CreateCastbar(self, unit)
-		self.Castbar.Icon:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, 0)
+		self.Castbar.IconBG:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, 0)
 		self.Castbar.Text:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 		self.Castbar.Text:SetJustifyH("RIGHT")
 		self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
@@ -504,8 +494,8 @@ local function CreateSFocusStyle(self, unit)
 	
 	-- 施法條
 	T.CreateStandaloneCastbar(self, unit)
-	self.Castbar.Icon:SetPoint("RIGHT", self, "LEFT", -2, -2)
-	self.Castbar:SetPoint("RIGHT", self.Castbar.Icon, "LEFT", -1, 0)
+	self.Castbar.IconBG:SetPoint("RIGHT", self, "LEFT", -2, -2)
+	self.Castbar:SetPoint("RIGHT", self.Castbar.IconBG, "LEFT", -1, 0)
 
 	-- 團隊標記
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
@@ -816,7 +806,7 @@ local function CreateBossStyle(self, unit)
 	
 	-- 施法條
 	T.CreateCastbar(self, unit)
-	self.Castbar.Icon:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 6, 0)
+	self.Castbar.IconBG:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 6, 0)
 	self.Castbar.Text:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
 	self.Castbar.Text:SetJustifyH("LEFT")
 	self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
@@ -881,7 +871,7 @@ local function CreateArenaStyle(self, unit)
 
 	-- 施法條
 	T.CreateCastbar(self, unit)
-	self.Castbar.Icon:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 6, 0)
+	self.Castbar.IconBG:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", 6, 0)
 	self.Castbar.Text:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
 	self.Castbar.Text:SetJustifyH("LEFT")
 	self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
@@ -936,15 +926,15 @@ else
 	--oUF:RegisterStyle("ToT", CreateToTStyle)
 end
 
---[[
+
 if C.SimpleFocus then
 	oUF:RegisterStyle("Focus", CreateSFocusStyle)
-	oUF:RegisterStyle("FoT", CreateSFoTStyle)
+	--oUF:RegisterStyle("FoT", CreateSFoTStyle)
 else
 	oUF:RegisterStyle("Focus", CreateFocusStyle)
-	oUF:RegisterStyle("FoT", CreateFoTStyle)
+	--oUF:RegisterStyle("FoT", CreateFoTStyle)
 end
-
+--[[
 if C.Boss then
 	oUF:RegisterStyle("Boss", CreateBossStyle)
 end
@@ -990,13 +980,13 @@ oUF:Factory(function(self)
 		-- 目標的目標
 		--[[self:SetActiveStyle("ToT")
 		local targettarget = self:Spawn("targettarget", "oUF_ToT")
-		targettarget:SetPoint(unpack(C.Position.VTOT))
+		targettarget:SetPoint(unpack(C.Position.VTOT))]]--
 		-- 焦點
 		self:SetActiveStyle("Focus")
 		local focus = self:Spawn("focus", "oUF_Focus")
 		focus:SetPoint(unpack(C.Position.VFocus))
 		-- 焦點目標
-		if C.SimpleFocus then
+		--[[if C.SimpleFocus then
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.SFOT))
@@ -1013,13 +1003,13 @@ oUF:Factory(function(self)
 		-- 目標的目標
 		--[[self:SetActiveStyle("ToT")
 		local targettarget = self:Spawn("targettarget", "oUF_ToT")
-		targettarget:SetPoint(unpack(C.Position.TOT))
+		targettarget:SetPoint(unpack(C.Position.TOT))]]--
 		-- 焦點
 		self:SetActiveStyle("Focus")
 		local focus = self:Spawn("focus", "oUF_Focus")
 		focus:SetPoint(unpack(C.Position.Focus))
 		-- 焦點目標
-		if C.SimpleFocus then
+		--[[if C.SimpleFocus then
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.SFOT))
