@@ -23,7 +23,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.UnitFrames = true		-- Enable Unitframes  / 啟用單位框架
 	C.RaidFrames = false	-- Enable Raidframes / 啟用團隊框架
 	C.PartyFrames = false	-- Enable Partyframes / 啟用隊伍框架
-	C.Nameplates = true		-- Enable Nameplates/ 啟用名條
+	C.Nameplates = false		-- Enable Nameplates/ 啟用名條
 
 -------------
 -- Texture --
@@ -57,7 +57,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	G.NameFS = 14									-- General font size / 字型大小
 	G.FontFlag = "OUTLINE"							-- General font flag / 描邊 "OUTLINE" or none
 	
-	G.NFont = MediaFolder.."myriadHW.ttf"			-- Number font for auras / 光環數字字型
+	--G.NFont = MediaFolder.."myriadHW.ttf"			-- Number font for auras / 光環數字字型
+	G.NFont = STANDARD_TEXT_FONT
 	G.NumberFS = 14
 	
 	G.NPNameFS = 12									-- Nameplate font size / 名條的字型
@@ -74,8 +75,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.vertTarget = true			-- Vertical Target and ToT frame / 直式目標頭
 	C.SimpleFocus = true		-- Simply show fucos as simple number style / 簡易模式：數字形式的焦點目標
 	
-	C.Boss = true				-- Enable Boss frame / 首領
-	C.Arena = true				-- Enable Brena frame / 競技場
+	C.Boss = false				-- Enable Boss frame / 首領
+	C.Arena = false				-- Enable Brena frame / 競技場
 	
 	-- Size / 大小
 	C.PWidth = 220				-- Player/Target/Focus frame width / 主框體寬度：玩家/目標/焦點
@@ -92,23 +93,23 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	-- Options / 選項
 	C.PlayerDebuffs = true		-- Show debuffs on the player frame / 顯示自身減益
 	C.Totems = false			-- Show player totems / 顯示玩家圖騰
-	C.TankResource = true		-- Show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
+	C.TankResource = false		-- Show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 
 	C.Fade = true				-- Hide UFs when out of combat or not casting (Include Player/Target/Focus) / 戰鬥外閒置狀態淡出，作用於玩家/目標/焦點
-	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
+	C.FadeOutAlpha = 0.2			-- Fade out value / 淡出值
 	
 	--[[ Castbar / 施法條 ]] --
 	
 	-- Options / 選項
 	-- NOTICE: when Vertical style and StandaloneCastbar both enable, castbar size will match vert frame height.
 	C.StandaloneCastbar = false	-- Independent castbar for player and target / 玩家與目標的獨立施法條
-	C.CastbarWidth = 200		-- Castbar width, only can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
+	C.CastbarWidth = 200		-- Castbar width, ONLY can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
 	
 	-- Colors / 顏色
 	-- NOTICE: This effect on BOTH unitframe standalone castbar and nameplates castbar.
 	C.CastNormal = {.6, .6, .6}	-- Normal castbar / 普通施法條
 	C.CastFailed = {.5, .2, .2}	-- Cast failed / 施法失敗
-	C.CastShield = {.9, 0, 1}	-- Non-InterruptibleColor castbar / 不可打斷的施法條
+	C.CastShield = {.9, .3, .5}	-- Non-InterruptibleColor castbar / 不可打斷的施法條
 
 ------------------------
 -- GroupFrame settings --
@@ -208,8 +209,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		VFocus	= {"CENTER", 0, -250},
 		VFOT	= {"LEFT", "oUF_Focus", "RIGHT", C.PPOffset * 2, 0},
 		
-		-- 橫式的簡易焦點目標 / Simple style focus postion
-		SFOT	= {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset},
+		-- 簡易焦點 / Simple style focus target postion
+		SFOT	= {"TOP", "oUF_Focus", "BOTTOM", C.BWidth/4, -C.PPOffset},
 
 		-- [[ Other / 其他 ]] --
 		
@@ -217,8 +218,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		Arena	= {"LEFT", 10, 80},
 		
 		-- [[ Groups / 團隊 ]] --
-		Party	= {"CENTER", UIParent, 570, 120},
-		Raid	= {"CENTER", UIParent, 570, 120},
+		Party	= {"CENTER", UIParent, 500, 120},
+		Raid	= {"CENTER", UIParent, 340, -160},
 		
 		-- [[ Player plate / 玩家個人資源 ]] --
 		
@@ -235,6 +236,25 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		VFocusCastbar = {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset * 3}
 	}
 
+
+-------------------------
+-- Blizzard aura frame --
+-------------------------
+
+	C.AuraFrames = true		-- Replace blizzard auraframe (default at topright of screen)
+	C.Auras = {
+		BuffSize = 32,  -- 24~50
+		BuffsPerRow = 16,
+		ReverseBuff = false,
+		DebuffSize = 36,
+		DebuffsPerRow = 10,
+		ReverseDebuff = false,
+		--BuffPos = {"TOPRIGHT", UIParent, "TOPRIGHT", -230, -15},
+		BuffPos = {"TOPRIGHT", UIParent, "TOPRIGHT", -10, -10}, 
+		Margin = 6,
+		CountFontSize = 14,
+		TimerFontSize = 14,
+	}
 
 -------------
 -- Credits --

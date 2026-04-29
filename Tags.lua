@@ -12,6 +12,8 @@ local UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName = Uni
 -----------------    [[ Colors ]]    -----------------
 --==================================================--
 
+-- [[ 血量 ]] --
+
 oUF.colors.health:SetCurve({
 	[ 0] = CreateColor(1, 0, 0),
 	[.5] = CreateColor(1, .8, .1),
@@ -53,7 +55,7 @@ ReplacePowerColor("LUNAR_POWER", 8, 0, .6, 1)				-- 8 鳥德 月能
 ReplacePowerColor("MAELSTROM", 11, 0, .6, 1)				-- 11 薩滿旋渦值
 ReplacePowerColor("INSANITY", 13, .74, .35, .95)            -- 13 暗牧 瘋狂值(共用dh職業色)
 ReplacePowerColor("ARCANE_CHARGES", 16, 0, .8, 1)			-- 16 秘法 充能
-ReplacePowerColor("ARCANE_CHARGES", 19, .02, .9, .9)		-- 19 喚能師 龍能
+ReplacePowerColor("ESSENCE", 19, .02, .9, .9)				-- 19 喚能師 龍能
 -- 載具類型
 oUF.colors.power["FUEL"] = oUF:CreateColor(0, .75, .7)		-- 同時用於npc無屬能量
 oUF.colors.power["AMMOSLOT"] = oUF:CreateColor(.8, .6, 0)
@@ -132,7 +134,7 @@ oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED UNIT_CONNECTION"
 
 -- [[ Unitframes ]] --
 
--- health: cur-per
+-- health: cur per
 oUF.Tags.Methods["unit:hp"] = function(unit)
 	local max = F.NumberAbbrValue(UnitHealthMax(unit))
 	local cur = F.NumberAbbrValue(UnitHealth(unit))
@@ -162,19 +164,15 @@ oUF.Tags.Methods["unit:pp"]  = function(unit)
 	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
 
 	if type == "MANA" then -- 法力
-		return F.Hex(unpack(color))..F.NumberAbbrValue(cur).."|r"
+		return F.Hex(color)..F.NumberAbbrValue(cur).."|r"
 	else
-		return F.Hex(unpack(color))..cur.."|r"
+		return F.Hex(color)..cur.."|r"
 	end
 end
 oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
 
 
 -- [[ Nameplates ]] --
-
-
-
-
 
 
 -- bar style nameplates
@@ -281,12 +279,14 @@ oUF.Tags.Events["np:ab"] = "UNIT_ABSORB_AMOUNT_CHANGED"
 
 oUF.Tags.Methods["namecolor"] = function(unit, r)
 	local reaction = UnitReaction(unit, "player")
-	
+	local _, class = UnitClass(unit)
+	local color = oUF.colors.class[class]
+
 	if UnitIsTapDenied(unit) then
 		return F.Hex(oUF.colors.tapped)
+	--elseif UnitIsPlayer(unit) or UnitPlayerControlled(unit) then
 	elseif UnitIsPlayer(unit) then
-		local _, class = UnitClass(unit)
-		return F.Hex(oUF.colors.class[class])
+		return F.Hex(color)
 	elseif reaction then
 		return F.Hex(oUF.colors.reaction[reaction])
 	else

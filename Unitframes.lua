@@ -95,6 +95,7 @@ local function CreateUnitShared(self, unit)
 	-- 選項
 	Power.frequentUpdates = true	-- 更新速率
 	Power.colorClass = true			-- 職業染色
+	--Power.colorClassPet = true		-- 職業染色
 	Power.colorReaction = true		-- 陣營染色
 	Power.colorDisconnected = true	-- 離線染色
 	-- 背景
@@ -134,12 +135,12 @@ local function CreateUnitShared(self, unit)
 	Combat:SetTexture(G.media.combat)
 	Combat:SetVertexColor(1, 1, 0)
 	self.CombatIndicator = Combat
-	self.CombatIndicator.PostUpdate = T.CombatPostUpdate
+	--self.CombatIndicator.PostUpdate = T.CombatPostUpdate
 	-- 休息狀態
-	local Resting = StringParent:CreateTexture(nil, "OVERLAY")
+	--[[local Resting = StringParent:CreateTexture(nil, "OVERLAY")
 	Resting:SetSize(20, 20)
 	Resting:SetTexture(G.media.resting)
-	self.RestingIndicator = Resting
+	self.RestingIndicator = Resting]]--
 	-- 位面狀態
 	local Phase = StringParent:CreateTexture(nil, "OVERLAY")
 	Phase:SetSize(20, 20)
@@ -207,8 +208,8 @@ local function CreatePlayerStyle(self, unit)
 	-- 減益
 	if C.PlayerDebuffs then
 		T.CreateDebuffs(self)		
-		self.Debuffs["growth-x"] = "RIGHT"
-		self.Debuffs["growth-y"] = "UP"
+		self.Debuffs.growthX = "RIGHT"
+		self.Debuffs.growthY = "UP"
 		self.Debuffs.num = 6
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs:SetSize(C.PWidth, C.buSize + 4)
@@ -222,7 +223,9 @@ local function CreatePlayerStyle(self, unit)
 	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, -4, C.PHeight/2)
 	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, -4, C.PHeight/2)
 	self.CombatIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
-	self.RestingIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
+	--self.RestingIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 玩家直式 / Vert plater
@@ -240,8 +243,8 @@ local function CreateVPlayerStyle(self, unit)
 	self.Power.value:SetJustifyH("RIGHT")
 	
 	-- 特殊能量
-	--T.CreateAltPowerBar(self, unit)
-	--self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
+	T.CreateAltPowerBar(self, unit)
+	self.AlternativePower.value:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, (G.NameFS+2)*5)
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
@@ -252,15 +255,16 @@ local function CreateVPlayerStyle(self, unit)
 	-- 減益
 	if C.PlayerDebuffs then
 		T.CreateDebuffs(self)
-		--self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
-		self.Debuffs["growth-x"] = "UP"
-		self.Debuffs["growth-y"] = "RIGHT"
+		self.Debuffs.growthX = "UP"
+		self.Debuffs.growthY = "RIGHT"
 		self.Debuffs.num = 6
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs.spacing = 5
 		self.Debuffs:SetSize(C.buSize + 4, C.PWidth)
-		self:RegisterEvent("PLAYER_ENTERING_WORLD", T.PostCastStopUpdate)
-		self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", T.PostCastStopUpdate)
+		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
+		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
+		--self:RegisterEvent("PLAYER_ENTERING_WORLD", T.PostUpdatePlayerDebuffs)
+		--self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", T.PostUpdatePlayerDebuffs)
 	end
 
 	-- 施法條
@@ -291,7 +295,9 @@ local function CreateVPlayerStyle(self, unit)
 	self.AssistantIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 4)
 	self.LeaderIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 4)
 	self.CombatIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
-	self.RestingIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
+	--self.RestingIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 目標橫式 / Target
@@ -338,6 +344,8 @@ local function CreateTargetStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
 	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 目標直式 / Vert target
@@ -389,6 +397,8 @@ local function CreateVTargetStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
 	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, 0, -4)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, 0, -4)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 焦點 / Focus
@@ -398,9 +408,6 @@ local function CreateFocusStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PWidth, C.PHeight)	-- 主框體尺寸
-	
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
 	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
@@ -442,6 +449,8 @@ local function CreateFocusStyle(self, unit)
 	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
 	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 簡易焦點 / Simple focus
@@ -449,7 +458,7 @@ local function CreateSFocusStyle(self, unit)
 	self.mystyle = "S"
 	
 	-- 框體
-	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
+	self:SetSize(C.TOTWidth, C.PHeight * 1.1)	-- 主框體尺寸
 	self:RegisterForClicks("AnyUp")
 	
 	local hl = self:CreateTexture(nil, "HIGHLIGHT")
@@ -505,16 +514,7 @@ local function CreateSFocusStyle(self, unit)
 	self.RaidTargetIndicator = RaidIcon
 	
 	-- 簡易焦點是純文字的，從框體繼承來的淡出沒有套用到文字上
-	if C.Fade then
-		self.FadeMinAlpha = C.FadeOutAlpha
-		self.FadeInSmooth = 0.4
-		self.FadeOutSmooth = 1.5
-		self.FadeCasting = true
-		self.FadeCombat = true
-		self.FadeTarget = true
-		self.FadeHealth = true
-		self.FadeHover = true
-	end
+	if C.Fade then self.fade = true end
 end
 
 -- 寵物橫式 / Pet
@@ -524,55 +524,49 @@ local function CreatePetStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
-	
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	
 	-- 文本
 	self.Name:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("LEFT")
 	self.Name:SetWidth(self:GetWidth()*0.9)
-	
+	-- 圖示和標記
+	self.RaidTargetIndicator:SetPoint("LEFT", self.Health, -14, 0)
 	-- 光環
 	T.CreateDebuffs(self)
 	self.Debuffs:SetPoint("LEFT", self.Health, "RIGHT", 6, -2)
 	self.Debuffs.initialAnchor = "LEFT"
-	self.Debuffs["growth-x"] = "RIGHT"
+	self.Debuffs.growthX = "RIGHT"
 	self.Debuffs.num = 2
 	self.Debuffs.size = C.buSize
 	self.Debuffs.spacing = 5
 	self.Debuffs:SetSize(C.buSize*2, C.buSize)
-	
-	-- 圖示和標記
-	self.RaidTargetIndicator:SetPoint("LEFT", self.Health, -14, 0)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 寵物直式 / Vert pet
 local function CreateVPetStyle(self, unit)
 	self.mystyle = "VL"
+
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.TOTWidth)	-- 主框體尺寸
-	
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	
 	-- 文本
 	self.Name:SetPoint("BOTTOMRIGHT", self.Power, "BOTTOMLEFT", -C.PPOffset, 0)
 	self.Name:SetJustifyH("RIGHT")
-	
+	-- 圖示和標記
+	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
 	-- 光環
 	T.CreateDebuffs(self)
 	self.Debuffs:SetPoint("TOPRIGHT", self.Power, "TOPLEFT", -C.PPOffset - 1, -2)
 	self.Debuffs.initialAnchor = "TOP"
 	self.Debuffs.tooltipAnchor = "ANCHOR_BOTTOMLEFT"
-	self.Debuffs["growth-y"] = "DOWN"
+	self.Debuffs.growthY = "DOWN"
 	self.Debuffs.num = 2
 	self.Debuffs.size = C.buSize
 	self.Debuffs.spacing = 5
 	self.Debuffs:SetSize(C.buSize, C.buSize*2)
-	-- 圖示和標記
-	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 目標的目標橫式 / ToT
@@ -582,22 +576,20 @@ local function CreateToTStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
-
-	-- 吸收盾
-	--T.CreateHealthPrediction(self, unit)
-	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("RIGHT")
 	self.Name:SetWidth(self:GetWidth()*0.9)
-	
+	-- 圖示和標記
+	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
+
 	-- 光環
 	if UnitCanAttack("player", unit) then
 		-- 敵方顯示增益
 		T.CreateBuffs(self)
 		self.Buffs:SetPoint("RIGHT", self.Health, "LEFT", -6, -2)
 		self.Buffs.initialAnchor = "RIGHT"
-		self.Buffs["growth-x"] = "LEFT"
+		self.Buffs.growthX = "LEFT"
 		self.Buffs.num = 2
 		self.Buffs.size = C.buSize
 		self.Buffs.spacing = 5
@@ -607,15 +599,14 @@ local function CreateToTStyle(self, unit)
 		T.CreateDebuffs(self)
 		self.Debuffs:SetPoint("RIGHT", self.Health, "LEFT", -6, -2)
 		self.Debuffs.initialAnchor = "RIGHT"
-		self.Debuffs["growth-x"] = "LEFT"
+		self.Debuffs.growthX = "LEFT"
 		self.Debuffs.num = 2
 		self.Debuffs.size = C.buSize
 		self.Debuffs.spacing = 5
 		self.Debuffs:SetSize(C.buSize*2, C.buSize)
 	end
-	
-	-- 圖示和標記
-	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 目標的目標直式 / Vert ToT
@@ -625,20 +616,18 @@ local function CreateVToTStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.PHeight, C.TOTWidth)	-- 主框體尺寸
-	
-	-- 吸收盾
-	--T.CreateHealthPrediction(self, unit)
-	
 	-- 文本
 	self.Name:SetPoint("BOTTOMLEFT", self.Power, "BOTTOMRIGHT", C.PPOffset, 0)
-	
+	-- 圖示和標記
+	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
+
 	-- 光環
 	if UnitCanAttack("player", unit) then
 		-- 敵方顯示增益
 		T.CreateBuffs(self)
 		self.Buffs:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", C.PPOffset + 1, -2)
 		self.Buffs.initialAnchor = "TOP"
-		self.Buffs["growth-y"] = "DOWN"
+		self.Buffs.growthY = "DOWN"
 		self.Buffs.num = 2
 		self.Buffs.size = C.buSize
 		self.Buffs.spacing = 5
@@ -648,15 +637,14 @@ local function CreateVToTStyle(self, unit)
 		T.CreateDebuffs(self)
 		self.Debuffs:SetPoint("TOPLEFT", self.Power, "TOPRIGHT", C.PPOffset + 1, -2)
 		self.Debuffs.initialAnchor = "TOP"
-		self.Debuffs["growth-y"] = "DOWN"
+		self.Debuffs.growthY = "DOWN"
 		self.Debuffs.num = 2
 		self.Debuffs.size = C.buSize
 		self.Debuffs.spacing = 5
 		self.Debuffs:SetSize(C.buSize, C.buSize*2)
 	end
-	
-	-- 圖示和標記
-	self.RaidTargetIndicator:SetPoint("BOTTOM", self.Health, "TOP", 0, -10)
+
+	if C.Fade then self.fade = true end
 end
 
 -- 焦點目標 / FoT
@@ -666,27 +654,25 @@ local function CreateFoTStyle(self, unit)
 	-- 框體
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
-
-	-- 吸收盾
-	--T.CreateHealthPrediction(self, unit)
-	
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("RIGHT")
 	self.Name:SetWidth(self:GetWidth()*0.9)
-	
+	-- 圖示和標記
+	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
+
 	-- 光環
 	if UnitCanAttack("player", unit) then
 		-- 敵方顯示增益
 		T.CreateBuffs(self)
 		if C.vertTarget then
-			self.Buffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2+C.PPOffset)
+			self.Buffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
 			self.Buffs.initialAnchor = "BOTTOMLEFT"
-			self.Buffs["growth-x"] = "RIGHT"
+			self.Buffs.growthX = "RIGHT"
 		else
 			self.Buffs:SetPoint("RIGHT", self.Health, "LEFT", -6, -2)
 			self.Buffs.initialAnchor = "BOTTOMRIGHT"
-			self.Buffs["growth-x"] = "LEFT"
+			self.Buffs.growthX = "LEFT"
 		end
 		self.Buffs.num = 2
 		self.Buffs.size = C.buSize
@@ -696,13 +682,13 @@ local function CreateFoTStyle(self, unit)
 		-- 友方顯示減益
 		T.CreateDebuffs(self)
 		if C.vertTarget then
-			self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2+C.PPOffset)
+			self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
 			self.Debuffs.initialAnchor = "BOTTOMLEFT"
-			self.Debuffs["growth-x"] = "RIGHT"
+			self.Debuffs.growthX = "RIGHT"
 		else
 			self.Debuffs:SetPoint("RIGHT", self.Health, "LEFT", -6, -2)
 			self.Debuffs.initialAnchor = "BOTTOMRIGHT"
-			self.Debuffs["growth-x"] = "LEFT"
+			self.Debuffs.growthX = "LEFT"
 		end
 		self.Debuffs.num = 2
 		self.Debuffs.size = C.buSize
@@ -710,8 +696,7 @@ local function CreateFoTStyle(self, unit)
 		self.Debuffs:SetSize(C.buSize*2, C.buSize)
 	end
 
-	-- 圖示和標記
-	self.RaidTargetIndicator:SetPoint("RIGHT", self.Health, 14, 0)
+	if C.Fade then self.fade = true end
 end
 
 -- 簡易焦點目標 / Simple FoT
@@ -719,7 +704,7 @@ local function CreateSFoTStyle(self, unit)
 	self.mystyle = "S"
 	
 	-- 框體
-	self:SetSize(C.PWidth/2, C.PHeight)	-- 主框體尺寸
+	self:SetSize(C.TOTWidth, C.PHeight)	-- 主框體尺寸
 	--self:RegisterForClicks("AnyUp")
 	
 	local hl = self:CreateTexture(nil, "HIGHLIGHT")
@@ -734,7 +719,7 @@ local function CreateSFoTStyle(self, unit)
 	
 	-- 血量
 	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "LEFT")
-	self.HealthText:SetPoint("CENTER", 0, 0)
+	self.HealthText:SetPoint("LEFT", 0, 0)
 	self:Tag(self.HealthText, ">> [perhp]")
 	
 	-- 名字
@@ -746,9 +731,10 @@ local function CreateSFoTStyle(self, unit)
 	if UnitCanAttack("player", unit) then
 		-- 敵方顯示增益
 		T.CreateBuffs(self)
-		self.Buffs:SetPoint("LEFT", self.Name, "RIGHT", 2, -2)
-		self.Buffs.initialAnchor = "BOTTOMLEFT"
-		self.Buffs["growth-x"] = "RIGHT"
+		--self.Buffs:SetPoint("LEFT", self.Name, "RIGHT", 2, -2)
+		self.Buffs:SetPoint("RIGHT", self, "LEFT", -C.PPOffset, -C.PPOffset)
+		self.Buffs.initialAnchor = "RIGHT"
+		self.Buffs.growthX = "LEFT"
 		self.Buffs.num = 2
 		self.Buffs.size = C.buSize
 		self.Buffs.spacing = 5
@@ -756,9 +742,10 @@ local function CreateSFoTStyle(self, unit)
 	else
 		-- 友方顯示減益
 		T.CreateDebuffs(self)
-		self.Debuffs:SetPoint("LEFT", self.Name, "RIGHT", 2, -2)
-		self.Debuffs.initialAnchor = "BOTTOMLEFT"
-		self.Debuffs["growth-x"] = "RIGHT"
+		--self.Debuffs:SetPoint("LEFT", self.Name, "RIGHT", 2, -2)
+		self.Debuffs:SetPoint("RIGHT", self, "LEFT", -C.PPOffset, -C.PPOffset)
+		self.Debuffs.initialAnchor = "RIGHT"
+		self.Debuffs.growthX = "LEFT"
 		self.Debuffs.num = 2
 		self.Debuffs.size = C.buSize
 		self.Debuffs.spacing = 5
@@ -771,6 +758,8 @@ local function CreateSFoTStyle(self, unit)
 	RaidIcon:SetTexture(G.media.raidicon)
 	RaidIcon:SetPoint("RIGHT", self.HealthText, "LEFT", 0, 0)
 	self.RaidTargetIndicator = RaidIcon
+
+	if C.Fade then self.fade = true end
 end
 
 -- 首領 / Boss
@@ -781,9 +770,6 @@ local function CreateBossStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
 
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	
 	-- 文本
 	self.Status:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
 	self.Status:SetJustifyH("LEFT")
@@ -817,7 +803,7 @@ local function CreateBossStyle(self, unit)
 	T.CreateDebuffs(self)		
 	self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset*2+C.PPHeight)
 	self.Debuffs.initialAnchor = "LEFT"
-	self.Debuffs["growth-x"] = "RIGHT"
+	self.Debuffs.growthX = "RIGHT"
 	self.Debuffs.onlyShowPlayer = true
 	self.Debuffs.num = 3
 	self.Debuffs.size = C.buSize
@@ -828,7 +814,7 @@ local function CreateBossStyle(self, unit)
 	T.CreateBuffs(self)		
 	self.Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, C.PPOffset*2+C.PPHeight)
 	self.Buffs.initialAnchor = "RIGHT"
-	self.Buffs["growth-x"] = "LEFT"
+	self.Buffs.growthX = "LEFT"
 	self.Buffs.num = 2
 	self.Buffs.size = C.buSize
 	self.Buffs.spacing = 5
@@ -846,9 +832,6 @@ local function CreateArenaStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
 
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	
 	-- 文本
 	self.Status:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
 	self.Status:SetJustifyH("LEFT")
@@ -882,7 +865,7 @@ local function CreateArenaStyle(self, unit)
 	T.CreateDebuffs(self)
 	self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2+C.PPOffset)
 	self.Debuffs.initialAnchor = "LEFT"
-	self.Debuffs["growth-x"] = "RIGHT"
+	self.Debuffs.growthX = "RIGHT"
 	self.Debuffs.num = 4
 	self.Debuffs.size = C.buSize
 	self.Debuffs.spacing = 5
@@ -892,7 +875,7 @@ local function CreateArenaStyle(self, unit)
 	T.CreateBuffs(self)		
 	self.Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, C.PHeight/2+C.PPOffset)
 	self.Buffs.initialAnchor = "RIGHT"
-	self.Buffs["growth-x"] = "LEFT"
+	self.Buffs.growthX = "LEFT"
 	self.Buffs.num = 1
 	self.Buffs.size = C.buSize
 	self.Buffs.spacing = 5
@@ -912,27 +895,27 @@ end
 
 if C.vertPlayer then
 	oUF:RegisterStyle("Player", CreateVPlayerStyle)
-	--oUF:RegisterStyle("Pet", CreateVPetStyle)
+	oUF:RegisterStyle("Pet", CreateVPetStyle)
 else
 	oUF:RegisterStyle("Player", CreatePlayerStyle)
-	--oUF:RegisterStyle("Pet", CreatePetStyle)
+	oUF:RegisterStyle("Pet", CreatePetStyle)
 end
 
 if C.vertTarget then
 	oUF:RegisterStyle("Target", CreateVTargetStyle)
-	--oUF:RegisterStyle("ToT", CreateVToTStyle)
+	oUF:RegisterStyle("ToT", CreateVToTStyle)
 else
 	oUF:RegisterStyle("Target", CreateTargetStyle)
-	--oUF:RegisterStyle("ToT", CreateToTStyle)
+	oUF:RegisterStyle("ToT", CreateToTStyle)
 end
 
 
 if C.SimpleFocus then
 	oUF:RegisterStyle("Focus", CreateSFocusStyle)
-	--oUF:RegisterStyle("FoT", CreateSFoTStyle)
+	oUF:RegisterStyle("FoT", CreateSFoTStyle)
 else
 	oUF:RegisterStyle("Focus", CreateFocusStyle)
-	--oUF:RegisterStyle("FoT", CreateFoTStyle)
+	oUF:RegisterStyle("FoT", CreateFoTStyle)
 end
 --[[
 if C.Boss then
@@ -958,18 +941,18 @@ oUF:Factory(function(self)
 		local player = self:Spawn("player", "oUF_Player")
 		player:SetPoint(unpack(C.Position.VPlayer))
 		-- 寵物
-		--self:SetActiveStyle("Pet")
-		--local pet = self:Spawn("pet", "oUF_Pet")
-		--pet:SetPoint(unpack(C.Position.VPet))
+		self:SetActiveStyle("Pet")
+		local pet = self:Spawn("pet", "oUF_Pet")
+		pet:SetPoint(unpack(C.Position.VPet))
 	else
 		-- 玩家
 		self:SetActiveStyle("Player")
 		local player = self:Spawn("player", "oUF_Player")
 		player:SetPoint(unpack(C.Position.Player))
 		-- 寵物
-		--self:SetActiveStyle("Pet")
-		--local pet = self:Spawn("pet", "oUF_Pet")
-		--pet:SetPoint(unpack(C.Position.Pet))
+		self:SetActiveStyle("Pet")
+		local pet = self:Spawn("pet", "oUF_Pet")
+		pet:SetPoint(unpack(C.Position.Pet))
 	end
 	
 	if C.vertTarget then
@@ -978,15 +961,15 @@ oUF:Factory(function(self)
 		local target = self:Spawn("target", "oUF_Target")
 		target:SetPoint(unpack(C.Position.VTarget))
 		-- 目標的目標
-		--[[self:SetActiveStyle("ToT")
+		self:SetActiveStyle("ToT")
 		local targettarget = self:Spawn("targettarget", "oUF_ToT")
-		targettarget:SetPoint(unpack(C.Position.VTOT))]]--
+		targettarget:SetPoint(unpack(C.Position.VTOT))
 		-- 焦點
 		self:SetActiveStyle("Focus")
 		local focus = self:Spawn("focus", "oUF_Focus")
 		focus:SetPoint(unpack(C.Position.VFocus))
 		-- 焦點目標
-		--[[if C.SimpleFocus then
+		if C.SimpleFocus then
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.SFOT))
@@ -994,22 +977,22 @@ oUF:Factory(function(self)
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.VFOT))
-		end]]--
+		end
 	else
 	-- 目標
 		self:SetActiveStyle("Target")
 		local target = self:Spawn("target", "oUF_Target")
 		target:SetPoint(unpack(C.Position.Target))
 		-- 目標的目標
-		--[[self:SetActiveStyle("ToT")
+		self:SetActiveStyle("ToT")
 		local targettarget = self:Spawn("targettarget", "oUF_ToT")
-		targettarget:SetPoint(unpack(C.Position.TOT))]]--
+		targettarget:SetPoint(unpack(C.Position.TOT))
 		-- 焦點
 		self:SetActiveStyle("Focus")
 		local focus = self:Spawn("focus", "oUF_Focus")
 		focus:SetPoint(unpack(C.Position.Focus))
 		-- 焦點目標
-		--[[if C.SimpleFocus then
+		if C.SimpleFocus then
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.SFOT))
@@ -1017,7 +1000,7 @@ oUF:Factory(function(self)
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.FOT))
-		end]]--
+		end
 	end
 	--[[
 	if C.Boss then
