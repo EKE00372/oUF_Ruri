@@ -276,7 +276,7 @@ T.CreateStandaloneCastbar = function(self, unit)
 	if self.mystyle == "S" then
 		-- 簡易焦點
 		Castbar:SetSize(C.PWidth/2, C.PHeight)
-		Castbar.Icon:SetSize(C.PHeight * 1.5, C.PHeight * 1.5)
+		--Castbar.Icon:SetSize(C.PHeight * 1.5, C.PHeight * 1.5)
 		
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
@@ -287,7 +287,7 @@ T.CreateStandaloneCastbar = function(self, unit)
 	elseif self.mystyle == "H" then
 		-- 橫式
 		Castbar:SetHeight(C.PHeight)
-		Castbar.Icon:SetSize(C.PHeight, C.PHeight)
+		--Castbar.Icon:SetSize(C.PHeight, C.PHeight)
 		
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
@@ -298,8 +298,8 @@ T.CreateStandaloneCastbar = function(self, unit)
 		Castbar.Time:SetPoint("RIGHT", -5, 0)
 	else
 		-- 直式
-		Castbar:SetSize(C.PHeight, C.PWidth-C.PHeight-(C.PPOffset*2))
-		Castbar.Icon:SetSize(C.PHeight, C.PHeight)
+		Castbar:SetSize(C.PHeight, C.PWidth-(C.PHeight + C.PPHeight*2)-C.PPOffset)
+		--Castbar.Icon:SetSize(C.PHeight, C.PHeight)
 		Castbar:SetOrientation("VERTICAL")
 		
 		Castbar.Spark:SetRotation(math.rad(90))	-- spark材質也要轉90度
