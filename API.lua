@@ -10,13 +10,13 @@ local SecretValueTestMode = true
 -----------------    [[ Functions ]]    ------------------
 --======================================================--
 
-if SecretValueTestMode then
-	SetCVar("secretChallengeModeRestrictionsForced", 1)
-	SetCVar("secretCombatRestrictionsForced", 1)
-	SetCVar("secretEncounterRestrictionsForced", 1)
-	SetCVar("secretMapRestrictionsForced", 1)
-	SetCVar("secretPvPMatchRestrictionsForced", 1)
-end
+--[[
+SetCVar("secretChallengeModeRestrictionsForced", 1)
+SetCVar("secretCombatRestrictionsForced", 1)
+SetCVar("secretEncounterRestrictionsForced", 1)
+SetCVar("secretMapRestrictionsForced", 1)
+SetCVar("secretPvPMatchRestrictionsForced", 1)
+]]--
 
 -- [[ 多重條件匹配 ]] --
 
@@ -75,14 +75,16 @@ local function SpecUpdate()
 		-- 單資源專精
 		SpecBoolean = 3
 	end
-	print(SpecBoolean)
 end
 
 -- PEW和切專精時獲取當前值
 local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	frame:SetScript("OnEvent", SpecUpdate)
+	frame:SetScript("OnEvent", function(self, event, ...)
+		SpecUpdate()
+		C_Timer.After(1, function() SpecUpdate() end)
+		end)
 
 --===================================================--
 -----------------    [[ Format ]]    ------------------

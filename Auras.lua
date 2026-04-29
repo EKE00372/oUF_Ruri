@@ -171,13 +171,13 @@ end
 T.SetPosition = function(element, from, to)
 	local style = element.__owner.mystyle
 	
-	local sizex = (element.size or 16) + (element["spacing-x"] or element.spacing or 0)
-	local sizey = (element.size or 16) + (element["spacing-y"] or element.spacing or 0)
+	local sizex = (element.size or 16) + (element.spacingX  or element.spacing or 0)
+	local sizey = (element.size or 16) + (element.spacingY or element.spacing or 0)
 	
 	local anchor = element.initialAnchor or "BOTTOMLEFT"
 	
-	local growthx = (element["growth-x"] == "LEFT" and -1) or 1
-	local growthy = (element["growth-y"] == "DOWN" and -1) or 1
+	local growthx = (element.growthX == "LEFT" and -1) or 1
+	local growthy = (element.growthY == "DOWN" and -1) or 1
 	
 	local cols = math.floor(element:GetWidth() / sizex + 0.5)	-- 一行的數量
 	local rows = math.floor(element:GetHeight() / sizey + 0.5)	-- 一列的數量
@@ -351,14 +351,13 @@ T.CreateAuras = function(self, button)
 		Auras.numBuffs = 0
 		Auras.numDebuffs = 4
 		Auras.numTotal = 4
-		Auras.gap = false
 		
-		Auras.iconsPerRow = 4
 		Auras.initialAnchor = "BOTTOMLEFT"
 		Auras.tooltipAnchor = "ANCHOR_TOPRIGHT"
-		Auras["growth-x"] = "RIGHT"
-		Auras["growth-y"] = "UP"
-		Auras:SetPoint("BOTTOMLEFT", self.HealthText, "TOPLEFT", 3, 0)
+		Auras.growthX = "RIGHT"
+		Auras.growthY = "UP"
+		--Auras:SetPoint("BOTTOMLEFT", self.HealthText, "TOPLEFT", 3, 0)
+		Auras:SetPoint("BOTTOM", self, "TOP", 3, 3)
 		Auras:SetWidth(C.buSize * Auras.numTotal + Auras.spacing * (Auras.numTotal - 1))
 		Auras:SetHeight(C.buSize)
 	else
@@ -373,8 +372,8 @@ T.CreateAuras = function(self, button)
 
 			Auras.initialAnchor = "BOTTOMLEFT"
 			Auras.tooltipAnchor = "ANCHOR_TOPLEFT"
-			Auras["growth-x"] = "RIGHT"
-			Auras["growth-y"] = "UP"
+			Auras.growthX = "RIGHT"
+			Auras.growthY = "UP"
 			Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
 			Auras:SetWidth(self:GetWidth())
 			Auras:SetHeight(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
@@ -388,8 +387,8 @@ T.CreateAuras = function(self, button)
 			Auras.gap = true
 	
 			Auras.initialAnchor = "BOTTOMRIGHT"
-			Auras["growth-x"] = "LEFT"
-			Auras["growth-y"] = "UP"
+			Auras.growthX = "LEFT"
+			Auras.growthY = "UP"
 			Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
 			Auras:SetWidth(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
 			Auras:SetHeight(self:GetHeight())
@@ -400,7 +399,7 @@ T.CreateAuras = function(self, button)
 	Auras.showDebuffType = true
 	-- 註冊到ouf
 	self.Auras = Auras
-	--self.Auras.SetPosition = T.SetPosition					-- 為垂直排列重寫set position
+	self.Auras.SetPosition = T.SetPosition					-- 為垂直排列重寫set position
 	self.Auras.PostCreateButton = T.PostCreateIcon
 	self.Auras.PostUpdateButton = T.PostUpdateIcon
 	if self.mystyle ~= "S" then
