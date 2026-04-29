@@ -1,6 +1,6 @@
-## Interface: 120001, 120005
+## Interface: 120005
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R5.4
+## Version: B5.5
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
@@ -18,7 +18,7 @@ Libs\oUF_Essence.lua
 Libs\oUF_Fader.lua
 #Libs\oUF_MovableFrames.lua
 
-#Embeds\Crosshairs.lua
+Embeds\Crosshairs.lua
 #Embeds\Totems.lua
 Embeds\Auras.xml
 Embeds\Auras.lua
