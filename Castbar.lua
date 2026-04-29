@@ -3,7 +3,7 @@ local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
 local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
-local standalone = C.StandaloneCastbar
+--local standalone = C.StandaloneCastbar
 
 --=======================================================--
 -----------------    [[ Post Update ]]    -----------------
@@ -43,7 +43,7 @@ T.PostCastStart = function(element, unit)
 	local castingColor
 	local notInterruptColor
 	
-	if standalone then
+	if frame.standalone then
         -- 判斷打斷顏色
 		castingColor = CreateColor(unpack(C.CastNormal))
 		notInterruptColor = CreateColor(unpack(C.CastShield))
@@ -54,8 +54,8 @@ T.PostCastStart = function(element, unit)
 		end
 	else
 		-- 嵌入式施法條：施法開始時隱藏名字
-		frame.Name:Hide()
-		frame.Status:Hide()
+		frame.Name:SetAlpha(0)
+		frame.Status:SetAlpha(0)
         -- 判斷打斷顏色
 		castingColor = CreateColor(.6, .6, .6, .6)
 		notInterruptColor = CreateColor(.6, .1, .6, .6)
@@ -71,7 +71,7 @@ end
 
 T.PostCastStop = function(element, unit)
 	local frame = element:GetParent()
-	if standalone == true then return end
+	if frame.standalone == true then return end
 	
 	--[[if frame.mystyle == "NP" then
 		-- 使數字模式名條的名字復位
@@ -85,8 +85,8 @@ T.PostCastStop = function(element, unit)
 		frame.Status:Show()
 	end]]--
 	-- 嵌入式施法條：施法結束時顯示名字
-	frame.Name:Show()
-	frame.Status:Show()
+	frame.Name:SetAlpha(1)
+	frame.Status:SetAlpha(1)
 end
 
 -- [[ 狀態更新 ]] --
@@ -109,11 +109,11 @@ end
 T.PostCastFailed = function(element, unit)
 	local frame = element:GetParent()
 
-	if standalone == true then
-		if frame.mystyle == "BP" then
+	if frame.standalone then
+		--[[if frame.mystyle == "BP" then
 			-- 條形模式清空施法目標
 			T.ResetSpellTarget(element)
-		end
+		end]]--
 		-- 一閃而過的施法失敗紅色條
 		element:SetStatusBarColor(unpack(C.CastFailed))
 		element:SetValue(100)
@@ -122,21 +122,17 @@ T.PostCastFailed = function(element, unit)
 		--[[if frame.mystyle == "NP" then
 			-- 使數字模式名條的名字復位
 			frame.Name:SetPoint("BOTTOM", 0, 6)
-		else
-			-- 施法結束時顯示名字
-			frame.Name:Show()
-			frame.Status:Show()
-		end]]--
+		else]]--
 		-- 嵌入式施法條：施法結束時顯示名字
-		frame.Name:Show()
-		frame.Status:Show()
+        C_Timer.After(.05, function()   -- timeToHold 是0.05
+            local frame = element:GetParent()
+            frame.Name:SetAlpha(1)
+            frame.Status:SetAlpha(1)
+        end)
 		-- 一閃而過的施法失敗紅色條
 		element:SetStatusBarColor(.5, .2, .2, .6)
 		element:SetValue(100)
 		element.Spark:SetAlpha(0)
-		-- 不要顯示"被打斷"
-		element.Text:SetText("")
-		element:Show()
 	end
 end
 
@@ -171,6 +167,8 @@ end
 -- [[ 嵌入施法條 ]] --
 
 T.CreateCastbar = function(self, unit)
+    self.standalone = false
+
 	-- 創建一個條
 	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, 0, 0, 0, 0)
 	Castbar:SetAllPoints(self.Health)
@@ -186,9 +184,11 @@ T.CreateCastbar = function(self, unit)
 	--Castbar.Icon:SetSize(C.PHeight + (C.PPHeight*2), C.PHeight + (C.PPHeight*2))
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
 	-- 圖示邊框
+    --Castbar.Border = F.CreateBD(Castbar, Castbar.Icon, 1, 0, 0, 0, 1)
 	--Castbar.Border = F.CreateBD(Castbar.IconBG, Castbar.IconBG, 1, 0, 0, 0, 1)
 	-- 陰影
-	Castbar.Shadow = F.CreateSD(Castbar.IconBG, Castbar.IconBG, 4)
+    --Castbar.Shadow = F.CreateSD(Castbar, Castbar.Border, 4)
+	Castbar.Shadow = F.CreateSD(Castbar.IconBG, Castbar.IconBG, 5)
 	-- 文本
 	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
@@ -216,11 +216,12 @@ T.CreateCastbar = function(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostCastStart			-- 開始施法
+	self.Castbar.PostCastStart = T.PostCastStart			-- 施法開始
 	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
 	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
 	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
+	self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 施法中斷
 	self.Castbar.PostCastInterruptible = T.PostUpdateCast	-- 狀態刷新
 	-- 當前目標正在施法時，切換目標會重新獲取名字，防止丟失
 	self:RegisterEvent("UNIT_NAME_UPDATE", T.PostCastStopUpdate)
@@ -230,6 +231,8 @@ end
 -- [[ 獨立施法條 ]] --
 
 T.CreateStandaloneCastbar = function(self, unit)
+    self.standalone = true
+
 	-- 創建一個條
 	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, .6, .6, .6, 1)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)	
@@ -281,7 +284,7 @@ T.CreateStandaloneCastbar = function(self, unit)
 		Castbar.Time:SetPoint("RIGHT", -5, 0)
 	else
 		-- 直式
-		Castbar:SetSize(C.PHeight, C.PWidth-C.PHeight-C.PPOffset)
+		Castbar:SetSize(C.PHeight, C.PWidth-C.PHeight-(C.PPOffset*2))
 		Castbar.Icon:SetSize(C.PHeight, C.PHeight)
 		Castbar:SetOrientation("VERTICAL")
 		
@@ -301,5 +304,6 @@ T.CreateStandaloneCastbar = function(self, unit)
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
     self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
 	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
+    self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 施法中斷
 	self.Castbar.PostCastInterruptible = T.PostUpdateCast	-- 狀態更新
 end
