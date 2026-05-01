@@ -241,7 +241,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -- Blizzard aura frame --
 -------------------------
 
-	C.AuraFrames = true		-- Replace blizzard auraframe (default at topright of screen)
+	-- Replace blizzard auraframe (default at topright of screen)
+	C.AuraFrames = false
 	C.Auras = {
 		BuffSize = 32,  -- 24~50
 		BuffsPerRow = 16,
