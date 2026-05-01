@@ -46,6 +46,7 @@ T.PostCastStart = function(element, unit)
     -- 嵌入式施法條：施法開始時隱藏名字
     frame.Name:SetAlpha(0)
     frame.Status:SetAlpha(0)
+    element.Spark:SetAlpha(.8)
 
     -- 判斷打斷顏色
     castingColor = CreateColor(.6, .6, .6, .6)
@@ -140,7 +141,7 @@ T.PostStandaloneCastFailed = function(element, unit)
     -- 一閃而過的施法失敗紅色條
     element:SetStatusBarColor(unpack(C.CastFailed))
     element:SetValue(100)
-    element:Show()
+    --element:Show()
 end
 
 -- [[ 施法過程中打斷狀態更新 ]] --

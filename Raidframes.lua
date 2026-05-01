@@ -6,50 +6,24 @@ if not (C.RaidFrames or C.PartyFrames) then return end
 
 -- Hide Default RaidFrame
 -- do not ban the CompactRaidFrameManager, just keep it and hide raidframes at default
-do
+--[[do
 	if C.RaidFrames then
 		for i = 1, 8 do
 			CompactRaidFrameManager_ToggleGroupFilter(i)
 		end
 	end
-end
-
+end]]--
+--[[
 local function ClassAuraFilter(self, unit, data)
 	if C.RaidBuffList[data.spellId] then
 		return true
 	end
 end
-
+]]--
 --====================================================--
 -----------------    [[ Function ]]    -----------------
 --====================================================--
 
--- 離線等同超距
---[[local function UpdateOffline(self, parent, inRange, checkedRange, isConnected)
-	if not isConnected then
-		parent:SetAlpha(self.outsideAlpha)
-	end
-end]]--
-
--- 職業顏色映射至背景
-local function PostUpdateColor(self, unit, r, g, b)
-	local r, g, b, t
-	
-	if UnitIsPlayer(unit) then
-		local class = select(2, UnitClass(unit))
-		t = oUF.colors.class[class]
-	else		
-		r, g, b = .2, .9, .1
-	end
-
-	if(t) then
-		r, g, b = t[1], t[2], t[3]
-	end
-
-	if(b) then
-		self.bg:SetVertexColor(r, g, b, 1)
-	end
-end
 
 -- 目標高亮
 local function UpdateTargetBorder(self, event, unit)
@@ -104,7 +78,7 @@ local function CreateAuras(self)
 	self.Auras = Auras
 	self.Auras.PostCreateButton = T.PostCreateIcon
 	self.Auras.PostUpdateButton = T.PostUpdateIcon
-	self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
+	--self.Auras.FilterAura = T.CustomFilter				-- 光環過濾
 end
 
 -- 隊伍增益光環
@@ -130,7 +104,7 @@ local function CreatePartyBuffs(self)
 	self.Buffs = Buffs
 	self.Buffs.PostCreateButton = T.PostCreateIcon
 	self.Buffs.PostUpdateButton = T.PostUpdateIcon
-	self.Buffs.FilterAura = ClassAuraFilter				-- 光環過濾
+	--self.Buffs.FilterAura = ClassAuraFilter				-- 光環過濾
 end
 
 -- 專用的樣式
@@ -190,34 +164,30 @@ local function CreateRaid(self, unit)
 	local Health = F.CreateStatusbar(self, G.addon..unit.."_HealthBar", "ARTWORK", nil, nil, 1, 0, 0, 1)
 	Health:SetAllPoints(self)
 	Health:SetFrameLevel(self:GetFrameLevel())
-	Health:SetReverseFill(true)
 	-- 選項
-	Health.colorSmooth = true			-- 血量漸變色
-	Health.smoothGradient = {1, 0, 0, 1, .8, .1, 1, .8, .1}
+	Health.colorClass = true
 	-- 背景
-	Health.bg = Health:CreateTexture(nil, "BACKGROUND")
-	Health.bg:SetAllPoints()
-	Health.bg:SetTexture(G.media.raidbar)
+	local bg = Health:CreateTexture(nil, "BACKGROUND")
+	bg:SetTexture(G.media.raidbar)
+	Health.bg = bg
 	-- 陰影和邊框
 	Health.border = CreateSD(Health, Health, 5)
 	-- 註冊到OUF
 	self.Health = Health
-	self.Health.PreUpdate = T.OverrideHealthbar		-- 更新機制：損血量
 	self.Health.PostUpdate = T.PostUpdateHealth		-- 更新機制：顯示損血量，使血量漸變色和透明度隨損血量改變
-	self.Health.PostUpdateColor = PostUpdateColor	-- 職業顏色映射至背景
 	-- 目標高亮
-	self:RegisterEvent("PLAYER_TARGET_CHANGED", UpdateTargetBorder, true)
-	self:RegisterEvent("GROUP_ROSTER_UPDATE", UpdateTargetBorder, true)
+	--self:RegisterEvent("PLAYER_TARGET_CHANGED", UpdateTargetBorder, true)
+	--self:RegisterEvent("GROUP_ROSTER_UPDATE", UpdateTargetBorder, true)
 	-- 仇恨高亮
-	local threat = CreateFrame("Frame", nil, self)
-	self.ThreatIndicator = threat
-	self.ThreatIndicator.Override = UpdateThreatBorder
+	--local threat = CreateFrame("Frame", nil, self)
+	--self.ThreatIndicator = threat
+	--self.ThreatIndicator.Override = UpdateThreatBorder
 	
 	local Power = F.CreateStatusbar(self, G.addon..unit.."_PowerBar", "ARTWORK", nil, nil, 1, 1, 1, 1)
 	Power:SetHeight(C.RPHeight)
 	Power:SetPoint("BOTTOMLEFT", self.Health, 0, -(C.RPHeight+1))	-- 與血量條等寬
 	Power:SetPoint("BOTTOMRIGHT", self.Health, 0, -(C.RPHeight+1))
-	Power:SetFrameLevel(self:GetFrameLevel()+3)
+	Power:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
 	Power.frequentUpdates = true
 	Power.colorPower = true
@@ -303,28 +273,24 @@ end
 
 local function CreatePartyStyle(self, unit)
 	self.mystyle = "R"
-	self.Range = {
-		insideAlpha = 1, outsideAlpha = .5,
-	}
-
+	--self.Range = {
+		--insideAlpha = 1, outsideAlpha = .5,
+	--}
+	
 	-- 框體
-	CreateRaid(self, unit)				-- 繼承通用樣式	
+	CreateRaid(self, unit)						-- 繼承通用樣式	
 	self:SetSize(C.PartyWidth, C.PartyHeight)	-- 主框體尺寸
 	-- 死亡背景
 	self.DeadSkull:SetPoint("CENTER", -10, 0)
 	
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
-	--self.HealthPrediction.absorbBar:SetWidth(C.PartyWidth)
-	--self.HealthPrediction.overAbsorb:SetWidth(C.PartyWidth)
 	-- 減益
-	CreateAuras(self)
+	--CreateAuras(self)
 	-- 增益
-	CreatePartyBuffs(self)
+	--CreatePartyBuffs(self)
 
-	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
-	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
-	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, 3, 8)
+	--self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
+	--self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
+	--self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, 3, 8)
 end
 
 local function CreateRaidStyle(self, unit)
@@ -370,6 +336,7 @@ end
 -- 生成
 
 oUF:Factory(function(self)
+	
 	local partyAnchor = CreateFrame("Frame", nil, UIParent)
 	partyAnchor:SetSize(20, 20)
 	partyAnchor:ClearAllPoints()
