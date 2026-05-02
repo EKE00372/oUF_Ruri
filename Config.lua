@@ -21,8 +21,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- NOTE: ture = enable, false = disable / enable = 啟用，disable = 停用
 	C.UnitFrames = true		-- Enable Unitframes  / 啟用單位框架
-	C.RaidFrames = false	-- Enable Raidframes / 啟用團隊框架
-	C.PartyFrames = false	-- Enable Partyframes / 啟用隊伍框架
+	C.RaidFrames = true	-- Enable Raidframes / 啟用團隊框架
+	C.PartyFrames = true	-- Enable Partyframes / 啟用隊伍框架
 	C.Nameplates = false		-- Enable Nameplates/ 啟用名條
 
 -------------
@@ -47,6 +47,9 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		arrows = MediaFolder.."crosshair_arrows.blp",
 		
 		role = MediaFolder.."UI-LFG-ICON-PORTRAITROLES.blp", -- from matty's texture
+		role_dps = MediaFolder.."role_DPS.tga",
+		role_tank = MediaFolder.."role_Tank.tga",
+		role_healer = MediaFolder.."role_Healer.tga",
 	}
 
 -----------
@@ -75,8 +78,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.vertTarget = true			-- Vertical Target and ToT frame / 直式目標頭
 	C.SimpleFocus = true		-- Simply show fucos as simple number style / 簡易模式：數字形式的焦點目標
 	
-	C.Boss = false				-- Enable Boss frame / 首領
-	C.Arena = false				-- Enable Brena frame / 競技場
+	C.Boss = true				-- Enable Boss frame / 首領
+	C.Arena = true				-- Enable Brena frame / 競技場
 	
 	-- Size / 大小
 	C.PWidth = 220				-- Player/Target/Focus frame width / 主框體寬度：玩家/目標/焦點
@@ -124,7 +127,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	--C.bAuSize = 20				-- Middle big aura size
 	C.RangeAlpha = 0.4			-- Alpha for out of range units / 超距離淡出透明度
 	
-	C.PartyWidth = 162			-- Party frame width / 隊伍寬度
+	C.PartyWidth = 156			-- Party frame width / 隊伍寬度
 	C.PartyHeight = 44			-- Party frame height / 隊伍高度
 	
 	C.PartyPHeight = 2			-- Party frame power height / 隊伍能量條高度
@@ -209,7 +212,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		VFocus	= {"CENTER", 0, -250},
 		VFOT	= {"LEFT", "oUF_Focus", "RIGHT", C.PPOffset * 2, 0},
 		
-		-- 簡易焦點 / Simple style focus target postion
+		-- 簡易焦點目標 / Simple style focus target postion
 		SFOT	= {"TOP", "oUF_Focus", "BOTTOM", C.BWidth/4, -C.PPOffset},
 
 		-- [[ Other / 其他 ]] --
@@ -218,7 +221,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		Arena	= {"LEFT", 10, 80},
 		
 		-- [[ Groups / 團隊 ]] --
-		Party	= {"CENTER", UIParent, 500, 120},
+		Party	= {"CENTER", UIParent, 570, 120},
 		Raid	= {"CENTER", UIParent, 340, -160},
 		
 		-- [[ Player plate / 玩家個人資源 ]] --
@@ -242,7 +245,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -------------------------
 
 	-- Replace blizzard auraframe (default at topright of screen)
-	C.AuraFrames = false
+	C.AuraFrames = true
 	C.Auras = {
 		BuffSize = 32,  -- 24~50
 		BuffsPerRow = 16,

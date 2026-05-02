@@ -9,9 +9,8 @@ local GetTime, format = GetTime, format
 local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
 
 -- 在 CreateCastbar 等創建元素的的 function 裡，self.Castbar 中的 self 指的是頭像本身
--- 而在施法條、光環、副資源等元素的 PostUpdate 中，self 指的是 self.Castbar，即施法條元素自身
+-- 而在施法條、光環、副資源等元素的 PostUpdate 中，self 指的是施法條等元素自身
 -- 為了防止搞混，PostUpdate 寫為 function(element, unit)
-
 
 --===================================================--
 -----------------    [[ General ]]    -----------------
@@ -19,20 +18,23 @@ local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
 
 -- [[ 通用的 multiplier postupdate ]] -- 
 
-T.PostUpdatemMultiBGColor = function(element, arg1, arg2)
+T.PostUpdateColor_ElementMultiBGColor = function(element, color)
 	if not element.bg then return end
 
-	local r, g, b
-	if arg2 == nil then
-		r, g, b = arg1:GetRGB() -- function(element, color)
-	else
-		r, g, b = arg2:GetRGB() -- function(element, unit, color)
-	end
+	local r, g, b = color:GetRGB()
+	local mu = element.bg.multiplier or 0.3
+	
+	element.bg:SetVertexColor(r * mu, g * mu, b * mu)
+	
+end
 
-	if element.bg then
-		local mu = element.bg.multiplier or 0.3
-		element.bg:SetVertexColor(r * mu, g * mu, b * mu)
-	end
+T.PostUpdateColor_MultiBGColor = function(element, unit, color)
+	if not element.bg then return end
+
+	local r, g, b = color:GetRGB()
+	local mu = element.bg.multiplier or 0.3
+	
+	element.bg:SetVertexColor(r * mu, g * mu, b * mu)
 end
 
 --==================================================--
@@ -69,7 +71,15 @@ T.CombatPostUpdate = function(element, inCombat)
 	end
 end
 ]]--
-
+--[[
+T.PostUpdateResting = function(element, isResting)
+	if isResting then
+		element:SetAlpha(1)
+	else
+		element:SetAlpha(0)
+	end
+end
+]]--
 --==================================================================--
 ------------------    [[ Resource: Post update ]]    -----------------
 --==================================================================--
@@ -307,7 +317,7 @@ T.CreateAddPower = function(self, unit)
 	AddPower.border = F.CreateSD(AddPower, AddPower, 4)
 	-- 註冊到ouf
 	self.AdditionalPower = AddPower
-	self.AdditionalPower.PostUpdateColor = T.PostUpdatemMultiBGColor
+	self.AdditionalPower.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
 	-- 文本
 	self.AdditionalPower.value = F.CreateText(self.AdditionalPower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 end
@@ -337,16 +347,15 @@ T.CreateAltPowerBar = function(self, unit)
 	end
 	
 	-- 背景
-	AltPower.bg = F.CreateBD(AltPower, AltPower, 1, .15, .15, .15, .6)
+	AltPower.bg = F.CreateBD(AltPower, AltPower, 1, .15, .15, .15, .6, 1)
 	-- 陰影
 	AltPower.border = F.CreateSD(AltPower, AltPower, 4)
 	-- 註冊到ouf
 	self.AlternativePower = AltPower
 	self.AlternativePower.PostUpdate = T.PostUpdateAltPower
-	--self.AlternativePower.PostUpdateColor = T.PostUpdatemMultiBGColor
+	--self.AlternativePower.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
 	-- 文本
 	self.AlternativePower.value = F.CreateText(self.AlternativePower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
-	--self:Tag(self.AlternativePower.value, "[altpower]") --不用這個，用postupdate
 end
 
 -- [[ 酒池 ]] --
@@ -387,7 +396,7 @@ T.CreateStagger = function(self, unit)
 	-- 註冊到ouf
 	self.Stagger = Stagger
 	self.Stagger.PostUpdate = T.PostUpdateStagger
-	self.Stagger.PostUpdateColor = T.PostUpdatemMultiBGColor
+	self.Stagger.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
 end
 
 

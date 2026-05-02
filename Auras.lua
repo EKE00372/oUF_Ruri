@@ -58,7 +58,7 @@ T.PostCreateIcon = function(element, button)
 	button.Overlay:Hide()
 	button.Overlay = nil
 	-- 邊框
-	button.border = F.CreateBD(button, button, 1, .2, .2, .2, 1)
+	button.border = F.CreateBD(button, button, 1, .2, .2, .2, 1, 1)
 	-- 陰影
 	button.shadow = F.CreateSD(button, button.border, 3)
 
@@ -310,8 +310,30 @@ end
 
 T.CreateDebuffs = function(self, button)
 	local Debuffs = CreateFrame("Frame", nil, self)
-	Debuffs.spacing = 6
 	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
+
+	if self.mystyle == "S" then
+		-- Simple focus
+		Debuffs.num = 4
+		Debuffs.spacing = 5
+		Debuffs.size = C.buSize
+		Debuffs.tooltipAnchor = "ANCHOR_TOPRIGHT"
+		Debuffs.growthX = "RIGHT"
+		Debuffs.growthY = "UP"
+		Debuffs:SetWidth(C.buSize * Debuffs.num + Debuffs.spacing * (Debuffs.num - 1))
+		Debuffs:SetHeight(C.buSize)
+	elseif self.mystyle == "R" then
+		-- Raid/Party
+		Debuffs.num = 4
+		Debuffs.spacing = 4
+		Debuffs.size = C.sAuSize
+		Debuffs.disableMouse = true
+		Debuffs.tooltipAnchor = "ANCHOR_TOPLEFT"
+		Debuffs.growthX = "RIGHT"
+		Debuffs.growthY = "UP"
+		Debuffs:SetWidth(C.sAuSize*5 + Debuffs.spacing * 4)
+		Debuffs:SetHeight(C.sAuSize + Debuffs.spacing*2)
+	end
 	
 	-- 選項
 	Debuffs.showDebuffType = true
@@ -346,53 +368,36 @@ T.CreateAuras = function(self, button)
 	Auras.size = C.buSize
 	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
 	
-	if self.mystyle == "S" then
-		-- Simple focus
-		Auras.numBuffs = 0
-		Auras.numDebuffs = 4
-		Auras.numTotal = 4
+	if self.mystyle == "H" then
+		-- Player/Target/Focus
+		local iconsPerLine = math.floor(self:GetWidth() / (C.buSize + Auras.spacing) + 0.5)
 		
-		Auras.initialAnchor = "BOTTOMLEFT"
-		Auras.tooltipAnchor = "ANCHOR_TOPRIGHT"
+		Auras.numBuffs = iconsPerLine
+		Auras.numDebuffs = C.maxAura
+		Auras.numTotal = C.maxAura
+		Auras.gap = true
+
+		Auras.tooltipAnchor = "ANCHOR_TOPLEFT"
 		Auras.growthX = "RIGHT"
 		Auras.growthY = "UP"
-		--Auras:SetPoint("BOTTOMLEFT", self.HealthText, "TOPLEFT", 3, 0)
-		Auras:SetPoint("BOTTOM", self, "TOP", 3, 3)
-		Auras:SetWidth(C.buSize * Auras.numTotal + Auras.spacing * (Auras.numTotal - 1))
-		Auras:SetHeight(C.buSize)
+		Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
+		Auras:SetWidth(self:GetWidth())
+		Auras:SetHeight(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
 	else
-		if self.mystyle == "H" then
-			-- Player/Target/Focus
-			local iconsPerLine = math.floor(self:GetWidth() / (C.buSize + Auras.spacing) + 0.5)
-			
-			Auras.numBuffs = iconsPerLine
-			Auras.numDebuffs = C.maxAura
-			Auras.numTotal = C.maxAura
-			Auras.gap = true
+		-- VL=Player/VR=Target
+		local iconsPerLine = math.floor(self:GetHeight() / (C.buSize + Auras.spacing) + 0.5)
+		
+		Auras.numBuffs = iconsPerLine
+		Auras.numDebuffs = C.maxAura
+		Auras.numTotal = C.maxAura
+		Auras.gap = true
 
-			Auras.initialAnchor = "BOTTOMLEFT"
-			Auras.tooltipAnchor = "ANCHOR_TOPLEFT"
-			Auras.growthX = "RIGHT"
-			Auras.growthY = "UP"
-			Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
-			Auras:SetWidth(self:GetWidth())
-			Auras:SetHeight(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
-		else
-			-- VL=Player/VR=Target
-			local iconsPerLine = math.floor(self:GetHeight() / (C.buSize + Auras.spacing) + 0.5)
-			
-			Auras.numBuffs = iconsPerLine
-			Auras.numDebuffs = C.maxAura
-			Auras.numTotal = C.maxAura
-			Auras.gap = true
-	
-			Auras.initialAnchor = "BOTTOMRIGHT"
-			Auras.growthX = "LEFT"
-			Auras.growthY = "UP"
-			Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
-			Auras:SetWidth(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
-			Auras:SetHeight(self:GetHeight())
-		end
+		Auras.initialAnchor = "BOTTOMRIGHT"
+		Auras.growthX = "LEFT"
+		Auras.growthY = "UP"
+		Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
+		Auras:SetWidth(C.buSize * (Auras.numTotal/iconsPerLine) + Auras.spacing * (Auras.numTotal/iconsPerLine-1))
+		Auras:SetHeight(self:GetHeight())
 	end
 	
 	-- 選項
