@@ -12,7 +12,7 @@ local UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName = Uni
 -----------------    [[ Colors ]]    -----------------
 --==================================================--
 
--- [[ 血量 ]] --
+-- [[ Health color gardient ]] --
 
 oUF.colors.health:SetCurve({
 	[ 0] = CreateColor(1, 0, 0),
@@ -20,7 +20,7 @@ oUF.colors.health:SetCurve({
 	[ 1] = CreateColor(1, .8, .1),
 })
 
--- [[ 職業 ]] --
+-- [[ Class color ]] --
 
 oUF.colors.class["SHAMAN"] = oUF:CreateColor(0, .6, 1)
 oUF.colors.class["MAGE"] = oUF:CreateColor(.48, .84, .94)
@@ -28,18 +28,19 @@ oUF.colors.class["DEATHKNIGHT"] = oUF:CreateColor(1, .23, .23)
 oUF.colors.class["DEMONHUNTER"] = oUF:CreateColor(.74, .35, .95)
 oUF.colors.class["EVOKER"] = oUF:CreateColor(.33, .68, .68)
 
--- [[ 威脅 ]] --
+-- [[ Threat color ]] --
 
 oUF.colors.threat[0] = oUF:CreateColor(.1, .7, .9) -- 非當前仇恨，低威脅值
 oUF.colors.threat[1] = oUF:CreateColor(.4, .1, .9) -- 非當前仇恨，但已OT即將獲得仇恨，或坦克正在獲得仇恨
 oUF.colors.threat[2] = oUF:CreateColor(.9, .1, .9) -- 當前仇恨，但不穩，已被OT或坦克正在丟失仇恨 (over threat 遠程130/近戰110)
 oUF.colors.threat[3] = oUF:CreateColor(.9, .1, .4) -- 當前仇恨，威脅值穩定
 
--- [[ 光環 ]] --
+-- [[ Aura type color ]] --
 
 oUF.colors.dispel[oUF.Enum.DispelType.None] = oUF:CreateColor(.9, .05, .05)
+oUF.colors.dispel[oUF.Enum.DispelType.Disease] = oUF:CreateColor(.8, .5, .2)
 
--- [[ 能量 ]] --
+-- [[ Power type color ]] --
 
 local function ReplacePowerColor(name, index, r, g, b)
 	oUF.colors.power[name] = oUF:CreateColor(r, g, b)
@@ -60,7 +61,7 @@ ReplacePowerColor("ESSENCE", 19, .02, .9, .9)				-- 19 喚能師 龍能
 oUF.colors.power["FUEL"] = oUF:CreateColor(0, .75, .7)		-- 同時用於npc無屬能量
 oUF.colors.power["AMMOSLOT"] = oUF:CreateColor(.8, .6, 0)
 
--- [[ 陣營 ]] --
+-- [[ Faction color ]] --
 
 oUF.colors.reaction[1] = oUF:CreateColor(1, .12, .25)
 oUF.colors.reaction[2] = oUF:CreateColor(1, .12, .25)
@@ -85,6 +86,27 @@ oUF.colors.reaction[8] = oUF:CreateColor(.26, 1, .22)
 	["DEATHKNIGHT"] = { r = 0.77, g = 0.12 , b = 0.23 },
 ]]--
 
+-- [[ Name colored by Player class and NPC faction ]] --
+
+oUF.Tags.Methods["namecolor"] = function(unit, r)
+	local reaction = UnitReaction(unit, "player")
+	local _, class = UnitClass(unit)
+	local color = oUF.colors.class[class]
+
+	if UnitIsTapDenied(unit) then
+		return F.Hex(oUF.colors.tapped)
+	--elseif UnitIsPlayer(unit) or UnitPlayerControlled(unit) then
+	elseif UnitIsPlayer(unit) then
+		return F.Hex(color)
+	elseif reaction then
+		return F.Hex(oUF.colors.reaction[reaction])
+	else
+		return F.Hex(1, 1, 1)
+	end
+end
+oUF.Tags.Events["namecolor"] = "UNIT_NAME_UPDATE UNIT_FACTION"
+
+
 --==================================================--
 -----------------    [[ Status ]]    -----------------
 --==================================================--
@@ -102,6 +124,7 @@ end
 oUF.Tags.Events["quest"] = "UNIT_CLASSIFICATION_CHANGED"
 
 -- [[ 死亡 ]] --
+
 oUF.Tags.Methods["deadskull"] = function(unit)
 	local dead = UnitIsDead(unit) or UnitIsGhost(unit)
 	if dead then
@@ -171,9 +194,7 @@ oUF.Tags.Methods["unit:pp"]  = function(unit)
 end
 oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
 
-
 -- [[ Nameplates ]] --
-
 
 -- bar style nameplates
 oUF.Tags.Methods["bp:hp"] = function(unit)
@@ -232,10 +253,6 @@ oUF.Tags.Methods["np:hp"] = function(unit)
 end
 oUF.Tags.Events["np:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
--- [[ 能量 ]] --
-
--- unitframes
-
 
 -- nameplates
 oUF.Tags.Methods["np:pp"] = function(unitnit)
@@ -275,25 +292,6 @@ oUF.Tags.Methods["np:ab"] = function(unit)
 end
 oUF.Tags.Events["np:ab"] = "UNIT_ABSORB_AMOUNT_CHANGED"
 
--- [[ 名字顏色 ]] --
-
-oUF.Tags.Methods["namecolor"] = function(unit, r)
-	local reaction = UnitReaction(unit, "player")
-	local _, class = UnitClass(unit)
-	local color = oUF.colors.class[class]
-
-	if UnitIsTapDenied(unit) then
-		return F.Hex(oUF.colors.tapped)
-	--elseif UnitIsPlayer(unit) or UnitPlayerControlled(unit) then
-	elseif UnitIsPlayer(unit) then
-		return F.Hex(color)
-	elseif reaction then
-		return F.Hex(oUF.colors.reaction[reaction])
-	else
-		return F.Hex(1, 1, 1)
-	end
-end
-oUF.Tags.Events["namecolor"] = "UNIT_NAME_UPDATE UNIT_FACTION"
 
 -- [[ 單位的目標 ]] --
 
