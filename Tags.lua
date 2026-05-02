@@ -138,14 +138,14 @@ oUF.Tags.Events["deadskull"] = "UNIT_HEALTH"
 
 -- [[ 狀態 ]] --
 
-oUF.Tags.Methods["afkdnd"] = function(unitnit)
+oUF.Tags.Methods["afkdnd"] = function(unit)
 	if not unit then return end
 	
-	if UnitIsAFK(unitnit) then					-- 暫離
+	if UnitIsAFK(unit) then					-- 暫離
 		return "|T"..FRIENDS_TEXTURE_AFK..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif UnitIsDND(unitnit) then				-- 忙錄
+	elseif UnitIsDND(unit) then				-- 忙錄
 		return "|T"..FRIENDS_TEXTURE_DND..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif (not UnitIsConnected(unitnit)) then	-- 離線
+	elseif (not UnitIsConnected(unit)) then	-- 離線
 		return "|T"..FRIENDS_TEXTURE_OFFLINE..":14:14:0:0:16:16:1:15:1:15|t"
 	end
 end

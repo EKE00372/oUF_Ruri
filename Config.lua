@@ -23,7 +23,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.UnitFrames = true		-- Enable Unitframes  / 啟用單位框架
 	C.RaidFrames = true	-- Enable Raidframes / 啟用團隊框架
 	C.PartyFrames = true	-- Enable Partyframes / 啟用隊伍框架
-	C.Nameplates = false		-- Enable Nameplates/ 啟用名條
+	C.Nameplates = true		-- Enable Nameplates/ 啟用名條
 
 -------------
 -- Texture --
@@ -221,7 +221,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		Arena	= {"LEFT", 10, 80},
 		
 		-- [[ Groups / 團隊 ]] --
-		Party	= {"CENTER", UIParent, 570, 120},
+		Party	= {"CENTER", UIParent, 530, 120},
 		Raid	= {"CENTER", UIParent, 340, -160},
 		
 		-- [[ Player plate / 玩家個人資源 ]] --
