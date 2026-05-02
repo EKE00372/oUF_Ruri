@@ -12,7 +12,6 @@ if not C.UnitFrames then return end
 local function CreateUnitShared(self, unit)
 
 	-- [[ 前置作業 ]] --	
-	local u = unit:match("[^%d]+") -- boss1 -> boss
 	self:RegisterForClicks("AnyUp")	-- Make mouse active
 	
 	-- [[ 高亮 ]] --
@@ -52,7 +51,7 @@ local function CreateUnitShared(self, unit)
 	-- 背景
 	local bg = Health:CreateTexture(nil, "BACKGROUND")
     bg:SetTexture(G.media.blank)
-	-- 背景的位置：在反轉血量條中，血條是透明的，背景才是表示血量的實質，其長度依附於血量條本體，隨血量而變化
+	-- 背景的位置：在反轉血量條中，血條是透明的，背景才是表示血量的實體，因此將長度依附於血量條本體，尺寸隨血量而變化
     if self.mystyle == "VL" or self.mystyle == "VR" then
 		-- 直式血條：由下往上
 		bg:SetPoint("BOTTOMLEFT", Health:GetStatusBarTexture(), "TOPLEFT", 0, 0)
@@ -107,7 +106,7 @@ local function CreateUnitShared(self, unit)
 	Power.border = F.CreateSD(Power, Power, 4)
 	-- 註冊到ouf
 	self.Power = Power
-	self.Power.PostUpdateColor = T.PostUpdatemMultiBGColor	-- 背景顏色
+	self.Power.PostUpdateColor = T.PostUpdateColor_MultiBGColor	-- 背景顏色
 
 	-- [[ 圖示 ]] --
 	
@@ -135,12 +134,11 @@ local function CreateUnitShared(self, unit)
 	Combat:SetTexture(G.media.combat)
 	Combat:SetVertexColor(1, 1, 0)
 	self.CombatIndicator = Combat
-	--self.CombatIndicator.PostUpdate = T.CombatPostUpdate
 	-- 休息狀態
-	--[[local Resting = StringParent:CreateTexture(nil, "OVERLAY")
-	Resting:SetSize(20, 20)
-	Resting:SetTexture(G.media.resting)
-	self.RestingIndicator = Resting]]--
+	--local Resting = StringParent:CreateTexture(nil, "OVERLAY")
+	--Resting:SetSize(20, 20)
+	--Resting:SetTexture(G.media.resting)
+	--self.RestingIndicator = Resting
 	-- 位面狀態
 	local Phase = StringParent:CreateTexture(nil, "OVERLAY")
 	Phase:SetSize(20, 20)
@@ -499,8 +497,10 @@ local function CreateSFocusStyle(self, unit)
 	self.PowerText:SetPoint("TOPLEFT", self.Status, "BOTTOMLEFT", 0, -2)
 	self:Tag(self.PowerText, "[unit:pp]")
 	
-	T.CreateAuras(self, unit)
-	
+	T.CreateDebuffs(self, unit)
+	--self.Debuffs:SetPoint("BOTTOMLEFT", self.HealthText, "TOPLEFT", 3, 0)
+	self.Debuffs:SetPoint("BOTTOM", self, "TOP", 3, 3)
+
 	-- 施法條
 	T.CreateStandaloneCastbar(self, unit)
 	self.Castbar.IconBG:SetPoint("RIGHT", self, "LEFT", -2, -2)
@@ -917,7 +917,7 @@ else
 	oUF:RegisterStyle("Focus", CreateFocusStyle)
 	oUF:RegisterStyle("FoT", CreateFoTStyle)
 end
---[[
+
 if C.Boss then
 	oUF:RegisterStyle("Boss", CreateBossStyle)
 end
@@ -925,7 +925,7 @@ end
 if C.Arena then
 	oUF:RegisterStyle("Arena", CreateArenaStyle)
 end
-]]--
+
 --===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
@@ -1002,7 +1002,7 @@ oUF:Factory(function(self)
 			focustarget:SetPoint(unpack(C.Position.FOT))
 		end
 	end
-	--[[
+	
 	if C.Boss then
 		-- 首領
 		self:SetActiveStyle("Boss")
@@ -1031,5 +1031,5 @@ oUF:Factory(function(self)
 			end
 			arena[i] = unit
 		end
-	end]]--
+	end
 end)

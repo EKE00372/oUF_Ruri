@@ -29,5 +29,5 @@ Auras.lua
 Elements.lua
 
 Unitframes.lua
-#Raidframes.lua
+Raidframes.lua
 #Nameplates.lua

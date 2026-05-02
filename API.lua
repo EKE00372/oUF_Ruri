@@ -213,7 +213,7 @@ end
 -- [[ 背景與邊框 ]] --
 
 -- 格式：父級框體，錨點，大小，紅，綠，藍，透明度
-F.CreateBD = function(parent, anchor, size, r, g, b, a)
+F.CreateBD = function(parent, anchor, size, r, g, b, a1, a2)
 	local bd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	local framelvl = parent:GetFrameLevel()
 	
@@ -226,8 +226,8 @@ F.CreateBD = function(parent, anchor, size, r, g, b, a)
 		edgeFile = G.media.blank,	-- 邊框
 		edgeSize = size or 1,		-- 邊框大小
 		})
-	bd:SetBackdropColor(r or 0, g or 0, b or 0, a or 0)
-	bd:SetBackdropBorderColor(r or 0, g or 0, b or 0, a or 0)
+	bd:SetBackdropColor(r or 0, g or 0, b or 0, a1 or 0)
+	bd:SetBackdropBorderColor(r or 0, g or 0, b or 0, a2 or 1)
 	
 	return bd
 end
@@ -235,7 +235,7 @@ end
 -- [[ 陰影 ]] --
 
 -- 格式：父級框體，錨點，大小
-F.CreateSD = function(parent, anchor, size)
+F.CreateSD = function(parent, anchor, size, r, g, b, a)
 	local sd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	local framelvl = parent:GetFrameLevel()
 	
@@ -249,7 +249,7 @@ F.CreateSD = function(parent, anchor, size)
 	})
 	--sd:SetBackdropColor(0, 0, 0, 1)
 	--sd:SetBackdropBorderColor(0, 0, 0, 1)
-	sd:SetBackdropBorderColor(.05, .05, .05, 1)
+	sd:SetBackdropBorderColor(r or 0.05, g or 0.05, b or 0.05, a or 1)
 	
 	return sd
 end
