@@ -4,14 +4,23 @@ local C, F, G, T = unpack(ns)
 
 if not (C.RaidFrames or C.PartyFrames) then return end
 
-
 -- Hide Default CompactRaidFrame and keep CompactRaidFrameManager
---[[do
-	oUF:DisableBlizzard('raid')
-	oUF:DisableBlizzard('party')
-end]]--
+do
+    local function HideRaid()
+        if C.RaidFrames and CompactRaidFrameContainer then
+            CompactRaidFrameContainer:UnregisterAllEvents()
+            CompactRaidFrameContainer:Hide()
+        end
+        if C.PartyFrames and CompactPartyFrame then
+            CompactPartyFrame:UnregisterAllEvents()
+            CompactPartyFrame:Hide()
+        end
+    end
 
--- Deja PRFader
+	hooksecurefunc("CompactRaidFrameManager_UpdateShown",function() HideRaid() end)
+end
+
+-- Manager fader code frome Deja PRFader
 do
 	local function WaitForMouseToGoAway(self)
 		if not self:IsMouseOver() then
@@ -349,14 +358,45 @@ end
 --===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
--- 生成
-
 
 oUF:Factory(function(self)
-	
 	-- as same as default partyframe, it dont have self unitframe
 	if C.PartyFrames then
+		local partyAnchor = CreateFrame("Frame", nil, UIParent)
+		partyAnchor:SetSize(20, 20)
+		partyAnchor:ClearAllPoints()
+		partyAnchor:SetPoint(unpack(C.Position.Party))
 		
+		self:SetActiveStyle("Party")
+		local party = self:SpawnHeader("oUF_Party", nil,
+			"showSolo",			false,
+			"showParty",		true,
+			"showRaid",			false,
+			"showPlayer",		true,
+
+			"point",			"TOP",
+			"columnAnchorPoint","LEFT",
+
+			"sortMethod",		"INDEX", -- or "NAME"
+			"startingIndex",	1,
+			
+			"unitsPerColumn",	5,
+			"columnSpacing",	C.RSpace,
+			"xoffset",			C.RSpace,
+			"yOffset",			-(C.RSpace+C.RPHeight+2),	-- power hight and 2px border
+			
+			"templateType",		"Button",
+			"oUF-initialConfigFunction", ([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+			]]):format(C.PartyWidth, C.PartyHeight)
+		)
+		party:SetVisibility("party")
+
+		party:SetPoint("TOPLEFT", partyAnchor, "BOTTOMRIGHT", -20, 4)
+
+		--[[
+		-- as same as default partyframe, it dont have self unitframe
 		self:SetActiveStyle("Party")
 		local party = {}
 		for i = 1, 4 do
@@ -367,6 +407,56 @@ oUF:Factory(function(self)
 				unit:SetPoint("TOP", party[i-1], "BOTTOM", 0, -(C.RSpace+C.RPHeight+2))
 			end
 			party[i] = unit
-		end
+		end]]--
 	end
+
+	if C.RaidFrames then
+        local raidAnchor = CreateFrame("Frame", nil, UIParent)
+        raidAnchor:SetSize(20, 20)
+        raidAnchor:ClearAllPoints()
+        raidAnchor:SetPoint(unpack(C.Position.Raid))
+        
+        self:SetActiveStyle("Raid")
+        local raid = {}
+        
+        for i = 1, 8 do
+            raid[i] = self:SpawnHeader("oUF_Raid"..i, nil,
+                "showSolo",         false,
+                "showParty",        false,
+                "showRaid",         true,
+                "showPlayer",       true,
+                
+                "groupFilter",		tostring(i),
+				"groupingOrder",	tostring(i),
+                "groupBy",          "GROUP",
+                "sortMethod",       "INDEX",
+                "startingIndex",    1,
+                
+                "maxColumns",       1,
+                "unitsPerColumn",   5,
+                
+                "point",            "TOP",
+                "columnAnchorPoint","LEFT",
+                "columnSpacing",    C.RSpace,
+                "xOffset",          C.RSpace,
+                "yOffset",          -(C.RSpace+C.RPHeight+2),
+                
+                "initial-width",    C.RWidth,
+                "initial-height",   C.RHeight,
+                "oUF-initialConfigFunction", ([[
+                    self:SetWidth(%d)
+                    self:SetHeight(%d)
+                ]]):format(C.RWidth, C.RHeight)
+            )
+            raid[i]:SetVisibility("raid")
+            
+            if i == 1 then
+                raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, 4)
+            elseif i == 5 then
+                raid[i]:SetPoint("TOPLEFT", raidAnchor, "BOTTOMRIGHT", -20, -(C.RHeight*5+C.RPHeight*5+C.RSpace*6))
+            else
+                raid[i]:SetPoint("TOPLEFT", raid[i-1], "TOPRIGHT", C.RSpace, 0)
+            end
+        end
+    end
 end)
