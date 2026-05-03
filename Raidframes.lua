@@ -7,13 +7,12 @@ if not (C.RaidFrames or C.PartyFrames) then return end
 -- Hide Default CompactRaidFrame and keep CompactRaidFrameManager
 do
     local function HideRaid()
-        if C.RaidFrames and CompactRaidFrameContainer then
+        if CompactRaidFrameContainer then
             CompactRaidFrameContainer:UnregisterAllEvents()
             CompactRaidFrameContainer:Hide()
         end
-        if C.PartyFrames and CompactPartyFrame then
+        if CompactPartyFrame then
             CompactPartyFrame:UnregisterAllEvents()
-            CompactPartyFrame:Hide()
         end
     end
 
@@ -167,6 +166,8 @@ end
 local function CreateRaid(self, unit)
 
 	-- [[ 前置作業 ]] --
+	self:SetScript("OnEnter", UnitFrame_OnEnter)	-- mouseover tooltip
+	self:SetScript("OnLeave", UnitFrame_OnLeave)
 	self:RegisterForClicks("AnyUp")
 	
 	-- [[ 高亮 ]] --
@@ -278,7 +279,7 @@ local function CreateRaid(self, unit)
     self.ResurrectIndicator = Res
 	-- 職責
     local Role = StringParent:CreateTexture(nil, "OVERLAY")
-    Role:SetSize(20, 20)
+    Role:SetSize(16, 16)
     Role:SetPoint("TOPLEFT", self.Health, 3, 6)
     --Role:SetTexture(G.media.role)
     --Role:SetDesaturated(true)
@@ -360,7 +361,6 @@ end
 --===================================================--
 
 oUF:Factory(function(self)
-	-- as same as default partyframe, it dont have self unitframe
 	if C.PartyFrames then
 		local partyAnchor = CreateFrame("Frame", nil, UIParent)
 		partyAnchor:SetSize(20, 20)
@@ -383,9 +383,8 @@ oUF:Factory(function(self)
 			"unitsPerColumn",	5,
 			"columnSpacing",	C.RSpace,
 			"xoffset",			C.RSpace,
-			"yOffset",			-(C.RSpace+C.RPHeight+2),	-- power hight and 2px border
+			"yOffset",			-C.RSpace,	-- power hight and 2px border
 			
-			"templateType",		"Button",
 			"oUF-initialConfigFunction", ([[
 				self:SetWidth(%d)
 				self:SetHeight(%d)
@@ -439,10 +438,8 @@ oUF:Factory(function(self)
                 "columnAnchorPoint","LEFT",
                 "columnSpacing",    C.RSpace,
                 "xOffset",          C.RSpace,
-                "yOffset",          -(C.RSpace+C.RPHeight+2),
+                "yOffset",          -C.RSpace,
                 
-                "initial-width",    C.RWidth,
-                "initial-height",   C.RHeight,
                 "oUF-initialConfigFunction", ([[
                     self:SetWidth(%d)
                     self:SetHeight(%d)

@@ -12,61 +12,98 @@ if not C.Nameplates then return end
 -----------------    [[ CVAR ]]    -----------------
 --================================================--
 
+local function SetFont(obj, optSize)
+	local fontName, _,fontFlags = obj:GetFont()
+	obj:SetFont(fontName, optSize, "OUTLINE")
+	obj:SetShadowOffset(0, 0)
+end
+
 local function OnEvent()
-	-- 貼齊邊緣
-	if C.Inset then
-		SetCVar("nameplateOtherTopInset", .05)			-- default: .08
-		SetCVar("nameplateOtherBottomInset", .09)		-- default: .1
-		SetCVar("nameplateLargeTopInset", .05)
-		SetCVar("nameplateLargeBottomInset", .09)
-	else
-		SetCVar("nameplateOtherTopInset", -1)
-		SetCVar("nameplateOtherBottomInset", -1)
-		SetCVar("nameplateLargeTopInset", -1) 
-		SetCVar("nameplateLargeBottomInset", -1)
-	end
-	
+	SetFont(SystemFont_LargeNamePlate, 16)
+	SetFont(SystemFont_NamePlate, 16)
+	SetFont(SystemFont_LargeNamePlateFixed, 16)
+	SetFont(SystemFont_NamePlateFixed, 16)
+	SetFont(SystemFont_NamePlateCastBar, 16)
+	SetFont(SystemFont_NamePlate_Outlined, 16)
+
 	SetCVar("nameplateShowAll", 1)						-- always show / 總是顯示名條，1開
-	SetCVar("nameplateMotion", 1)						-- motion style / 名條排列，1=堆疊，0=重疊
-	SetCVar("nameplateMotionSpeed", .01)				-- motion speed / 名條位移速度，預設0.025
+	SetCVar("nameplateOtherAtBase", 0)					-- show at base / 名條在腳下
+	SetCVar("nameplateShowSelf", 0)						-- personal resource / 個人資源
+
+	--SetCVar("nameplateShowClassColor", 1)
+	SetCVar("nameplateShowFriendlyClassColor", 1)
+	SetCVar("nameplateShowDebuffsOnFriendly", 1)
+
+	--SetCVar("nameplateAuraScale", 1)		-- 0.7~1.4
+	--SetCVar("nameplateDebuffPadding", 0)	-- 0~50
+	--SetCVar("nameplateSize", 1)
+	--SetCVar("nameplateStyle", 0)			-- 0~5 對應六種樣式
+	SetCVar("nameplateStackingTypes", "1A")	-- 堆疊方式 1 敵方 2 友方 設定值為數值相加之和
+	--SetCVar("nameplateInfoDisplay", "1")	-- 數值顯示 0 無 1 百分比 2 數值 4 稀有怪 設定值為數值相加之和
+
+	--SetCVar("nameplateShowCastBars", 1)
+	--SetCVar("nameplateCastBarDisplay", "3") -- 施法資訊 0 無 1 法術名撐 2 法術圖示 4 法術目標 8 高亮重要 16 目標高亮 設定值為數值相加之和
+
+	SetCVar("nameplateShowOnlyNameForFriendlyPlayerUnits", 1)
+	SetCVar("nameplateUseClassColorForFriendlyPlayerUnitNames", 1)
+	SetCVar("nameplateSimplifiedScale", 1)				-- Default 0.3
 	
-	SetCVar("nameplateShowSelf", 0)						-- force disable blizzard self nameplate / 顯示個人資源
-	SetCVar("nameplateResourceOnTarget", 0)				-- 在目標名條上顯示職業資源
-	
-	SetCVar("nameplateMaxDistance", C.MaxDistance)		-- max show distance / 最大視距, default: 60
-	SetCVar("nameplateSelectedScale", C.SelectedScale)	-- target scale / 當前目標大小
-	SetCVar("nameplateMinAlpha", C.MinAlpha)			-- non-target alpha / 非當前目標透明度, default: 0.8
-	SetCVar("nameplateOccludedAlphaMult", 0.2)			-- Occluded nameplate alpha / 障礙物後的名條透名度, default: 0.4
-	
-	SetCVar("nameplateLargerScale", 1)					-- boss nameplate scale, default: 1.2
-	SetCVar("nameplateLargeTopInset", .08) 				-- boss nameplate top inset
-	SetCVar("nameplateLargeBottomInset", .1)			-- boss nameplate bottom inset
-	
-	-- avoid fps drop (距離縮放與描邊功能可能引起掉幀)
-	SetCVar("namePlateMinScale", 1)						-- default is 0.8
+	SetCVar("nameplateMaxDistance", C.MaxDistance)		-- Default 60
+	SetCVar("nameplatePlayerMaxDistance", C.MaxDistance)-- Default 60
+	SetCVar("nameplateGameObjectMaxDistance", 30)		-- Default 30
+
+	SetCVar("nameplateShowOffscreen", 1)
+	SetCVar("nameplateOccludedAlphaMult", 0.2)			-- Occluded nameplate alpha / 障礙物後的名條透名度, Default 0.4
+
+	SetCVar("nameplateTargetBehindMaxDistance", 40)		-- Default 0.1
+	SetCVar("nameplateTargetRadialPosition", 2)			-- Default 0; Target Only 1; All In Combat 2
+
+	-- 目標淡出和縮放
+	SetCVar("nameplateSelectedScale", C.SelectedScale)
+	SetCVar("nameplateSelectedAlpha", 1)
+	-- 距離淡出和縮放
+	SetCVar("nameplateMaxAlpha", 1)						-- Default 1
+	SetCVar("nameplateMaxAlphaDistance", 40)			-- Default 40
 	SetCVar("namePlateMaxScale", 1)
-	
+	SetCVar("nameplateMaxScaleDistance", 40)
+	SetCVar("nameplateMinAlpha", C.MinAlpha)			-- Default 0.6
+	SetCVar("nameplateMinAlphaDistance", 40)			-- Default 10
+	SetCVar("namePlateMinScale", 1)						-- Default 0.8
+	SetCVar("nameplateMinScaleDistance", 40)			-- Default 10
+	-- boss nameplate
+	--SetCVar("nameplateLargerScale", 1)				-- Default 1.2
+	--SetCVar("nameplateLargeTopInset", .08)
+	--SetCVar("nameplateLargeBottomInset", .1)
+	-- 貼齊邊緣
+	--SetCVar("nameplateOtherTopInset", .05)			-- Default .08
+	--SetCVar("nameplateOtherBottomInset", .09)			-- Default .1
+	-- 運動方式
+	--SetCVar("nameplateMotion", 1)						-- motion style / 名條排列，1=堆疊，0=重疊
+	--SetCVar("nameplateMotionSpeed", .01)				-- motion speed / 名條位移速度，預設0.025
+
 	-- 調整堆疊血條的間距
 	if C.NumberStyle then
-		SetCVar("nameplateOverlapH",  .7)				-- default is 0.8
-		SetCVar("nameplateOverlapV",  .9)				-- default is 1.1
+		SetCVar("nameplateOverlapH",  .7)				-- default 0.8
+		SetCVar("nameplateOverlapV",  .9)				-- default 1.1
 	else
-		SetCVar("nameplateOverlapH",  .6)				-- default is 0.8
-		SetCVar("nameplateOverlapV",  .8)				-- default is 1.1
+		SetCVar("nameplateOverlapH",  .6)
+		SetCVar("nameplateOverlapV",  .8)
 	end
 	
 	-- 敵方顯示條件
+	SetCVar("nameplateShowEnemies", 1)
 	SetCVar("nameplateShowEnemyGuardians", 1)			-- 守護者
 	SetCVar("nameplateShowEnemyMinions", 1)				-- 僕從
-	--SetCVar("nameplateShowEnemyPets", 0)				-- 寵物
+	SetCVar("nameplateShowEnemyPets", 1)				-- 寵物
 	SetCVar("nameplateShowEnemyTotems", 1)				-- 圖騰
 	SetCVar("nameplateShowEnemyMinus", 1)				-- 次要
 	-- 友方顯示條件
-	SetCVar("nameplateShowFriendlyGuardians", 0)		-- 守護者
-	SetCVar("nameplateShowFriendlyMinions", 0)			-- 僕從
-	SetCVar("nameplateShowFriendlyNPCs", 0)				-- npc
-	SetCVar("nameplateShowFriendlyPets", 0)				-- 寵物
-	SetCVar("nameplateShowFriendlyTotems", 0)			-- 圖騰
+	SetCVar("nameplateShowFriendlyPlayers", 1)
+	SetCVar("nameplateShowFriendlyPlayerGuardians", 0)	-- 守護者
+	SetCVar("nameplateShowFriendlyPlayerMinions", 0)	-- 僕從
+	SetCVar("nameplateShowFriendlyNPCs", 1)				-- npc
+	SetCVar("nameplateShowFriendlyPlayerPets", 0)		-- 寵物
+	SetCVar("nameplateShowFriendlyPlayerTotems", 0)		-- 圖騰
 end 
 
 local defaultCVar = CreateFrame("FRAME", nil)
@@ -203,6 +240,21 @@ local function CreateStandaloneCastbar(self, unit)
 	Castbar.bg:SetAllPoints()
 	Castbar.bg:SetTexture(G.media.blank)
 	Castbar.bg:SetVertexColor(.15, .15, .15)
+	-- Castbar.Icon 被保護了所以邊框陰影要自行創建
+	local IconBG = CreateFrame("Frame", nil, Castbar)
+	IconBG:SetSize(C.NPHeight*2 + 4, C.NPHeight*2 + 4)
+	IconBG:SetPoint("BOTTOMRIGHT", Castbar, "BOTTOMLEFT", -4, 0)
+	Castbar.IconBG = IconBG
+	-- 圖示
+	Castbar.Icon = Castbar.IconBG:CreateTexture(nil, "OVERLAY")
+	Castbar.Icon:SetAllPoints(IconBG)
+	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
+	-- 圖示邊框
+	Castbar.Shadow = F.CreateSD(Castbar.IconBG, Castbar.IconBG, 4)
+	-- 法術名
+	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
+	Castbar.Text:SetPoint("TOPLEFT", Castbar, "BOTTOMLEFT", -5, 5)
+	Castbar.Text:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 5, -5)
 	-- 進度高亮
 	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY")
 	Castbar.Spark:SetTexture(G.media.spark)
@@ -210,37 +262,26 @@ local function CreateStandaloneCastbar(self, unit)
 	Castbar.Spark:SetVertexColor(1, 1, .85, .5)
 	Castbar.Spark:SetSize(C.NPHeight*2, C.NPHeight)
 	Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
-	-- 圖示
-	Castbar.Icon = Castbar:CreateTexture(nil, "OVERLAY")
-	Castbar.Icon:SetSize(C.NPHeight*2 + 4, C.NPHeight*2 + 4)
-	Castbar.Icon:SetPoint("BOTTOMRIGHT", Castbar, "BOTTOMLEFT", -4, 0)
-	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
-	-- 圖示邊框
-	Castbar.IconSD = F.CreateSD(Castbar, Castbar.Icon, 3)
-	Castbar.IconBD = F.CreateBD(Castbar, Castbar.Icon, 1, .15, .15, .15, 1)
-	-- 法術名
-	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
-	Castbar.Text:SetPoint("TOPLEFT", Castbar, "BOTTOMLEFT", -5, 5)
-	Castbar.Text:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 5, -5)
 	-- 法術目標
-	Castbar.spellTarget = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
+	--[[Castbar.spellTarget = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
 	Castbar.spellTarget:ClearAllPoints()
 	Castbar.spellTarget:SetJustifyH("LEFT")
-	Castbar.spellTarget:SetPoint("TOP", Castbar.Text, "BOTTOM", 0, -2)
+	Castbar.spellTarget:SetPoint("TOP", Castbar.Text, "BOTTOM", 0, -2)]]--
 
 	-- 選項
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostStandaloneCastStart			-- 施法開始
-	self.Castbar.PostCastStop = T.PostCastStop						-- 施法中斷
-	self.Castbar.PostCastFail = T.PostStandaloneCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterruptible = T.PostUpdateStandaloneCast	-- 打斷狀態更新
-	self.Castbar.PostCastUpdate = T.PostCastUpdate					-- 施法目標更新
+	self.Castbar.PostCastStart = T.PostStandaloneCastStart					-- 施法開始
+	--self.Castbar.PostCastStop = T.PostStandaloneCastStop					-- 施法結束
+	self.Castbar.PostCastFail = T.PostStandaloneCastFailed					-- 施法失敗
+    self.Castbar.PostCastInterrupted = T.PostStandaloneCastFailed		    -- 施法中斷
+	self.Castbar.PostCastInterruptible = T.PostStandaloneCastInterruptible	-- 打斷狀態更新
+	--self.Castbar.PostCastUpdate = T.PostCastUpdate							-- 施法目標更新
 	-- 根據UNIT_TARGET檢測名條單位的目標變更
-	self:RegisterEvent("UNIT_TARGET", function(_, _, unit)
+	--[[self:RegisterEvent("UNIT_TARGET", function(_, _, unit)
 		T.UpdateSpellTarget(self.Castbar, unit)
-	end)
+	end)]]--
 end
 
 --=================================================--
@@ -536,10 +577,10 @@ local function CreateBarPlates(self, unit)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	-- 選項
-	-- Health.colorTapping	= true
-	-- Health.colorClass	= true
-	-- Health.colorReaction	= true
-	-- Health.colorThreat	= true
+	Health.colorTapping = true
+	Health.colorClass = true
+	Health.colorReaction = true
+	Health.colorThreat = true
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)
 	-- 背景
@@ -547,16 +588,14 @@ local function CreateBarPlates(self, unit)
 	Health.bg:SetAllPoints()
 	Health.bg:SetTexture(G.media.blank)
 	Health.bg.multiplier = .3
-	
 	-- 註冊到ouf
 	self.Health = Health
-	-- 取代ouf本身對名條顏色的設定
-	self.Health.PostUpdateColor = UpdateColor
+	self.Health.PostUpdateColor = T.PostUpdateColor_MultiBGColor
 	
 	-- 威脅值，取代ouf本身對名條顏色的設定
-	local threat = CreateFrame("Frame", nil, self)
-	self.ThreatIndicator = threat
-	self.ThreatIndicator.Override = UpdateThreatColor
+	--local threat = CreateFrame("Frame", nil, self)
+	--self.ThreatIndicator = threat
+	--self.ThreatIndicator.Override = UpdateThreatColor
 	
 	-- 名字
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "CENTER")
@@ -565,17 +604,17 @@ local function CreateBarPlates(self, unit)
 	-- 血量
 	self.Health.value = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, -4)
-	self:Tag(self.Health.value, "[bp:hp]")
+	self:Tag(self.Health.value, "[perhp]")
 	-- 能量
-	self.PowerText = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
+	--[[self.PowerText = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS-2, G.FontFlag, "RIGHT")
 	self.PowerText:SetPoint("LEFT", self.Health, "RIGHT", 4, 1)
-	self:Tag(self.PowerText, "[np:pp]")
+	self:Tag(self.PowerText, "[np:pp]")]]--
 	-- 目標名字，用於惡意詞綴的怨毒幽影
-	self.TargetName = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
+	--[[self.TargetName = F.CreateText(self, "OVERLAY", G.Font, G.NPNameFS-4, G.FontFlag, "RIGHT")
 	self.TargetName:ClearAllPoints()
 	self.TargetName:SetPoint("TOP", self.Health, "BOTTOM", 0, -4)
 	self.TargetName:Hide()
-	self:Tag(self.TargetName, "[np:tar]")
+	self:Tag(self.TargetName, "[np:tar]")]]--
 	
 	-- 團隊標記
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
@@ -586,14 +625,12 @@ local function CreateBarPlates(self, unit)
 
 	-- 施法條
 	CreateStandaloneCastbar(self, unit)
-	-- 吸收盾
-	T.CreateHealthPrediction(self, unit)
 	
 	-- 光環
-	if C.ShowAuras then
+	--[[if C.ShowAuras then
 		CreateAuras(self, unit)
 		self.Auras:SetPoint("BOTTOM", self.Name, "TOP", 0, 4)
-	end
+	end]]--
 	-- 指向高亮
 	if C.HLMouseover then
 		MouseoverIndicator(self)
@@ -772,7 +809,7 @@ if C.NumberStyle then
 else
 	oUF:RegisterStyle("Nameplate", CreateBarPlates)
 end
-
+--[[
 if C.PlayerPlate then
 	if C.NumberstylePP then
 		oUF:RegisterStyle("PlayerPlate", CreatePlayerNumberPlate)
@@ -780,7 +817,7 @@ if C.PlayerPlate then
 		oUF:RegisterStyle("PlayerPlate", CreatePlayerBarPlate)
 	end
 end
-
+]]--
 --===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
@@ -789,9 +826,9 @@ oUF:Factory(function(self)
 	self:SetActiveStyle("Nameplate")
 	self:SpawnNamePlates("oUF_Nameplate", PostUpdatePlates)
 
-	if C.PlayerPlate then
+	--[[if C.PlayerPlate then
 		self:SetActiveStyle("PlayerPlate")
 		local plate = self:Spawn("player", "oUF_PlayerPlate", true)
 		plate:SetPoint(unpack(C.Position.PlayerPlate))
-	end
+	end]]--
 end)
