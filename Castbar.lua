@@ -40,8 +40,8 @@ end
 
 T.PostCastStart = function(element, unit)
 	local frame = element:GetParent()
-	local castingColor
-	local notInterruptColor
+	local castingColor = CreateColor(.6, .6, .6, .6)
+	local notInterruptColor = CreateColor(.6, 0, .6, .6)
 	
     -- 嵌入式施法條：施法開始時隱藏名字
     frame.Name:SetAlpha(0)
@@ -49,8 +49,6 @@ T.PostCastStart = function(element, unit)
     element.Spark:SetAlpha(.8)
 
     -- 判斷打斷顏色
-    castingColor = CreateColor(.6, .6, .6, .6)
-    notInterruptColor = CreateColor(.6, .1, .6, .6)
     if unit == "player" then
         element:SetStatusBarColor(.6, .6, .6, .6)
     else
@@ -60,12 +58,10 @@ end
 
 T.PostStandaloneCastStart = function(element, unit)
 	local frame = element:GetParent()
-	local castingColor
-	local notInterruptColor
+	local castingColor = CreateColor(unpack(C.CastNormal))
+	local notInterruptColor = CreateColor(unpack(C.CastShield))
 	
     -- 判斷打斷顏色
-    castingColor = CreateColor(unpack(C.CastNormal))
-    notInterruptColor = CreateColor(unpack(C.CastShield))
     if unit == "player" then
         element:SetStatusBarColor(unpack(C.CastNormal))
     else

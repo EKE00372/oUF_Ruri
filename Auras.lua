@@ -57,10 +57,10 @@ T.PostCreateIcon = function(element, button)
 	button.Overlay:SetTexCoord(0, 1, 0, 1)]]--
 	button.Overlay:Hide()
 	button.Overlay = nil
-	-- 邊框
-	button.border = F.CreateBD(button, button, 1, .2, .2, .2, 1, 1)
+	-- 背景與邊框
+	button.bg = F.CreateBD(button, button, 1, .2, .2, .2, 1, 1)
 	-- 陰影
-	button.shadow = F.CreateSD(button, button.border, 3)
+	button.shadow = F.CreateSD(button, button.bg, 3)
 
 	-- 冷卻計時
 	local cd = CreateFrame("Cooldown", "$parentCooldown", button, "CooldownFrameTemplate")
@@ -91,20 +91,20 @@ T.PostUpdateIcon = function(element, button, unit, data)
 	local color = C_UnitAuras.GetAuraDispelTypeColor(unit, data.auraInstanceID, element.dispelColorCurve)
 	local duration = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
 
-	if duration then button.border:Show() button.shadow:Show() end
+	if duration then button.bg:Show() button.shadow:Show() end
 
 	-- 邊框顏色
 	if F.IsAny(style, "NP", "BP") then
 		-- Nameplates 的光環一律按類型染色
-		button.border:SetBackdropColor(0, 0, 0)
+		button.bg:SetBackdropColor(0, 0, 0)
 		button.shadow:SetBackdropBorderColor(color.r, color.g, color.b)
 	else
 		-- Unitframes 的減益效果按類型染色
 		if data.isHarmfulAura and element.showDebuffType then
-			button.border:SetBackdropColor(0, 0, 0)
+			button.bg:SetBackdropColor(0, 0, 0)
 			button.shadow:SetBackdropBorderColor(color.r, color.g, color.b)
 		else
-			button.border:SetBackdropColor(.2, .2, .2)
+			button.bg:SetBackdropColor(.2, .2, .2)
 			button.shadow:SetBackdropBorderColor(0, 0, 0)
 		end
 	end
@@ -123,13 +123,13 @@ end
 --[[ 分隔增減益的隱藏圖示 ]] --
 
 T.PostUpdateGapIcon = function(element, _, gapButton)
-	-- 因為 .border 和 .shadow 是自行創建的，所以需要手動隱藏
+	-- 因為 .bg 和 .shadow 是自行創建的，所以需要手動隱藏
 	if gapButton.shadow and gapButton.shadow:IsShown() then
 		gapButton.shadow:Hide()
 	end
 
-	if gapButton.border and gapButton.border:IsShown() then
-		gapButton.border:Hide()
+	if gapButton.bg and gapButton.bg:IsShown() then
+		gapButton.bg:Hide()
 	end
 	
 	if gapButton.time and gapButton.time:IsShown() then
@@ -237,20 +237,19 @@ end
 ]]--
 
 -- 光環過濾
---[[
-T.CustomFilter = function(self, unit, data)
+
+T.CustomFilter = function(element, unit, data)
 	if not unit then return end
-	local style = self.__owner.mystyle
+	local style = element.__owner.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
-	--if data.name and data.spellId == 209859 then
+	--[[if data.name and data.spellId == 209859 then
 		-- < 激勵為true，才能被postupdateinfo處理 >
 		-- 新光環是table，只在創建時才會fullupdate，導致名條需要update激勵時無法被postupdateinfo處理
 		-- 所以必需在filter裡返回true，才能觸發ouf的buffsChanged/debuffsChanged
 		-- 使已acvite但非fullupdate的auraupdate(add/remove)被postupdateinfo處理
-		--return true
-	--elseif style == "NP" or style == "BP" then
-	if style == "NP" or style == "BP" then
+		return true
+	elseif style == "NP" or style == "BP" then
 		if UnitIsUnit("player", unit) then
 			-- 當該名條單位是玩家自己時隱藏，預防有人把系統的個人資源打開搞事情
 			return false
@@ -278,11 +277,13 @@ T.CustomFilter = function(self, unit, data)
 			-- 個人資源條顯示30秒(含)以下的光環
 			return data.isPlayerAura and data.duration <= 30 and data.duration ~= 0
 		end
-	elseif style == "R" then
-		if C.RaidBlackList[data.spellId] then
+	elseif style == "R" then]]--
+	if style == "R" then
+		--[[if C.RaidBlackList[data.spellId] then
 			-- 黑名單，則隱藏
 			return false
-		elseif data.isBossAura or SpellIsPriorityAura(data.spellId) then
+		elseif data.isBossAura or SpellIsPriorityAura(data.spellId) then]]--
+		if data.isBossAura or SpellIsPriorityAura(data.spellId) then
 			-- 暴雪內建的首領光環和優先顯示等等
 			return true
 		else
@@ -299,8 +300,6 @@ T.CustomFilter = function(self, unit, data)
 		return true
 	end
 end
-]]--
-
 
 --=============================================================--
 -------------------    [[ Create elements ]]    -----------------
