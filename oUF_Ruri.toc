@@ -30,4 +30,4 @@ Elements.lua
 
 Unitframes.lua
 Raidframes.lua
-#Nameplates.lua
+Nameplates.lua

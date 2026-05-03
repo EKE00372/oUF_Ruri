@@ -215,7 +215,7 @@ local function CreatePlayerStyle(self, unit)
 		self:RegisterEvent("PLAYER_ENTERING_WORLD", T.PostCastStopUpdate)
 		self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", T.PostCastStopUpdate)
 	end
-	
+
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("TOP", self.Health, 0, 16)
 	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, -4, C.PHeight/2)

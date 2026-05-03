@@ -21,8 +21,8 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- NOTE: ture = enable, false = disable / enable = 啟用，disable = 停用
 	C.UnitFrames = true		-- Enable Unitframes  / 啟用單位框架
-	C.RaidFrames = true	-- Enable Raidframes / 啟用團隊框架
-	C.PartyFrames = true	-- Enable Partyframes / 啟用隊伍框架
+	C.RaidFrames = false		-- Enable Raidframes / 啟用團隊框架
+	C.PartyFrames = false	-- Enable Partyframes / 啟用隊伍框架
 	C.Nameplates = true		-- Enable Nameplates/ 啟用名條
 
 -------------
@@ -64,7 +64,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	G.NFont = STANDARD_TEXT_FONT
 	G.NumberFS = 14
 	
-	G.NPNameFS = 12									-- Nameplate font size / 名條的字型
+	G.NPNameFS = 16									-- Nameplate font size / 名條的字型
 	G.NPFont = MediaFolder.."Infinity Gears.ttf"	-- Number style nameplate health text font / 數字模式名條的血量字型
 	G.NPFS = 16										-- Number style nameplate health text font size / 數字模式名條的血量字型大小
 
@@ -140,14 +140,14 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- NOTICE: Will do some change since version 5.2, because the layout of number style is not good for mythic+.
 	-- maybe change size.
-	C.NumberStyle = true	-- Number style nameplates / 數字模式的名條
+	C.NumberStyle = false	-- Number style nameplates / 數字模式的名條
 	
 	-- Number style nameplate config
 	C.NPCastIcon = 28		-- Nmber style nameplate cast icon size /  數字模式的施法圖示大小
 	
 	-- Bar style nameplate config
-	C.NPWidth = 110			-- Nameplate frame width / 名條寬度
-	C.NPHeight = 8			-- Nameplate frame height / 名條高度
+	C.NPWidth = 140			-- Nameplate frame width / 名條寬度
+	C.NPHeight = 10			-- Nameplate frame height / 名條高度
 	
 	-- Auras / 光環
 	C.ShowAuras = true		-- Show auras / 顯示光環
@@ -245,6 +245,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -------------------------
 
 	-- Replace blizzard auraframe (default at topright of screen)
+	-- NOTICE: WON'T SHOW PIRVATE AURA
 	C.AuraFrames = true
 	C.Auras = {
 		BuffSize = 32,  -- 24~50

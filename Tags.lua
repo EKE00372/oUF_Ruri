@@ -7,6 +7,7 @@ local UnitGetTotalAbsorbs, UnitReaction, UnitThreatSituation = UnitGetTotalAbsor
 local UnitHealth, UnitHealthMax, UnitPower, UnitPowerMax, UnitPowerType = UnitHealth, UnitHealthMax, UnitPower, UnitPowerMax, UnitPowerType
 local UnitIsAFK, UnitIsConnected, UnitIsDND, UnitIsDead, UnitIsGhost = UnitIsAFK, UnitIsConnected, UnitIsDND, UnitIsDead, UnitIsGhost
 local UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName = UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName
+local issecretvalue = issecretvalue
 
 --==================================================--
 -----------------    [[ Colors ]]    -----------------
@@ -139,13 +140,17 @@ oUF.Tags.Events["deadskull"] = "UNIT_HEALTH"
 -- [[ 狀態 ]] --
 
 oUF.Tags.Methods["afkdnd"] = function(unit)
-	if not unit then return end
+	if not (unit and UnitIsPlayer(unit)) then return end
 	
-	if UnitIsAFK(unit) then					-- 暫離
+	local isAFK = (not issecretvalue(UnitIsAFK(unit))) and UnitIsAFK(unit)
+    local isDND = (not issecretvalue(UnitIsDND(unit))) and UnitIsDND(unit)
+    local isConnected = (not issecretvalue(UnitIsConnected(unit))) and UnitIsConnected(unit)
+	
+	if isAFK then					-- 暫離
 		return "|T"..FRIENDS_TEXTURE_AFK..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif UnitIsDND(unit) then				-- 忙錄
+	elseif isDND then				-- 忙錄
 		return "|T"..FRIENDS_TEXTURE_DND..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif (not UnitIsConnected(unit)) then	-- 離線
+	elseif (not isConnected) then	-- 離線
 		return "|T"..FRIENDS_TEXTURE_OFFLINE..":14:14:0:0:16:16:1:15:1:15|t"
 	end
 end
@@ -196,24 +201,6 @@ oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWE
 
 -- [[ Nameplates ]] --
 
--- bar style nameplates
-oUF.Tags.Methods["bp:hp"] = function(unit)
-	local per = oUF.Tags.Methods["perhp"](unit)
-	
-	if UnitIsDead(unit) then
-		-- 死亡
-		return ""
-	elseif not UnitIsConnected(unit) then
-		-- 離線
-		return ""
-	elseif per == 100 then
-		-- 滿血不顯示血量
-		return ""
-	else
-		return per
-	end
-end
-oUF.Tags.Events["bp:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
 -- number style nameplates
 oUF.Tags.Methods["np:hp"] = function(unit)
@@ -253,7 +240,6 @@ oUF.Tags.Methods["np:hp"] = function(unit)
 end
 oUF.Tags.Events["np:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
 
-
 -- nameplates
 oUF.Tags.Methods["np:pp"] = function(unitnit)
 	-- 只監控白名單的能量
@@ -279,22 +265,9 @@ oUF.Tags.Events["np:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
 
 -- [[ 吸收量 ]] --
 
--- nameplates
-oUF.Tags.Methods["np:ab"] = function(unit)
-	local max = UnitHealthMax(unit)
-	local absorb = UnitGetTotalAbsorbs(unit) or 0
-	
-	if absorb ~= 0 then
-		return F.Hex(1, .9, .4).."+"..math.floor((absorb / max * 100) + .5)
-	else
-		return ""
-	end
-end
-oUF.Tags.Events["np:ab"] = "UNIT_ABSORB_AMOUNT_CHANGED"
-
 
 -- [[ 單位的目標 ]] --
-
+--[[
 oUF.Tags.Methods["np:tar"] = function(unitnit)
 	local targetUnit = unit.."target"
 
@@ -306,25 +279,6 @@ oUF.Tags.Methods["np:tar"] = function(unitnit)
 	end
 end
 oUF.Tags.Events["np:tar"] = "UNIT_NAME_UPDATE UNIT_THREAT_SITUATION_UPDATE UNIT_HEALTH"
-
-
---[[
-oUF.Tags.Methods["npcast"] = function(unitnit)
-	local unitTarget = unit.."target"
-	
-	if UnitExists(unitnitTarget) and UnitIsPlayer(unitnitTarget) then
-		local nameString
-		--if UnitIsUnit(unitnitTarget, "player") then
-			nameString = format("|cffff0000%s|r", ">"..strupper(YOU).."<")
-		--else
-			local _, class = UnitClass(unitnitTarget)
-			nameString = F.Hex(oUF.colors.class[class])..">>"..UnitName(unitnitTarget)
-		--end
-		
-		return nameString
-	end
-end
-oUF.Tags.Events["npcast"] = "UNIT_SPELLCAST_START UNIT_SPELLCAST_CHANNEL_START"
 ]]--
 
 --[[
