@@ -21,9 +21,9 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- NOTE: ture = enable, false = disable / enable = 啟用，disable = 停用
 	C.UnitFrames = true		-- Enable Unitframes  / 啟用單位框架
-	C.RaidFrames = false		-- Enable Raidframes / 啟用團隊框架
+	C.RaidFrames = false	-- Enable Raidframes / 啟用團隊框架
 	C.PartyFrames = false	-- Enable Partyframes / 啟用隊伍框架
-	C.Nameplates = true		-- Enable Nameplates/ 啟用名條
+	C.Nameplates = false	-- Enable Nameplates/ 啟用名條
 
 -------------
 -- Texture --
@@ -95,11 +95,11 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	
 	-- Options / 選項
 	C.PlayerDebuffs = true		-- Show debuffs on the player frame / 顯示自身減益
-	C.Totems = false			-- Show player totems / 顯示玩家圖騰
-	C.TankResource = false		-- Show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
+	--C.Totems = false			-- Show player totems / 顯示玩家圖騰
+	--C.TankResource = false		-- Show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 
 	C.Fade = true				-- Hide UFs when out of combat or not casting (Include Player/Target/Focus) / 戰鬥外閒置狀態淡出，作用於玩家/目標/焦點
-	C.FadeOutAlpha = 0.2			-- Fade out value / 淡出值
+	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
 	
 	--[[ Castbar / 施法條 ]] --
 	
@@ -246,7 +246,7 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- Replace blizzard auraframe (default at topright of screen)
 	-- NOTICE: WON'T SHOW PIRVATE AURA
-	C.AuraFrames = true
+	C.AuraFrames = false
 	C.Auras = {
 		BuffSize = 32,  -- 24~50
 		BuffsPerRow = 16,
