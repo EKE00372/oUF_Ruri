@@ -1,4 +1,4 @@
-﻿----------------------
+----------------------
 -- Dont touch this! --
 ----------------------
 
@@ -239,27 +239,6 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 		VFocusCastbar = {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset * 3}
 	}
 
-
--------------------------
--- Blizzard aura frame --
--------------------------
-
-	-- Replace blizzard auraframe (default at topright of screen)
-	-- NOTICE: WON'T SHOW PIRVATE AURA
-	C.AuraFrames = false
-	C.Auras = {
-		BuffSize = 32,  -- 24~50
-		BuffsPerRow = 16,
-		ReverseBuff = false,
-		DebuffSize = 36,
-		DebuffsPerRow = 10,
-		ReverseDebuff = false,
-		--BuffPos = {"TOPRIGHT", UIParent, "TOPRIGHT", -230, -15},
-		BuffPos = {"TOPRIGHT", UIParent, "TOPRIGHT", -10, -10}, 
-		Margin = 6,
-		CountFontSize = 14,
-		TimerFontSize = 14,
-	}
 
 -------------
 -- Credits --
