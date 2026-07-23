@@ -1,4 +1,4 @@
-## Interface: 120005
+## Interface: 120100
 ## Title: oUF_|cff00ffffRuri|r
 ## Version: B5.6
 ## Author: EK (Linodas@Illidan-US)
@@ -14,14 +14,12 @@ API.lua
 
 Libs\oUF\oUF.xml
 Libs\oUF_Essence.lua
-#Libs\oUF_TankResource.lua
+Libs\oUF_TankResource.lua
 Libs\oUF_Fader.lua
 #Libs\oUF_MovableFrames.lua
 
 Embeds\Crosshairs.lua
 #Embeds\Totems.lua
-Embeds\Auras.xml
-Embeds\Auras.lua
 
 Tags.lua
 Castbar.lua
@@ -31,3 +29,4 @@ Elements.lua
 Unitframes.lua
 Raidframes.lua
 Nameplates.lua
+
