@@ -1,0 +1,12 @@
+# Local Codex/agent memory and review records; keep out of remote repositories.
+AGENTS.md
+CODE_REVIEW.md
+/.agents/
+
+# Local current development record and migration backups.
+/Docs/
+
+# Local development tools and generated data.
+/Tools/
+
+

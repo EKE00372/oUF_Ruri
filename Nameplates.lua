@@ -221,9 +221,9 @@ local function CreateIconCastbar(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostStandaloneCastStart			-- 開始施法
-	self.Castbar.PostCastStop = T.PostCastStop						-- 施法結束
-	self.Castbar.PostCastFail = T.PostStandaloneCastFailed			-- 施法失敗
+	self.Castbar.PostCastStart = T.PostCastStart					-- 開始施法
+	self.Castbar.PostCastStop = T.PostCastStop_Embed				-- 施法結束
+	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
 	self.Castbar.PostCastInterruptible = T.PostUpdateStandaloneCast	-- 打斷狀態刷新
 end
 
@@ -272,11 +272,11 @@ local function CreateStandaloneCastbar(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostStandaloneCastStart					-- 施法開始
-	--self.Castbar.PostCastStop = T.PostStandaloneCastStop					-- 施法結束
-	self.Castbar.PostCastFail = T.PostStandaloneCastFailed					-- 施法失敗
-    self.Castbar.PostCastInterrupted = T.PostStandaloneCastFailed		    -- 施法中斷
-	self.Castbar.PostCastInterruptible = T.PostStandaloneCastInterruptible	-- 打斷狀態更新
+	self.Castbar.PostCastStart = T.PostCastStart							-- 施法開始
+	--self.Castbar.PostCastStop = T.PostCastStop								-- 施法結束
+	self.Castbar.PostCastFail = T.PostCastFailed					-- 施法失敗
+    self.Castbar.PostCastInterrupted = T.PostCastFailed		    -- 施法中斷
+	self.Castbar.PostCastInterruptible = T.PostCastInterruptible	        -- 打斷狀態更新
 	--self.Castbar.PostCastUpdate = T.PostCastUpdate							-- 施法目標更新
 	-- 根據UNIT_TARGET檢測名條單位的目標變更
 	--[[self:RegisterEvent("UNIT_TARGET", function(_, _, unit)
