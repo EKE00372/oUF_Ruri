@@ -38,7 +38,7 @@ Try layout as same as classpower/rune.
 
 local _, ns  = ...
 local oUF    = ns.oUF or oUF
-local UnitPartialPower = UnitPartialPower
+local UnitPower, UnitPartialPower = UnitPower, UnitPartialPower
 local PTYPE  = Enum.PowerType.Essence
 
 local function Charging_OnUpdate(bar, elapsed)
@@ -55,12 +55,13 @@ local function Update(self, _, unit, ptype)
     if self.unit ~= unit or (ptype and ptype ~= 'ESSENCE') then return end
 
     local element = self.Essence
-    local cur     = UnitPower(unit, PTYPE)
+    local cur     = UnitPower(unit, PTYPE) or 0
     local max     = #element
 
     for i = 1, max do
         local bar = element[i]
         if not bar then break end
+
         if i <= cur then
             bar:SetValue(1)
             bar:SetScript('OnUpdate', nil)
