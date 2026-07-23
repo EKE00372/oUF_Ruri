@@ -1,16 +1,22 @@
 local addon, ns = ... 
+local unpack = unpack
 local C, F, G, T = unpack(ns)
 
-local tonumber, strmatch, floor, format = tonumber, strmatch, math.floor, format
---local GetSpecialization, GetSpecializationInfo, IsSpellKnown = GetSpecialization, GetSpecializationInfo, IsSpellKnown
+local tonumber, select, type = tonumber, select, type
+local strmatch, floor, format = strmatch, math.floor, format
+local CreateFrame, CreateAbbreviateConfig, AbbreviateNumbers = CreateFrame, CreateAbbreviateConfig, AbbreviateNumbers
 local SetCVar = C_CVar.SetCVar
-local SecretValueTestMode = true
+local C_Timer_After = C_Timer.After
+local C_SpecializationInfo_GetSpecialization = C_SpecializationInfo.GetSpecialization
+local C_SpecializationInfo_GetSpecializationInfo = C_SpecializationInfo.GetSpecializationInfo
+local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
 
 --======================================================--
 -----------------    [[ Functions ]]    ------------------
 --======================================================--
 
 --[[
+local SecretValueTestMode = true
 SetCVar("secretChallengeModeRestrictionsForced", 1)
 SetCVar("secretCombatRestrictionsForced", 1)
 SetCVar("secretEncounterRestrictionsForced", 1)
@@ -38,6 +44,7 @@ F.GetNPCID = function(guid)
 	return id
 end
 
+
 -- [[ 獲取專精ID ]] --
 
 -- 初始化
@@ -50,12 +57,12 @@ end
 
 -- 檢查專精返回值
 local function SpecUpdate()
-    local specIndex = C_SpecializationInfo.GetSpecialization() or 0
-	local specID = C_SpecializationInfo.GetSpecializationInfo(specIndex)
-	local IsSpellKnown = C_SpellBook.IsSpellKnown
+	local specIndex = C_SpecializationInfo_GetSpecialization()
+	local specID = specIndex and C_SpecializationInfo_GetSpecializationInfo(specIndex) or 0
+	local lightSmith = C_SpellBook_IsSpellKnownOrInSpellBook(432459)
 
 	if (F.IsAny(specID, 268, 66) and (not C.TankResource)) or 
-		(specID == 66 and C.TankResource and (not IsSpellKnown(432459))) or
+		(specID == 66 and C.TankResource and (not lightSmith)) or
 		F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
 		(F.IsAny(specID, 581, 73) and C.TankResource) or
 		F.IsAny(specID, 102, 103, 104, 62, 269, 65, 70, 262) then
@@ -66,7 +73,7 @@ local function SpecUpdate()
 		-- 開坦克資源的復仇、防戰
 		-- 鳥貓熊、秘法、御風、神聖、懲戒、元素
 		SpecBoolean = 1
-	elseif (specID == 268 and C.TankResource) or (specID == 66 and C.TankResource and IsSpellKnown(432459)) then
+	elseif (specID == 268 and C.TankResource) or (specID == 66 and C.TankResource and lightSmith) then
 		-- 三資源專精：就你們特別
 		-- 開坦克資源的釀酒，多個酒池
 		-- 開坦克資源的防騎，且是光鑄師
@@ -83,7 +90,7 @@ local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 	frame:SetScript("OnEvent", function(self, event, ...)
 		SpecUpdate()
-		C_Timer.After(1, function() SpecUpdate() end)
+		C_Timer_After(1, function() SpecUpdate() end)
 		end)
 
 --===================================================--

@@ -7,6 +7,7 @@ local UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown = UnitHealth, Un
 local UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer = UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer
 local GetTime, format = GetTime, format
 local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
+local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
 
 -- 在 CreateCastbar 等創建元素的的 function 裡，self.Castbar 中的 self 指的是頭像本身
 -- 而在施法條、光環、副資源等元素的 PostUpdate 中，self 指的是施法條等元素自身
@@ -104,6 +105,26 @@ end
 
 -- [[ 連擊點的天賦更新 ]] --
 
+local function SetClassPowerStartPoint(bar, owner, style, offset)
+	if style == "VL" then
+		bar:ClearAllPoints()
+		bar:SetPoint("BOTTOMLEFT", owner, "BOTTOMRIGHT", offset, 0)
+	elseif style == "H" then
+		bar:ClearAllPoints()
+		bar:SetPoint("BOTTOMLEFT", owner, "TOPLEFT", 0, offset)
+	end
+end
+
+local function GetPaladinClassPowerOffset()
+	local lightSmith = C_SpellBook_IsSpellKnownOrInSpellBook(432459)
+
+	if G.myClass == "PALADIN" and C.TankResource and lightSmith then
+		return C.PPOffset*2 + C.PPHeight
+	end
+
+	return C.PPOffset
+end
+
 T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
 	if not max or not cur then return end
 	
@@ -123,22 +144,9 @@ T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
 				element[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
 			end
 		end
-		--[[ -- 坦克資源和神聖能量
 		if i == 1 and powerType == "HOLY_POWER" then
-			if C.TankResource and IsSpellKnown(432459) then
-				if style == "VL" then
-					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
-				elseif style == "H" then
-					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
-				end
-			else
-				if style == "VL" then
-					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "BOTTOMRIGHT", C.PPOffset, 0)
-				elseif style == "H" then
-					element[i]:SetPoint("BOTTOMLEFT", element.__owner, "TOPLEFT", 0, C.PPOffset)
-				end
-			end
-		end]]--
+			SetClassPowerStartPoint(element[i], element.__owner, style, GetPaladinClassPowerOffset())
+		end
 		-- 連擊點滿星變色
 		if powerType == "COMBO_POINTS" then
 			if max > 0 and cur == max then
@@ -213,8 +221,6 @@ T.CreateClassPower = function(self, unit)
 	local isDK = G.myClass == "DEATHKNIGHT"
 	local isEVOKER = G.myClass == "EVOKER"
 	local maxPoint = (isDK and 6) or (isEVOKER and 5) or 7
-	local index = GetSpecialization() or 0
-	local id = GetSpecializationInfo(index)
 	
 	local ClassPower = {}
 	
@@ -234,7 +240,7 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint)
 			
 			if i == 1 then
-				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)  
+				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", GetPaladinClassPowerOffset(), 0)
 			else
 				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
 			end
@@ -258,7 +264,7 @@ T.CreateClassPower = function(self, unit)
 			ClassPower[i]:SetSize((C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint, C.PPHeight)
 			
 			if i == 1 then
-				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
+				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, GetPaladinClassPowerOffset())
 			else
 				ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
 			end
@@ -279,7 +285,7 @@ T.CreateClassPower = function(self, unit)
 	elseif isEVOKER then
 		self.Essence = ClassPower
 		self.Essence.color = {0.02, 0.9, 0.9}
-		self.updateInterval = .1
+		self.Essence.updateInterval = .1
 	else
 		self.ClassPower = ClassPower
 		self.ClassPower.PostUpdate = T.PostUpdateClassPower
@@ -524,7 +530,7 @@ T.CreateTankResource = function(self, unit)
 	--[[
 	TankResource.colors = {
 		["WARRIOR"] = {.2,.5,.7},
-		["PALDAIN"] = {1, 1, 0},
+		["PALADIN"] = {1, 1, 0},
 		["DEMONHUNTER"] = {.7,.6,.4},
 		["MONK"] = {.7,.6,.4},
 	}

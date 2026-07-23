@@ -15,7 +15,7 @@
     .noPowerCostColor the RGB values for noPowerCost Defaults to {.9,.1,.1}
     .overrideSpellOptions the overrideSpellOptions, Defaults to {[PlayerClass] = {[spell] = {colorR,colorG,colorB,colorA}}}
 	## Support Class
-	- PALDAIN
+	- PALADIN
 	- WARRIOR
 	- DEMON HUNTER
 	- MONK
@@ -42,7 +42,7 @@
 	-- SetCustomColor
 	TankResource.colors = {
 		["WARRIOR"] = {.2,.5,.7},
-		["PALDAIN"] = {.6,.4,.5},
+		["PALADIN"] = {.6,.4,.5},
 		["DEMONHUNTER"] = {.7,.6,.4},
 		["MONK"] = {.7,.6,.4},
 	}
@@ -79,12 +79,17 @@ local SPEC_WARRIOR_PROTECTION = SPEC_WARRIOR_PROTECTION or 3
 local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
 local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
 
-local UnitSpellHaste, GetTime, UnitIsUnit, UnitHasVehicleUI, CreateFrame = UnitSpellHaste, GetTime, UnitIsUnit, UnitHasVehicleUI, CreateFrame
+local UnitSpellHaste, GetTime, UnitHasVehicleUI, CreateFrame = UnitSpellHaste, GetTime, UnitHasVehicleUI, CreateFrame
 local C_Spell_GetSpellCharges = C_Spell.GetSpellCharges
 local C_Spell_GetSpellCastCount = C_Spell.GetSpellCastCount
 local C_Spell_GetSpellCooldown = C_Spell.GetSpellCooldown
-local C_SpellBook_IsSpellKnown = C_SpellBook.IsSpellKnown
+local C_Spell_GetOverrideSpell = C_Spell.GetOverrideSpell
+local C_Spell_IsSpellUsable = C_Spell.IsSpellUsable
+local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
 local C_SpecializationInfo_GetSpecialization = C_SpecializationInfo.GetSpecialization
+
+local DefaultCooldownInfo = { startTime = 0, duration = 0, isEnabled = true }
+local DefaultChargeInfo = { currentCharges = 0, maxCharges = 0, cooldownStartTime = 0, cooldownDuration = 0 }
 
 
 
@@ -115,13 +120,14 @@ local enableClassAndSpec = {
     ['DRUID'] = { SPEC_DRUID_GUARDIAN, 22842 },
     ['DEATHKNIGHT'] = { SPEC_DEATHKNIGHT_BLOOD, 194679 }
 }
+
 --[[
 	return 是否能开启模块的状态
 ]]
 local function GetEnableStateAndSpell()
     if enableClassAndSpec[PlayerClass] then
         local spec, spell = unpack(enableClassAndSpec[PlayerClass])
-        if spec == C_SpecializationInfo_GetSpecialization() and C_SpellBook_IsSpellKnown(spell) then
+        if spec == C_SpecializationInfo_GetSpecialization() and C_SpellBook_IsSpellKnownOrInSpellBook(spell) then
             return true, spell
         end
     end
@@ -130,14 +136,19 @@ end
 
 -- 自制的获取时间方法
 local function GetResourceCooldown(spell)
-    local cooldownInfo = C_Spell_GetSpellCooldown(spell)
-    local start, dur, enable = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnable
+    local cooldownInfo = C_Spell_GetSpellCooldown(spell) or DefaultCooldownInfo
+    local start, dur, enabled = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnabled
 
     local chargesInfo = C_Spell_GetSpellCharges(spell)
+    local hasChargeInfo = chargesInfo ~= nil
+    chargesInfo = chargesInfo or DefaultChargeInfo
     local charges, maxCharges, startCharges, durCharges = chargesInfo.currentCharges, chargesInfo.maxCharges,
         chargesInfo.cooldownStartTime, chargesInfo.cooldownDuration
 
-    local stack = charges or C_Spell_GetSpellCastCount(spell)
+    charges = charges or 0
+    maxCharges = maxCharges or 0
+
+    local stack = (hasChargeInfo and charges) or C_Spell_GetSpellCastCount(spell) or 0
     local gcd = math.max((1.5 / (1 + (UnitSpellHaste("player") / 100))), 0.75)
 
     start = start or 0
@@ -146,7 +157,7 @@ local function GetResourceCooldown(spell)
     startCharges = startCharges or 0
     durCharges = durCharges or 0
 
-    if enable == 0 then start, dur = 0, 0 end
+    if enabled == false or enabled == 0 then start, dur = 0, 0 end
 
     local startTime, duration = start, dur
 
@@ -164,7 +175,7 @@ end
 
 -- 把Aura API 返回的方法转换成进度比 取值[0,100]
 local function GetProgress(startTime, duration)
-    if startTime == 0 and duration == 0 then return 100 end
+    if startTime == 0 or duration == 0 then return 100 end
     local nowTime = GetTime()   -- nowTime
     local startTime = startTime -- startTime
 
@@ -174,7 +185,7 @@ local function GetProgress(startTime, duration)
 end
 
 local function IsOverrideSpell(spell)
-    local overrideSpell = C_Spell.GetOverrideSpell(spell)
+    local overrideSpell = C_Spell_GetOverrideSpell(spell)
     return overrideSpell == spell, overrideSpell
 end
 
@@ -238,7 +249,7 @@ local function UpdateUsableColor(element)
         end
     end
 
-    local usable, noMana = C_Spell.IsSpellUsable(enableState.spell)
+    local usable, noMana = C_Spell_IsSpellUsable(enableState.spell)
 
     local r, g, b = costColor[1], costColor[2], costColor[3]
 
@@ -385,7 +396,7 @@ local function Visibility(self, event, unit)
                 enableState.spec = C_SpecializationInfo_GetSpecialization()
             end
             local overrideSpellOptions = element.overrideSpellOptions
-            if overrideSpellOptions[PlayerClass] then
+            if overrideSpellOptions and overrideSpellOptions[PlayerClass] then
                 enableState.overrideSpellOptions = overrideSpellOptions[PlayerClass]
             end
         end
@@ -421,7 +432,7 @@ do
         -- 这里注册监视事件
         self:RegisterEvent('SPELL_UPDATE_COOLDOWN', Path, true)
         self:RegisterEvent('PLAYER_TALENT_UPDATE', Path, true)
-        -- self:RegisterEvent('SPELL_UPDATE_CHARGES', Path, true)
+        self:RegisterEvent('SPELL_UPDATE_CHARGES', Path, true)
         if self.TankResource.costColor then
             for k in pairs(UsableUpdateEvents) do
                 if  not self:IsEventRegistered(k) then
@@ -454,7 +465,7 @@ do
         -- 这里取消注册事件
         self:UnregisterEvent('SPELL_UPDATE_COOLDOWN', Path)
         self:UnregisterEvent('PLAYER_TALENT_UPDATE', Path)
-        -- self:UnregisterEvent('SPELL_UPDATE_CHARGES', Path)
+        self:UnregisterEvent('SPELL_UPDATE_CHARGES', Path)
         if self.TankResource.costColor then
             for k in pairs(UsableUpdateEvents) do
                 self:UnregisterEvent(k, Path)
@@ -489,9 +500,9 @@ local function Enable(self, unit)
     if element then
         element.__owner = self
         element.__max = #element
-        element.updateDelay = .2
-        element.noPowerCostColor = { .9, .1, .1, 1 }
-        element.costColor = true
+        element.updateDelay = element.updateDelay or .2
+        element.noPowerCostColor = element.noPowerCostColor or { .9, .1, .1, 1 }
+        if element.costColor == nil then element.costColor = true end
         element.ForceUpdate = ForceUpdate
 
         -- 这里注册用于判断是否显示的事件 用于更新是否显隐
