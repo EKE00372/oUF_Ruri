@@ -1,4 +1,4 @@
-﻿local addon, ns = ...
+local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
@@ -184,7 +184,7 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	--if C.TankResource then T.CreateTankResource(self, unit) end
+	if C.TankResource then T.CreateTankResource(self, unit) end
 	--if C.Totems then T.CreateTotemBar(self) end
 
 	-- 施法條
@@ -247,7 +247,7 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	--if C.TankResource then T.CreateTankResource(self, unit) end
+	if C.TankResource then T.CreateTankResource(self, unit) end
 	--if C.Totems then T.CreateTotemBar(self) end
 	
 	-- 減益
