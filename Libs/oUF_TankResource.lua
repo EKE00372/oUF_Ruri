@@ -1,70 +1,84 @@
 --[[
-	## Widget
-	TankResource - An `table` holding `StatusBar`s.
-	
-	## Sub-Widgets
-	.bg - A `Texture` used as a background. It will inherit the color of the main StatusBar.
-	
-	## Sub-Widget Options
-	.multiplier - Used to tint the background based on the widget's R, G and B values. Defaults to 1 (number)[0-1]
-	
-	## Options
-	.colors the RGB values for the widget.
-	.updateDealy the delay for the bar update values. Defaults to .1 (number)[0-1]
-    .costColor the resource noPowerCostColor flag Defaults to true (boolean)
-    .noPowerCostColor the RGB values for noPowerCost Defaults to {.9,.1,.1}
-    .overrideSpellOptions the overrideSpellOptions, Defaults to {[PlayerClass] = {[spell] = {colorR,colorG,colorB,colorA}}}
-	## Support Class
+	## 元件 / Widget
+	TankResource - 一組 `StatusBar`，用來顯示坦克職業的資源充能。
+	TankResource - A table of `StatusBar`s used to display tank resource charges.
+
+	## 子元件 / Sub-Widgets
+	.bg - 背景材質，跟隨 StatusBar 的顏色並套用 multiplier。
+	.bg - Background texture. It inherits StatusBar color with multiplier.
+
+	## 子元件選項 / Sub-Widget Options
+	.multiplier - 背景顏色乘數，預設 1，範圍 0-1。
+	.multiplier - Background color multiplier. Defaults to 1, range 0-1.
+
+	## 選項 / Options
+	.colors - 職業顏色 。
+	.colors - Class colors.
+
+	.costColor - 資源不足時是否改用 noPowerCostColor，預設 true。
+	.costColor - Whether to use noPowerCostColor when the spell lacks resource. Defaults to true.
+
+	.noPowerCostColor - 資源不足顏色，預設 {.9, .1, .1, 1}。
+	.noPowerCostColor - Color used when the spell lacks resource. Defaults to {.9, .1, .1, 1}.
+
+	.overrideSpellOptions - 依 spell override 套用顏色，格式為 {[PlayerClass] = {[spellID] = {r, g, b, a}}}
+	.overrideSpellOptions - Per-override spell colors, formatted as {[PlayerClass] = {[spellID] = {r, g, b, a}}}
+
+	.MaxChangeUpdate - 最大充能數改變時呼叫更新
+	.MaxChangeUpdate - Called when max charges change
+
+	## 支援職業 / Supported Classes
 	- PALADIN
 	- WARRIOR
-	- DEMON HUNTER
+	- DEMONHUNTER
 	- MONK
+	- DRUID
+	- DEATHKNIGHT
 
-	## Examples
+	## 範例 / Example
 	local TankResource = {}
 	local maxLength = 4
 	for index = 1, maxLength do
 		local bar = CreateFrame('StatusBar', nil, self)
 
-		-- Position and size.
+		-- 位置與尺寸。/ Position and size.
 		bar:SetSize(120 / maxLength, 20)
-		bar:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', (index - 1) * Bar:GetWidth(), 0)
+		bar:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', (index - 1) * bar:GetWidth(), 0)
 
 		TankResource[index] = bar
 	end
 
-	-- Register with oUF
+	-- 註冊到 oUF。/ Register with oUF.
 	self.TankResource = TankResource
 
-	## Notes
-	####if you use custom color bar then
-
-	-- SetCustomColor
+	## 備註 / Notes
+	自訂顏色：/ Custom colors:
 	TankResource.colors = {
-		["WARRIOR"] = {.2,.5,.7},
-		["PALADIN"] = {.6,.4,.5},
-		["DEMONHUNTER"] = {.7,.6,.4},
-		["MONK"] = {.7,.6,.4},
+		["WARRIOR"] = {.2, .5, .7},
+		["PALADIN"] = {1, 1, 0},
+		["DEMONHUNTER"] = {.7, .6, .4},
+		["MONK"] = {.7, .6, .4},
 	}
-    TankResouce.noPowerCostColor = {
-        .9,
-        .1,
-        .1,
-    }
+	TankResource.noPowerCostColor = {.9, .1, .1, 1}
 
-	#### if resourceStack is changed  you can override MaxChangeUpdate function to changed size.
-	TankResource.MaxChangeUpdate = function(self,maxCharge)
+	最大充能數改變時，可覆寫 MaxChangeUpdate 來調整尺寸或位置：
+	When max charges change, override MaxChangeUpdate to adjust size or position:
+	TankResource.MaxChangeUpdate = function(self, maxCharge)
 		for i = 1, maxCharge do
 			local bar = self[i]
-			
-			bar:SetSize(120/maxCharge,20)
-			bar:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', (i - 1) * Bar:GetWidth(), 0)
+
+			bar:SetSize(120 / maxCharge, 20)
+			bar:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', (i - 1) * bar:GetWidth(), 0)
 		end
 	end
+
+	secret value 時無法顯示充能進度。
 ]] --
------------------------------
--- all credits to HopeASD. --
------------------------------
+
+----------------------
+-- 原始作者：HopeASD --
+----------------------
+
 local addon, ns = ...
 local C, F, G, T = unpack(ns)
 local oUF = ns.oUF or oUF
@@ -79,38 +93,29 @@ local SPEC_WARRIOR_PROTECTION = SPEC_WARRIOR_PROTECTION or 3
 local SPEC_PALADIN_PROTECTION = SPEC_PALADIN_PROTECTION or 2
 local SPEC_DRUID_GUARDIAN = SPEC_DRUID_GUARDIAN or 3
 
-local UnitSpellHaste, GetTime, UnitHasVehicleUI, CreateFrame = UnitSpellHaste, GetTime, UnitHasVehicleUI, CreateFrame
+local UnitHasVehicleUI = UnitHasVehicleUI
 local C_Spell_GetSpellCharges = C_Spell.GetSpellCharges
 local C_Spell_GetSpellCastCount = C_Spell.GetSpellCastCount
-local C_Spell_GetSpellCooldown = C_Spell.GetSpellCooldown
 local C_Spell_GetOverrideSpell = C_Spell.GetOverrideSpell
 local C_Spell_IsSpellUsable = C_Spell.IsSpellUsable
 local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
 local C_SpecializationInfo_GetSpecialization = C_SpecializationInfo.GetSpecialization
 
-local DefaultCooldownInfo = { startTime = 0, duration = 0, isEnabled = true }
-local DefaultChargeInfo = { currentCharges = 0, maxCharges = 0, cooldownStartTime = 0, cooldownDuration = 0 }
-
-
+-------------
+-- 啟用判斷 --
+-------------
 
 local TankResourceEnable, TankResourceDisable
--- {enable,spell,spec,overrideSpellOptions}
+-- 目前啟用狀態：{enable, spell, spec, overrideSpellOptions}
 local enableState = {}
 
 --[[
-	TODO:
-		1 Paladin tankResource
-		2 StatusBar update Type(ChargesCooldown,AuraDuration,AuraStacks)
-]]
---[[
-	[PlayerClassName] = {SPECNUMBER,SPELL,SPECIALSEVENTS,UPDATETYPE}
-		PlayerClassName - string
-		SPECNUMBER - number
-		SPECIALSEVENTS - table(string)
-		UPDATETYPE - number
-			1. ChargesCooldown
-			2. AuraDuration
-			3. AuraStacks (like Druid_Guardian 铁鬃)
+	enableClassAndSpec:
+		[classFileName] = {specIndex, spellID}
+
+	classFileName - UnitClass("player") 的第二回傳值。
+	specIndex - C_SpecializationInfo.GetSpecialization() 的回傳值。
+	spellID - 需要存在於玩家法術書中的坦克資源技能。
 ]]
 local enableClassAndSpec = {
     ['MONK'] = { SPEC_MONK_BREWMASTER, 119582 },
@@ -121,9 +126,7 @@ local enableClassAndSpec = {
     ['DEATHKNIGHT'] = { SPEC_DEATHKNIGHT_BLOOD, 194679 }
 }
 
---[[
-	return 是否能开启模块的状态
-]]
+-- 判斷目前的職業專精是否需要啟用模組，以及對應的坦克法術
 local function GetEnableStateAndSpell()
     if enableClassAndSpec[PlayerClass] then
         local spec, spell = unpack(enableClassAndSpec[PlayerClass])
@@ -134,75 +137,51 @@ local function GetEnableStateAndSpell()
     return false, nil
 end
 
--- 自制的获取时间方法
-local function GetResourceCooldown(spell)
-    local cooldownInfo = C_Spell_GetSpellCooldown(spell) or DefaultCooldownInfo
-    local start, dur, enabled = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnabled
+-----------------
+-- 獲取法術狀態 --
+-----------------
 
+-- 獲取目前充能數： currentCharges 為密秘值時不可運算
+local function GetResourceCooldown(element, spell)
     local chargesInfo = C_Spell_GetSpellCharges(spell)
-    local hasChargeInfo = chargesInfo ~= nil
-    chargesInfo = chargesInfo or DefaultChargeInfo
-    local charges, maxCharges, startCharges, durCharges = chargesInfo.currentCharges, chargesInfo.maxCharges,
-        chargesInfo.cooldownStartTime, chargesInfo.cooldownDuration
+    local maxCharges = element.__max or #element
 
-    charges = charges or 0
-    maxCharges = maxCharges or 0
-
-    local stack = (hasChargeInfo and charges) or C_Spell_GetSpellCastCount(spell) or 0
-    local gcd = math.max((1.5 / (1 + (UnitSpellHaste("player") / 100))), 0.75)
-
-    start = start or 0
-    dur = dur or 0
-
-    startCharges = startCharges or 0
-    durCharges = durCharges or 0
-
-    if enabled == false or enabled == 0 then start, dur = 0, 0 end
-
-    local startTime, duration = start, dur
-
-    if charges == maxCharges then
-        start, dur = 0, 0
-        startCharges, durCharges = 0, 0
-    elseif charges > 0 then
-        startTime, duration = startCharges, durCharges
+    if chargesInfo then
+        return chargesInfo.currentCharges, maxCharges
     end
 
-    if gcd == duration then startTime, duration = 0, 0 end
-
-    return stack, maxCharges, startTime, duration
+    return C_Spell_GetSpellCastCount(spell), maxCharges
 end
 
--- 把Aura API 返回的方法转换成进度比 取值[0,100]
-local function GetProgress(startTime, duration)
-    if startTime == 0 or duration == 0 then return 100 end
-    local nowTime = GetTime()   -- nowTime
-    local startTime = startTime -- startTime
-
-    local progress = (nowTime - startTime) / (duration)
-
-    return progress * 100
+local function GetOverrideSpell(spell)
+    return C_Spell_GetOverrideSpell(spell) or spell
 end
 
-local function IsOverrideSpell(spell)
-    local overrideSpell = C_Spell_GetOverrideSpell(spell)
-    return overrideSpell == spell, overrideSpell
+-- 套用顏色
+local function SetBarColor(bar, r, g, b)
+    bar:SetStatusBarColor(r, g, b)
+
+    local bg = bar.bg
+    if bg then
+        local mu = bg.multiplier or 1
+        bg:SetVertexColor(r * mu, g * mu, b * mu)
+    end
 end
 
+local function SetBarValue(bar, value)
+    bar:SetValue(value)
+end
 
--- 颜色更改
--- 需要在element.colors中声明
--- 返回能量的颜色
 local function UpdateColor(element)
     local spec = enableState.enable and enableState.spec or 0
     local color = element.__owner.colors.power[4]
 
-    if (spec ~= 0 and element.colors) then
+    if (spec ~= 0 and element.colors and element.colors[PlayerClass]) then
         color = element.colors[PlayerClass]
     end
 
     if enableState.overrideSpellOptions then
-        local _, overrideSpell = IsOverrideSpell(enableState.spell)
+        local overrideSpell = GetOverrideSpell(enableState.spell)
         local overrideSpellOptions = enableState.overrideSpellOptions
         local overrideSpellColor = overrideSpellOptions[overrideSpell]
         if overrideSpellColor then
@@ -214,16 +193,10 @@ local function UpdateColor(element)
     local r, g, b = color[1], color[2], color[3]
 
     for i = 1, #element do
-        local bar = element[i]
-        bar:SetStatusBarColor(r, g, b)
-
-        local bg = bar.bg
-        if bg then
-            local mu = bg.multiplier or 1
-            bg:SetVertexColor(r * mu, g * mu, b * mu)
-        end
+        SetBarColor(element[i], r, g, b)
     end
 end
+
 local UsableUpdateEvents = {
     ["PLAYER_TARGET_CHANGED"] = true,
     ["UNIT_POWER_FREQUENT"] = true,
@@ -235,12 +208,12 @@ local function UpdateUsableColor(element)
     local spec = enableState.spec or 0
     local costColor = element.noPowerCostColor
     local color = element.__owner.colors.power[4]
-    if (spec ~= 0 and element.colors) then
+    if (spec ~= 0 and element.colors and element.colors[PlayerClass]) then
         color = element.colors[PlayerClass]
     end
 
     if enableState.overrideSpellOptions then
-        local _, overrideSpell = IsOverrideSpell(enableState.spell)
+        local overrideSpell = GetOverrideSpell(enableState.spell)
         local overrideSpellOptions = enableState.overrideSpellOptions
         local overrideSpellColor = overrideSpellOptions[overrideSpell]
         if overrideSpellColor then
@@ -255,86 +228,53 @@ local function UpdateUsableColor(element)
 
     if (not usable) and noMana then
         for i = 1, #element do
-            local bar = element[i]
-            bar:SetStatusBarColor(r, g, b)
+            SetBarColor(element[i], r, g, b)
         end
     elseif usable then
         r, g, b = color[1], color[2], color[3]
 
         for i = 1, #element do
-            local bar = element[i]
-            bar:SetStatusBarColor(r, g, b)
+            SetBarColor(element[i], r, g, b)
         end
     end
 end
 
+----------
+-- 更新 --
+----------
 
--- 更新计时条的进度
--- 仅在需要更新时进行
-local function onUpdate(self, elapsed)
-    if not enableState.enable then return end
-    local element = self.__owner.TankResource
-
-    -- self.elapsed = (self.elapsed or 0) + elapsed
-
-    -- if self.elapsed > element.updateDelay then
-    local cur, maxCharges, start, duration
-
-    if element.CooldownUpdate then
-        cur, maxCharges, start, duration =
-            GetResourceCooldown(enableState.spell)
-
-        if cur == maxCharges then element.CooldownUpdate = false end
-
-        for i = maxCharges, 1, -1 do
-            if element[i].needUpdate then
-                if cur + 1 == i then
-                    element[i]:SetValue(GetProgress(start, duration))
-                end
-            end
-        end
-    end
-    -- end
-end
-
--- 更新
+-- 更新坦克資源顯示。
 local function Update(self, event, unit)
     if not enableState.enable then return end
 
-    -- 预留 PreUpdate
+    -- 預留 PreUpdate
     local element = self.TankResource
     if element.PreUpdate then element:PreUpdate(event) end
     if UsableUpdateEvents[event] then
         return UpdateUsableColor(element)
     elseif (unit and unit ~= self.unit) then
         UpdateUsableColor(element)
+    else
+        (element.UpdateColor or UpdateColor)(element)
     end
 
-    local cur, maxCharges, oldMax, start, duration
+    local cur, maxCharges, oldMax
 
-    cur, maxCharges, start, duration = GetResourceCooldown(enableState.spell)
+    cur, maxCharges = GetResourceCooldown(element, enableState.spell)
     for i = 1, maxCharges do
-        if cur + 1 == i then
-            element[i].needUpdate = true
-        elseif cur < i then
-            element[i]:SetValue(0)
-            element[i].needUpdate = false
-        else
-            element[i]:SetValue(100)
-        end
+        SetBarValue(element[i], cur)
+
         if not element[i]:IsShown() and element.init then
             element[i]:Show()
         end
     end
-    if cur ~= maxCharges then element.CooldownUpdate = true end
-
     oldMax = element.__max
 
     if element.init then
         if maxCharges + 1 >= oldMax then
             for i = maxCharges + 1, oldMax do
                 element[i]:Hide()
-                element[i]:SetValue(0)
+                SetBarValue(element[i], 0)
             end
         end
         element.init = false
@@ -344,21 +284,20 @@ local function Update(self, event, unit)
         if (maxCharges < oldMax) then
             for i = maxCharges + 1, oldMax do
                 element[i]:Hide()
-                element[i]:SetValue(0)
+                SetBarValue(element[i], 0)
             end
         else
             for i = oldMax, maxCharges do element[i]:Show() end
         end
-        -- 预留最大层数变化接口
+        -- 預留最大充能數變化
         if element.MaxChangeUpdate then
             element:MaxChangeUpdate(maxCharges)
         end
         element.__max = maxCharges
     end
-    -- 预留 PostUpdate
+    -- 預留 PostUpdate
     if element.PostUpdate then
-        -- return element:PostUpdate(cur, maxCharges, start, duration)
-        return element:PostUpdate(cur, maxCharges, oldMax ~= max, start, duration)
+        return element:PostUpdate(cur, maxCharges, oldMax ~= maxCharges)
     end
 end
 
@@ -366,7 +305,7 @@ local function EnableEvent(self, spell) end
 
 local function DisableEvent(self) enableState = {} end
 
--- 真实更新的转接方法 预留覆盖API
+-- 真正更新的轉接方法：預留 Override/OverrideEnableEvent/OverrideDisableEvent
 local function Path(self, event, ...)
     if event == "TankResourceEnable" then
         (self.TankResource.OverrideEnableEvent or EnableEvent)(self, ...)
@@ -377,12 +316,12 @@ local function Path(self, event, ...)
     return (self.TankResource.Override or Update)(self, event, ...)
 end
 
--- 判断是否让元素显示
+-- 判斷是否顯示
 local function Visibility(self, event, unit)
     local element = self.TankResource
     local shouleEnable = false
 
-    -- 当有载具UI时 不显示
+    -- 有載具時不顯示
     if UnitHasVehicleUI('player') then
         unit = 'vehicle'
         shouleEnable = false
@@ -404,7 +343,7 @@ local function Visibility(self, event, unit)
     local isEnabled = element.isEnabled
     local spell = enableState.spell
 
-    -- 如果当前状态可以开启模块显示 则提前设置颜色
+    -- 啟用時先更新顏色
     if shouleEnable then (element.UpdateColor or UpdateColor)(element) end
 
     if shouleEnable and not isEnabled then
@@ -416,20 +355,18 @@ local function Visibility(self, event, unit)
     end
 end
 
--- 这里是判断是否让元素显示的转接方法 预留了覆盖的方法
+-- 顯示判斷的轉接方法：預留 OverrideVisibility
 local function VisibilityPath(self, ...)
     return (self.TankResource.OverrideVisibility or Visibility)(self, ...)
 end
 
--- 预留的API 当Visibility的更新被预留的API覆盖时 可以使用的预留API
+-- 預留 API：Visibility 被覆寫時仍可呼叫 ForceUpdate
 local function ForceUpdate(element)
     return VisibilityPath(element.__owner, 'ForceUpdate')
 end
 
 do
-    -- 当资源真正开启时
     function TankResourceEnable(self)
-        -- 这里注册监视事件
         self:RegisterEvent('SPELL_UPDATE_COOLDOWN', Path, true)
         self:RegisterEvent('PLAYER_TALENT_UPDATE', Path, true)
         self:RegisterEvent('SPELL_UPDATE_CHARGES', Path, true)
@@ -440,29 +377,15 @@ do
                 end
             end
         end
-
-        -- 创建用于更新进度的框架
-        local _timeHandler = CreateFrame("Frame")
-        _timeHandler.__owner = self
-        -- _timeHandler:SetScript('OnUpdate', onUpdate)
-        _timeHandler:SetScript("OnUpdate", function(_, elapsed)
-            _timeHandler.elapsed = (_timeHandler.elapsed or 0) + elapsed
-            if _timeHandler.elapsed > self.TankResource.updateDelay then
-                onUpdate(_timeHandler)
-                _timeHandler.elapsed = 0
-            end
-        end)
-        self._timeHandler = _timeHandler
         self.TankResource.isEnabled = true
         self.TankResource.init = true
         enableState.enable = true
 
-        -- 进行初始化
+        -- 初始化
         Path(self, 'TankResourceEnable', enableState.spell)
     end
 
     function TankResourceDisable(self)
-        -- 这里取消注册事件
         self:UnregisterEvent('SPELL_UPDATE_COOLDOWN', Path)
         self:UnregisterEvent('PLAYER_TALENT_UPDATE', Path)
         self:UnregisterEvent('SPELL_UPDATE_CHARGES', Path)
@@ -472,26 +395,21 @@ do
             end
         end
 
-        if self._timeHandler then
-            self._timeHandler:SetScript('OnUpdate', nil)
-        end
-
-        -- 隐藏
+        -- 隱藏
         local element = self.TankResource
         for i = 1, #element do element[i]:Hide() end
 
         self.TankResource.isEnabled = false
-        self.TankResource.CooldownUpdate = false
         enableState.enable = false
 
-        -- 进行关闭
+        -- 關閉模組
         Path(self, 'TankResourceDisable', enableState.spell)
     end
 end
 
--- 模块开启
+-- 模組啟用
 local function Enable(self, unit)
-    -- 不是玩家自己就退出
+    -- 只處理玩家自身
     if unit ~= "player" then return end
 
     local element = self.TankResource
@@ -500,12 +418,10 @@ local function Enable(self, unit)
     if element then
         element.__owner = self
         element.__max = #element
-        element.updateDelay = element.updateDelay or .2
         element.noPowerCostColor = element.noPowerCostColor or { .9, .1, .1, 1 }
         if element.costColor == nil then element.costColor = true end
         element.ForceUpdate = ForceUpdate
 
-        -- 这里注册用于判断是否显示的事件 用于更新是否显隐
         self:RegisterEvent('PLAYER_TALENT_UPDATE', VisibilityPath, true)
         self:RegisterEvent('SPELLS_CHANGED', VisibilityPath, true)
         self:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', VisibilityPath)
@@ -515,8 +431,7 @@ local function Enable(self, unit)
         element.TankResourceEnable = TankResourceEnable
         element.TankResourceDisable = TankResourceDisable
 
-        -- 对没有预置材质的进度条进行 材质设置
-        -- 对进度条的进度条取值进行设置
+        -- 設定預設材質和每個分段的取值範圍
         for i = 1, #element do
             local bar = element[i]
             if (bar:IsObjectType('StatusBar')) then
@@ -525,7 +440,7 @@ local function Enable(self, unit)
                         [[Interface\TargetingFrame\UI-StatusBar]])
                 end
 
-                bar:SetMinMaxValues(0, 100)
+                bar:SetMinMaxValues(i - 1, i)
             end
         end
 
@@ -537,7 +452,6 @@ local function Disable(self)
     if self.TankResource then
         TankResourceDisable(self)
 
-        -- 这里解除注册用于判断是否显示的事件
         self:UnregisterEvent('PLAYER_TALENT_UPDATE', VisibilityPath)
         self:UnregisterEvent('SPELLS_CHANGED', VisibilityPath)
         self:UnregisterEvent('PLAYER_SPECIALIZATION_CHANGED', VisibilityPath)

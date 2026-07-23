@@ -477,6 +477,9 @@ T.CreateTankResource = function(self, unit)
 			[432472] = {0, 1, .92}
 		}
 	}
+	TankResource.colors = {
+		["PALADIN"] = {1, 1, 0},
+	}
 
     for i = 1, maxLength do
 		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
