@@ -38,7 +38,7 @@ end
 ]]--
 -- [[ 開始施法 ]] --
 
-T.PostCastStart = function(element, unit)
+T.PostCastStart_Embed = function(element, unit)
 	local frame = element:GetParent()
 	local castingColor = CreateColor(.6, .6, .6, .6)
 	local notInterruptColor = CreateColor(.6, 0, .6, .6)
@@ -56,7 +56,7 @@ T.PostCastStart = function(element, unit)
     end
 end
 
-T.PostStandaloneCastStart = function(element, unit)
+T.PostCastStart = function(element, unit)
 	local frame = element:GetParent()
 	local castingColor = CreateColor(unpack(C.CastNormal))
 	local notInterruptColor = CreateColor(unpack(C.CastShield))
@@ -71,7 +71,7 @@ end
 
 -- [[ 停止施法 ]] --
 
-T.PostCastStop = function(element, unit)
+T.PostCastStop_Embed = function(element, unit)
 	local frame = element:GetParent()
 
 	-- 嵌入式施法條：施法結束時顯示名字
@@ -79,7 +79,7 @@ T.PostCastStop = function(element, unit)
 	frame.Status:SetAlpha(1)
 end
 --[[
-T.PostStandaloneCastStop = function(element, unit)
+T.PostCastStop = function(element, unit)
 	local frame = element:GetParent()
 	
 	if frame.mystyle == "NP" then
@@ -96,7 +96,7 @@ end
 T.PostCastStopUpdate = function(element, event, unit)
 	-- 嵌入式施法條：施法過程中切換目標、新生成的名條，按施法結束處理
 	if unit ~= element.unit then return end
-	return T.PostCastStop(element.Castbar, unit)
+	return T.PostCastStop_Embed(element.Castbar, unit)
 end
 
 -- [[ 名條條形施法條：施法目標更新 ]] --
@@ -108,7 +108,7 @@ end
 ]]--
 -- [[ 施法失敗 ]] --
 
-T.PostCastFailed = function(element, unit)
+T.PostCastFailed_Embed = function(element, unit)
 	local frame = element:GetParent()
 
     --[[if frame.mystyle == "NP" then
@@ -117,17 +117,18 @@ T.PostCastFailed = function(element, unit)
     else]]--
     -- 嵌入式施法條：施法結束時顯示名字
     C_Timer.After(.05, function()   -- timeToHold 是0.05
+        if element.casting or element.channeling or element.empowering then return end
         local frame = element:GetParent()
         frame.Name:SetAlpha(1)
         frame.Status:SetAlpha(1)
     end)
     -- 一閃而過的施法失敗紅色條
     element:SetStatusBarColor(.5, .2, .2, .6)
-    element:SetValue(100)
+    element:SetValue(1)
     element.Spark:SetAlpha(0)
 end
 
-T.PostStandaloneCastFailed = function(element, unit)
+T.PostCastFailed = function(element, unit)
 	local frame = element:GetParent()
 
     --[[if frame.mystyle == "BP" then
@@ -136,23 +137,31 @@ T.PostStandaloneCastFailed = function(element, unit)
     end]]--
     -- 一閃而過的施法失敗紅色條
     element:SetStatusBarColor(unpack(C.CastFailed))
-    element:SetValue(100)
+    element:SetValue(1)
     --element:Show()
 end
 
 -- [[ 施法過程中打斷狀態更新 ]] --
 
 -- 例子：燃燒王座三王小怪
-T.PostCastInterruptible = function(element, unit)
+T.PostCastInterruptible_Embed = function(element, unit)
 	-- 打斷狀態更新
-	if not UnitIsUnit(unit, "player")  then T.PostCastStart(element, unit) end
+	if UnitIsUnit(unit, "player") then return end
+
+	local castingColor = CreateColor(.6, .6, .6, .6)
+	local notInterruptColor = CreateColor(.6, 0, .6, .6)
+	element:GetStatusBarTexture():SetVertexColorFromBoolean(element.notInterruptible, notInterruptColor, castingColor)
 	-- 被誰打斷
 	
 end
 
-T.PostStandaloneCastInterruptible = function(element, unit)
+T.PostCastInterruptible = function(element, unit)
 	-- 打斷狀態更新
-	if not UnitIsUnit(unit, "player")  then T.PostStandaloneCastStart(element, unit) end
+	if UnitIsUnit(unit, "player") then return end
+
+	local castingColor = CreateColor(unpack(C.CastNormal))
+	local notInterruptColor = CreateColor(unpack(C.CastShield))
+	element:GetStatusBarTexture():SetVertexColorFromBoolean(element.notInterruptible, notInterruptColor, castingColor)
 	-- 被誰打斷
 	
 end
@@ -227,13 +236,13 @@ T.CreateCastbar = function(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostCastStart			-- 施法開始
-	self.Castbar.PostCastStop = T.PostCastStop				-- 施法結束
+	self.Castbar.PostCastStart = T.PostCastStart_Embed		-- 施法開始
+	self.Castbar.PostCastStop = T.PostCastStop_Embed		-- 施法結束
 	self.Castbar.CustomTimeText = T.CustomTimeText			-- 施法時間
 	self.Castbar.CustomDelayText = T.CustomTimeText			-- 施法時間
-	self.Castbar.PostCastFail = T.PostCastFailed			-- 施法失敗
-	self.Castbar.PostCastInterrupted = T.PostCastFailed		-- 施法中斷
-	self.Castbar.PostCastInterruptible = T.PostCastInterruptible	-- 狀態刷新
+	self.Castbar.PostCastFail = T.PostCastFailed_Embed			-- 施法失敗
+	self.Castbar.PostCastInterrupted = T.PostCastFailed_Embed		-- 施法中斷
+	self.Castbar.PostCastInterruptible = T.PostCastInterruptible_Embed	-- 狀態刷新
 	-- 當前目標正在施法時，切換目標會重新獲取名字，防止丟失
 	self:RegisterEvent("UNIT_NAME_UPDATE", T.PostCastStopUpdate)
 	table.insert(self.__elements, T.PostCastStopUpdate)
@@ -311,10 +320,10 @@ T.CreateStandaloneCastbar = function(self, unit)
 	Castbar.timeToHold = 0.05
 	-- 註冊到ouf
 	self.Castbar = Castbar	
-	self.Castbar.PostCastStart = T.PostStandaloneCastStart                  -- 施法開始
+	self.Castbar.PostCastStart = T.PostCastStart                            -- 施法開始
 	self.Castbar.CustomTimeText = T.CustomTimeText                          -- 施法時間
     self.Castbar.CustomDelayText = T.CustomTimeText                         -- 施法時間
-	self.Castbar.PostCastFail = T.PostStandaloneCastFailed                  -- 施法失敗
-    self.Castbar.PostCastInterrupted = T.PostStandaloneCastFailed		    -- 施法中斷
-	self.Castbar.PostCastInterruptible = T.PostStandaloneCastInterruptible	-- 狀態更新
+	self.Castbar.PostCastFail = T.PostCastFailed                  -- 施法失敗
+    self.Castbar.PostCastInterrupted = T.PostCastFailed		    -- 施法中斷
+	self.Castbar.PostCastInterruptible = T.PostCastInterruptible	        -- 狀態更新
 end
