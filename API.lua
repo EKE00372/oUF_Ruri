@@ -10,6 +10,7 @@ local C_Timer_After = C_Timer.After
 local C_SpecializationInfo_GetSpecialization = C_SpecializationInfo.GetSpecialization
 local C_SpecializationInfo_GetSpecializationInfo = C_SpecializationInfo.GetSpecializationInfo
 local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
+local C_ClassTalents_GetActiveConfigID = C_ClassTalents.GetActiveConfigID
 
 --======================================================--
 -----------------    [[ Functions ]]    ------------------
@@ -48,50 +49,58 @@ end
 -- [[ 獲取專精ID ]] --
 
 -- 初始化
-local SpecBoolean = 3
+local SpecBoolean = 1
 
 -- 提供調用函數
 function F.SpecCheck()
 	return SpecBoolean
 end
 
--- 檢查專精返回值
+-- 檢查專精返回需要的偏移量
 local function SpecUpdate()
 	local specIndex = C_SpecializationInfo_GetSpecialization()
 	local specID = specIndex and C_SpecializationInfo_GetSpecializationInfo(specIndex) or 0
 	local lightSmith = C_SpellBook_IsSpellKnownOrInSpellBook(432459)
 
-	if (F.IsAny(specID, 268, 66) and (not C.TankResource)) or 
-		(specID == 66 and C.TankResource and (not lightSmith)) or
-		F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER") or 
-		(F.IsAny(specID, 581, 73) and C.TankResource) or
-		F.IsAny(specID, 102, 103, 104, 62, 269, 65, 70, 262) then
-		-- 雙資源專精：
-		-- 關閉坦克資源的酒僧和防騎
-		-- 開坦克資源的防騎，但是聖殿騎士
-		-- 死騎、盜賊、術士、喚能
-		-- 開坦克資源的復仇、防戰
-		-- 鳥貓熊、秘法、御風、神聖、懲戒、元素
-		SpecBoolean = 1
-	elseif (specID == 268 and C.TankResource) or (specID == 66 and C.TankResource and lightSmith) then
-		-- 三資源專精：就你們特別
-		-- 開坦克資源的釀酒，多個酒池
-		-- 開坦克資源的防騎，且是光鑄師
+	-- 第一層：坦克資源
+	-- 啟用坦克資源的酒僧/血DK/復仇/防戰/熊/光鑄防騎
+	local hasTankResource =
+		C.TankResource and (F.IsAny(specID, 268, 250, 581, 73, 104) or (specID == 66 and lightSmith))
+
+	-- 第二層：職業資源：ClassPower/Runes/Essence/Stagger/AdditionalPower 共用
+	-- 死騎/盜賊/術士/喚能/聖騎
+	-- 鳥貓/秘法/暗牧/元薩/酒僧/風僧
+	local hasClassResource =
+		F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER", "PALADIN") or
+		F.IsAny(specID, 102, 103, 62, 258, 262, 268, 269)
+
+	if hasTankResource and hasClassResource then
+		SpecBoolean = 3
+	elseif hasTankResource or hasClassResource then
 		SpecBoolean = 2
 	else
-		-- 單資源專精
-		SpecBoolean = 3
+		-- 無額外資源層
+		SpecBoolean = 1
 	end
 end
 
 -- PEW和切專精時獲取當前值
 local frame = CreateFrame("Frame")
-	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+	frame:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
+	frame:RegisterEvent("PLAYER_TALENT_UPDATE")
+	frame:RegisterEvent("SPELLS_CHANGED")
+	frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
 	frame:SetScript("OnEvent", function(self, event, ...)
+		local arg1 = ...
+
+		if event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 ~= "player" then return end
+		if event == "TRAIT_CONFIG_UPDATED" and C_ClassTalents_GetActiveConfigID() ~= arg1 then return end
+
 		SpecUpdate()
-		C_Timer_After(1, function() SpecUpdate() end)
-		end)
+		C_Timer_After(1, SpecUpdate)
+	end)
 
 --===================================================--
 -----------------    [[ Format ]]    ------------------
