@@ -6,12 +6,14 @@ local UnitGetIncomingHeals, UnitGetTotalAbsorbs, UnitClass, UnitAffectingCombat 
 local UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown = UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown
 local UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer = UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer
 local GetTime, format = GetTime, format
-local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
-local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
+local CreateFrame, GetFrameLevel, SetFrameLevel = CreateFrame, GetFrameLevel, SetFrameLevel
+local C_Timer_After = C_Timer.After
+local C_ClassTalents_GetActiveConfigID = C_ClassTalents.GetActiveConfigID
 
--- 在 CreateCastbar 等創建元素的的 function 裡，self.Castbar 中的 self 指的是頭像本身
+-- 在 CreateCastbar 等創建元素的的 function 裡，self.Castbar 中的 self 指的是所屬框架，即頭像本身
 -- 而在施法條、光環、副資源等元素的 PostUpdate 中，self 指的是施法條等元素自身
 -- 為了防止搞混，PostUpdate 寫為 function(element, unit)
+-- 如果在這裡需要調用頭像本身，element.__owner 快取時命名為 parentFrame
 
 --===================================================--
 -----------------    [[ General ]]    -----------------
@@ -19,23 +21,25 @@ local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellB
 
 -- [[ 通用的 multiplier postupdate ]] -- 
 
-T.PostUpdateColor_ElementMultiBGColor = function(element, color)
+local function UpdateMultiplierBG(element, color, r, g, b)
 	if not element.bg then return end
 
-	local r, g, b = color:GetRGB()
+	if color and color.GetRGB then
+		r, g, b = color:GetRGB()
+	end
+
+	if not r then return end
+
 	local mu = element.bg.multiplier or 0.3
-	
 	element.bg:SetVertexColor(r * mu, g * mu, b * mu)
-	
 end
 
-T.PostUpdateColor_MultiBGColor = function(element, unit, color)
-	if not element.bg then return end
+T.PostUpdateColor_ElementMultiBGColor = function(element, color)
+	UpdateMultiplierBG(element, color)
+end
 
-	local r, g, b = color:GetRGB()
-	local mu = element.bg.multiplier or 0.3
-	
-	element.bg:SetVertexColor(r * mu, g * mu, b * mu)
+T.PostUpdateColor_MultiBGColor = function(element, unit, color, r, g, b)
+	UpdateMultiplierBG(element, color, r, g, b)
 end
 
 --==================================================--
@@ -103,51 +107,258 @@ T.PostUpdateStagger = function(element, cur, max)
 	end
 end
 
--- [[ 連擊點的天賦更新 ]] --
+-- [[ 玩家資源布局更新 ]] --
 
-local function SetClassPowerStartPoint(bar, owner, style, offset)
+-- 位置布局
+T.GetPlayerResourceLayout = function()
+	-- F.SpecCheck(): 1=只有光環，2=一層資源+光環，3=兩層資源+光環
+	local spec = F.SpecCheck()
+	local rows = spec - 1
+	local firstOffset = C.PPOffset
+	local classOffset = (rows == 2 and C.PPOffset*2 + C.PPHeight) or firstOffset
+	local auraOffset = C.PPOffset*(rows + 1) + C.PPHeight*rows
+
+	return rows, firstOffset, classOffset, auraOffset
+end
+
+local playerResourceLayoutQueued
+
+-- 更新職業資源位置
+local function UpdateClassPowerPosition(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local bar = element[1]
+	if not bar then return end
+
+	local style = parentFrame.mystyle
+	local _, _, classPowerOffset = T.GetPlayerResourceLayout()
+
+	bar:ClearAllPoints()
+
 	if style == "VL" then
-		bar:ClearAllPoints()
-		bar:SetPoint("BOTTOMLEFT", owner, "BOTTOMRIGHT", offset, 0)
-	elseif style == "H" then
-		bar:ClearAllPoints()
-		bar:SetPoint("BOTTOMLEFT", owner, "TOPLEFT", 0, offset)
+		bar:SetPoint("BOTTOMLEFT", parentFrame, "BOTTOMRIGHT", classPowerOffset, 0)
+	elseif style == "NPP" or style == "BPP" then
+		if C.NumberStylePP then
+			bar:SetPoint("TOP", parentFrame.HealthText, "BOTTOM", -(C.PlayerNPWidth - 3*C.PPOffset)/2, -C.PPOffset)
+		else
+			bar:SetPoint("TOPLEFT", parentFrame.Power, "BOTTOMLEFT", 0, -4)
+		end
+	else
+		bar:SetPoint("BOTTOMLEFT", parentFrame, "TOPLEFT", 0, classPowerOffset)
 	end
 end
 
-local function GetPaladinClassPowerOffset()
-	local lightSmith = C_SpellBook_IsSpellKnownOrInSpellBook(432459)
+-- 更新職業資源內部豆子排列
+local function UpdateClassPowerBars(element, max)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
 
-	if G.myClass == "PALADIN" and C.TankResource and lightSmith then
-		return C.PPOffset*2 + C.PPHeight
-	end
+	max = max or #element
+	if max <= 0 then return end
 
-	return C.PPOffset
-end
+	local style = parentFrame.mystyle
 
-T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
-	if not max or not cur then return end
-	
-	local style = element.__owner.mystyle
-	local cpColor = {
-		{1, .7, .1},
-		{1, .95, .4},	-- 滿星
-	}
-	
-	for i = 1, 7 do
-		if MaxChanged then
-			if style == "VL" then
-				element[i]:SetHeight((C.PWidth - (max-1) * C.PPOffset) / max)
-			elseif style == "NPP" or style == "BPP" then
-				element[i]:SetWidth((C.PlayerNPWidth - (max-1) * C.PPOffset) / max)
-			else
-				element[i]:SetWidth((C.PWidth - (max-1) * C.PPOffset) / max)
+	for i = 1, max do
+		local bar = element[i]
+		if not bar then break end
+
+		bar:ClearAllPoints()
+
+		if style == "VL" then
+			bar:SetOrientation("VERTICAL")
+			bar:SetSize(C.PPHeight, (C.PWidth - (max-1)*C.PPOffset)/max)
+
+			if i > 1 then
+				bar:SetPoint("BOTTOM", element[i-1], "TOP", 0, C.PPOffset)
+			end
+		elseif style == "NPP" or style == "BPP" then
+			bar:SetSize((C.PlayerNPWidth - (max-1)*C.PPOffset)/max, C.PPHeight)
+
+			if i > 1 then
+				bar:SetPoint("LEFT", element[i-1], "RIGHT", C.PPOffset, 0)
+			end
+		else
+			bar:SetSize((C.PWidth - (max-1)*C.PPOffset)/max, C.PPHeight)
+
+			if i > 1 then
+				bar:SetPoint("LEFT", element[i-1], "RIGHT", C.PPOffset, 0)
 			end
 		end
-		if i == 1 and powerType == "HOLY_POWER" then
-			SetClassPowerStartPoint(element[i], element.__owner, style, GetPaladinClassPowerOffset())
+	end
+
+	UpdateClassPowerPosition(element)
+end
+
+-- 更新坦克資源位置
+local function UpdateTankResourcePosition(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local bar = element[1]
+	if not bar then return end
+
+	local style = parentFrame.mystyle
+	local _, tankResourceOffset = T.GetPlayerResourceLayout()
+
+	bar:ClearAllPoints()
+
+	if style == "VL" then
+		bar:SetPoint("BOTTOMLEFT", parentFrame, "BOTTOMRIGHT", tankResourceOffset, 0)
+	else
+		bar:SetPoint("BOTTOMLEFT", parentFrame, "TOPLEFT", 0, tankResourceOffset)
+	end
+end
+
+-- 更新坦克資源內部排列
+local function UpdateTankResourceBars(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local max = #element
+	if max <= 0 then return end
+
+	local style = parentFrame.mystyle
+
+	for i = 1, max do
+		local bar = element[i]
+		if not bar then break end
+
+		bar:ClearAllPoints()
+
+		if style == "VL" then
+			bar:SetOrientation("VERTICAL")
+			bar:SetSize(C.PPHeight, (C.PWidth - (max-1)*C.PPOffset)/max)
+
+			if i > 1 then
+				bar:SetPoint("BOTTOM", element[i-1], "TOP", 0, C.PPOffset)
+			end
+		else
+			bar:SetSize((C.PWidth - (max-1)*C.PPOffset)/max, C.PPHeight)
+
+			if i > 1 then
+				bar:SetPoint("LEFT", element[i-1], "RIGHT", C.PPOffset, 0)
+			end
 		end
-		-- 連擊點滿星變色
+	end
+
+	UpdateTankResourcePosition(element)
+end
+
+-- 更新酒池位置
+local function UpdateStaggerLayout(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local _, _, staggerOffset = T.GetPlayerResourceLayout()
+
+	element:ClearAllPoints()
+
+	if parentFrame.mystyle == "VL" then
+		element:SetWidth(C.PPHeight)
+		element:SetOrientation("VERTICAL")
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", staggerOffset, 0)
+		element:SetPoint("TOPLEFT", parentFrame.Health, "TOPRIGHT", staggerOffset, 0)
+	else
+		element:SetHeight(C.PPHeight)
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 0, staggerOffset)
+		element:SetPoint("BOTTOMRIGHT", parentFrame.Health, "TOPRIGHT", 0, staggerOffset)
+	end
+end
+
+-- 更新額外能量位置
+local function UpdateAddPowerLayout(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local _, _, additionalPowerOffset = T.GetPlayerResourceLayout()
+
+	element:ClearAllPoints()
+
+	if parentFrame.mystyle == "VL" then
+		element:SetWidth(C.PPHeight)
+		element:SetOrientation("VERTICAL")
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", additionalPowerOffset, 0)
+		element:SetPoint("TOPLEFT", parentFrame.Health, "TOPRIGHT", additionalPowerOffset, 0)
+	else
+		element:SetHeight(C.PPHeight)
+		element:SetOrientation("HORIZONTAL")
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 0, additionalPowerOffset)
+		element:SetPoint("BOTTOMRIGHT", parentFrame.Health, "TOPRIGHT", 0, additionalPowerOffset)
+	end
+end
+
+-- 統籌更新資源位置
+local function UpdateResourceLayout(self)
+	if not self or self.unit ~= "player" then return end
+
+	if self.TankResource then
+		if self.TankResource.ForceUpdate then self.TankResource:ForceUpdate() end
+		UpdateTankResourcePosition(self.TankResource)
+	end
+
+	if self.ClassPower then
+		if self.ClassPower.ForceUpdate then self.ClassPower:ForceUpdate() end
+		UpdateClassPowerPosition(self.ClassPower)
+	end
+
+	if self.AdditionalPower then
+		if self.AdditionalPower.ForceUpdate then self.AdditionalPower:ForceUpdate() end
+		UpdateAddPowerLayout(self.AdditionalPower)
+	end
+
+	if self.Runes then UpdateClassPowerPosition(self.Runes) end
+	if self.Essence then UpdateClassPowerPosition(self.Essence) end
+	if self.Stagger then UpdateStaggerLayout(self.Stagger) end
+	if self.Debuffs and T.UpdatePlayerDebuffsLayout then T.UpdatePlayerDebuffsLayout(self.Debuffs) end
+end
+
+-- 執行更新，延遲以避免多事件連續觸發
+local function QueueResourceLayoutUpdate(self, event, arg1)
+	if event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 ~= "player" then return end
+	if event == "TRAIT_CONFIG_UPDATED" and C_ClassTalents_GetActiveConfigID() ~= arg1 then return end
+	if playerResourceLayoutQueued then return end
+	playerResourceLayoutQueued = true
+
+	C_Timer_After(0.1, function()
+		playerResourceLayoutQueued = nil
+
+		UpdateResourceLayout(self)
+	end)
+end
+
+-- 註冊更新用的事件：切專精/切天賦
+T.RegisterResourceLayout = function(self)
+	if not self or self.unit ~= "player" then return end
+
+	self:RegisterEvent("PLAYER_ENTERING_WORLD", QueueResourceLayoutUpdate, true)
+	self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", QueueResourceLayoutUpdate, true)
+	self:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED", QueueResourceLayoutUpdate, true)
+	self:RegisterEvent("PLAYER_TALENT_UPDATE", QueueResourceLayoutUpdate, true)
+	self:RegisterEvent("SPELLS_CHANGED", QueueResourceLayoutUpdate, true)
+	self:RegisterEvent("TRAIT_CONFIG_UPDATED", QueueResourceLayoutUpdate, true)
+
+	UpdateResourceLayout(self)
+end
+
+-- [[ 職業資源顏色 ]] --
+
+-- 連擊點顏色
+local cpColor = {
+	{1, .7, .1},
+	{1, .95, .4}, -- 滿豆
+}
+
+-- 更新顏色
+T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
+	if not max or not cur then return end
+
+	if MaxChanged then
+		UpdateClassPowerBars(element, max)
+	end
+
+	for i = 1, 7 do
+		-- 連擊點滿豆時變色
 		if powerType == "COMBO_POINTS" then
 			if max > 0 and cur == max then
 				element[i]:SetStatusBarColor(unpack(cpColor[2]))
@@ -155,7 +366,7 @@ T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
 				element[i]:SetStatusBarColor(unpack(cpColor[1]))
 			end
 		end
-		-- 背景
+		-- 背景沿用目前資源條顏色
 		if element[i].bg then
 			local mu = element[i].bg.multiplier or 0.3
 			local r, g, b = element[i]:GetStatusBarColor()
@@ -225,50 +436,15 @@ T.CreateClassPower = function(self, unit)
 	local ClassPower = {}
 	
 	for i = 1, maxPoint do
-		-- 創建總體條
 		ClassPower[i] = F.CreateStatusbar(self, G.addon..unit.."_ClassPowerBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		ClassPower[i].border = F.CreateSD(ClassPower[i], ClassPower[i], 4)
 		ClassPower[i]:SetFrameLevel(self:GetFrameLevel() + 2)
+		
 		-- 背景
 		ClassPower[i].bg = ClassPower[i]:CreateTexture(nil, "BACKGROUND")
 		ClassPower[i].bg:SetAllPoints()
 		ClassPower[i].bg:SetTexture(G.media.blank)
 		ClassPower[i].bg.multiplier = .3
-		-- 直式判斷：定位每個豆子
-		if self.mystyle == "VL" then
-			ClassPower[i]:SetOrientation("VERTICAL")
-			ClassPower[i]:SetSize(C.PPHeight, (C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint)
-			
-			if i == 1 then
-				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", GetPaladinClassPowerOffset(), 0)
-			else
-				ClassPower[i]:SetPoint("BOTTOM", ClassPower[i-1], "TOP", 0, C.PPOffset)
-			end
-		elseif self.mystyle == "NPP" or self.mystyle == "BPP" then
-			ClassPower[i]:SetSize((C.PlayerNPWidth - (maxPoint-1)*C.PPOffset)/maxPoint, C.PPHeight)
-			
-			if C.NumberStylePP then
-				if i == 1 then
-					ClassPower[i]:SetPoint("TOP", self.HealthText, "BOTTOM", -(C.PlayerNPWidth - 3*C.PPOffset)/2, -C.PPOffset)
-				else
-					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
-				end
-			else
-				if i == 1 then
-					ClassPower[i]:SetPoint("TOPLEFT", self.Power, "BOTTOMLEFT", 0, -4)
-				else
-					ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
-				end
-			end
-		else
-			ClassPower[i]:SetSize((C.PWidth - (maxPoint-1)*C.PPOffset)/maxPoint, C.PPHeight)
-			
-			if i == 1 then
-				ClassPower[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, GetPaladinClassPowerOffset())
-			else
-				ClassPower[i]:SetPoint("LEFT", ClassPower[i-1], "RIGHT", C.PPOffset, 0)
-			end
-		end
 		
 		if isDK or isEVOKER then
 			ClassPower[i].timer = F.CreateText(ClassPower[i], "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
@@ -276,7 +452,9 @@ T.CreateClassPower = function(self, unit)
 		end
 	end
 	
-	-- 註冊到ouf並整合符文顯示
+	ClassPower.__owner = self
+	UpdateClassPowerBars(ClassPower, maxPoint)
+	
 	if isDK then
 		ClassPower.colorSpec = true
 		ClassPower.sortOrder = "asc"
@@ -300,17 +478,8 @@ T.CreateAddPower = function(self, unit)
 	-- 創建一個條
 	local AddPower = F.CreateStatusbar(self, G.addon..unit.."_AddPowerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
 	AddPower:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	if C.vertPlayer then
-		AddPower:SetWidth(C.PPHeight)
-		AddPower:SetOrientation("VERTICAL")
-		AddPower:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)
-		AddPower:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0)
-	else
-		AddPower:SetHeight(C.PPHeight)
-		AddPower:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)
-		AddPower:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset)
-	end
+	AddPower.__owner = self
+	UpdateAddPowerLayout(AddPower)
 	
 	-- 選項
 	AddPower.colorPower = true
@@ -324,6 +493,10 @@ T.CreateAddPower = function(self, unit)
 	-- 註冊到ouf
 	self.AdditionalPower = AddPower
 	self.AdditionalPower.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
+	self.AdditionalPower.PostVisibility = function(element)
+		local parentFrame = element.__owner
+		if parentFrame then UpdateResourceLayout(parentFrame) end
+	end
 	-- 文本
 	self.AdditionalPower.value = F.CreateText(self.AdditionalPower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 end
@@ -371,17 +544,8 @@ T.CreateStagger = function(self, unit)
 	
 	local Stagger = F.CreateStatusbar(self, G.addon..unit.."_StaggerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
 	Stagger:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	if C.vertPlayer then
-		Stagger:SetWidth(C.PPHeight)
-		Stagger:SetOrientation("VERTICAL")
-		Stagger:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", C.PPOffset, 0)
-		Stagger:SetPoint("TOPLEFT", self.Health, "TOPRIGHT", C.PPOffset, 0)
-	else	
-		Stagger:SetHeight(C.PPHeight)
-		Stagger:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 0, C.PPOffset)
-		Stagger:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, C.PPOffset)
-	end
+	Stagger.__owner = self
+	UpdateStaggerLayout(Stagger)
 	
 	-- 背景
 	Stagger.bg = Stagger:CreateTexture(nil, "BACKGROUND")
@@ -399,12 +563,11 @@ T.CreateStagger = function(self, unit)
 		Stagger.value:SetPoint("CENTER", Stagger, 0, 0)
 		Stagger.value:SetJustifyH("CENTER")
 	end
-	-- 註冊到ouf
+	
 	self.Stagger = Stagger
 	self.Stagger.PostUpdate = T.PostUpdateStagger
 	self.Stagger.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
 end
-
 
 
 -- [[ 預估治療 ]] --
@@ -492,43 +655,6 @@ T.CreateTankResource = function(self, unit)
 		TankResource[i].bg:SetTexture(G.media.blank)
 		TankResource[i].bg.multiplier = .4
 
-		if self.mystyle == "VL" then
-			-- 單獨的每個豆子
-			TankResource[i]:SetOrientation("VERTICAL")
-			TankResource[i]:SetSize(C.PPHeight, (C.PWidth - C.PPOffset)/2)
-			
-			if F.IsAny(G.myClass, "DEATHKNIGHT", "MONK") then
-				-- DK的在符文前面，武僧的在酒池前面
-				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset*2+C.PPHeight, 0)
-				else
-					TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
-				end
-			else
-				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", C.PPOffset, 0)
-				else
-					TankResource[i]:SetPoint("BOTTOM", TankResource[i-1], "TOP", 0, C.PPOffset)
-				end
-			end
-		else
-			TankResource[i]:SetSize((C.PWidth - C.PPOffset)/2, C.PPHeight)
-			
-			if F.IsAny(G.myClass, "DEATHKNIGHT", "MONK") then
-				-- DK的在符文上面，武僧的在酒池上面
-				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset*2+C.PPHeight)
-				else
-					TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
-				end
-			else
-				if i == 1 then
-					TankResource[i]:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, C.PPOffset)
-				else
-					TankResource[i]:SetPoint("LEFT", TankResource[i-1], "RIGHT", C.PPOffset, 0)
-				end
-			end
-		end
     end
 	--[[
 	TankResource.colors = {
@@ -538,6 +664,9 @@ T.CreateTankResource = function(self, unit)
 		["MONK"] = {.7,.6,.4},
 	}
 	]]--
-    -- Register with oUF
+	TankResource.__owner = self
+	UpdateTankResourceBars(TankResource)
+
+    -- 註冊到 oUF
     self.TankResource = TankResource
 end

@@ -211,10 +211,12 @@ local function CreatePlayerStyle(self, unit)
 		self.Debuffs.num = 6
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs:SetSize(C.PWidth, C.buSize + 4)
-		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight/2 + C.PPOffset)
+		T.UpdatePlayerDebuffsLayout(self.Debuffs)
+		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 		self:RegisterEvent("PLAYER_ENTERING_WORLD", T.PostCastStopUpdate)
 		self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", T.PostCastStopUpdate)
 	end
+	T.RegisterResourceLayout(self)
 
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("TOP", self.Health, 0, 16)
@@ -259,11 +261,12 @@ local function CreateVPlayerStyle(self, unit)
 		self.Debuffs.size = C.buSize + 4
 		self.Debuffs.spacing = 5
 		self.Debuffs:SetSize(C.buSize + 4, C.PWidth)
-		self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", (C.PPHeight + C.PPOffset*2), 1)
+		T.UpdatePlayerDebuffsLayout(self.Debuffs)
 		self.Debuffs.PreUpdate = T.PostUpdatePlayerDebuffs
 		--self:RegisterEvent("PLAYER_ENTERING_WORLD", T.PostUpdatePlayerDebuffs)
 		--self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", T.PostUpdatePlayerDebuffs)
 	end
+	T.RegisterResourceLayout(self)
 
 	-- 施法條
 	if C.StandaloneCastbar then
