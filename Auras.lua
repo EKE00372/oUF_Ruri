@@ -87,7 +87,10 @@ end
 -- [[ 更新光環 ]] --
 
 T.PostUpdateIcon = function(element, button, unit, data)
-	local style = element.__owner.mystyle
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local style = parentFrame.mystyle
 	local color = C_UnitAuras.GetAuraDispelTypeColor(unit, data.auraInstanceID, element.dispelColorCurve)
 	local duration = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
 
@@ -139,37 +142,38 @@ end
 
 -- [[ 視不同專精的副資源存在與否，調整玩家頭像旁減益光環的位置 ]] --
 
-T.PostUpdatePlayerDebuffs = function(element, unit)
-	if not unit and UnitIsUnit(unit, "player") then return end
-	
-	local style = element.__owner.mystyle
-	local spec = F.SpecCheck()
-	
-	if spec == 1 then   	-- 雙資源專精
-		if style == "VL" then
-			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "BOTTOMRIGHT", C.PPHeight + C.PPOffset*2, 1)
-		else
-			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "TOPLEFT", 1, C.PPHeight + C.PPOffset*2)
-		end
-	elseif spec == 2 then	-- 三資源專精
-		if style == "VL" then
-			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "BOTTOMRIGHT", C.PPHeight*2 + C.PPOffset*3, 1)
-		else
-			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "TOPLEFT", 1, C.PPHeight*2 + C.PPOffset*3)
-		end
-	else
-		if style == "VL" then
-			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "BOTTOMRIGHT", C.PPOffset, 1)
-		else
-			element:SetPoint("BOTTOMLEFT", element.__owner.Health, "TOPLEFT", 1, C.PPOffset)
-		end
+T.UpdatePlayerDebuffsLayout = function(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local auraOffset = C.PPOffset
+	if T.GetPlayerResourceLayout then
+		local _, _, _, offset = T.GetPlayerResourceLayout()
+		auraOffset = offset
 	end
+
+	element:ClearAllPoints()
+
+	if parentFrame.mystyle == "VL" then
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", auraOffset, 1)
+	else
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 1, auraOffset)
+	end
+end
+
+T.PostUpdatePlayerDebuffs = function(element, unit)
+	if unit and not UnitIsUnit(unit, "player") then return end
+
+	T.UpdatePlayerDebuffsLayout(element)
 end
 
 -- [[ 替垂直樣式重做光環排列與成長方向 ]] --
 
 T.SetPosition = function(element, from, to)
-	local style = element.__owner.mystyle
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local style = parentFrame.mystyle
 	
 	local sizex = (element.size or 16) + (element.spacingX  or element.spacing or 0)
 	local sizey = (element.size or 16) + (element.spacingY or element.spacing or 0)
@@ -240,7 +244,10 @@ end
 
 T.CustomFilter = function(element, unit, data)
 	if not unit then return end
-	local style = element.__owner.mystyle
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local style = parentFrame.mystyle
 	local npc = not UnitIsPlayer(unit)
 	
 	--[[if data.name and data.spellId == 209859 then
@@ -309,6 +316,7 @@ end
 
 T.CreateDebuffs = function(self, button)
 	local Debuffs = CreateFrame("Frame", nil, self)
+	Debuffs.__owner = self
 	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
 
 	if self.mystyle == "S" then
