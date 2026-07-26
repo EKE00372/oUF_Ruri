@@ -38,7 +38,7 @@ Try layout as same as classpower/rune.
 
 local _, ns  = ...
 local oUF    = ns.oUF or oUF
-local UnitPower, UnitPartialPower = UnitPower, UnitPartialPower
+local UnitPower, UnitPowerMax, UnitPartialPower = UnitPower, UnitPowerMax, UnitPartialPower
 local PTYPE  = Enum.PowerType.Essence
 
 local function Charging_OnUpdate(bar, elapsed)
@@ -56,19 +56,38 @@ local function Update(self, _, unit, ptype)
 
     local element = self.Essence
     local cur     = UnitPower(unit, PTYPE) or 0
-    local max     = #element
+    local max     = UnitPowerMax(unit, PTYPE) or 0
+    local created = #element
 
-    for i = 1, max do
+    -- 龍能基礎 5 顆，天賦可提高到 6 顆；API 未就緒時退回已建立數量。
+    max = (max > 0 and max <= created) and max or created
+
+    if element.__max ~= max then
+        element.__max = max
+
+        if element.MaxChangeUpdate then
+            element:MaxChangeUpdate(max)
+        end
+    end
+
+    for i = 1, created do
         local bar = element[i]
         if not bar then break end
 
-        if i <= cur then
+        if i > max then
+            bar:Hide()
+            bar:SetValue(0)
+            bar:SetScript('OnUpdate', nil)
+        elseif i <= cur then
+            bar:Show()
             bar:SetValue(1)
             bar:SetScript('OnUpdate', nil)
         elseif i == cur + 1 then
+            bar:Show()
             bar:SetScript('OnUpdate', Charging_OnUpdate)
             Charging_OnUpdate(bar, 0)
         else
+            bar:Show()
             bar:SetValue(0)
             bar:SetScript('OnUpdate', nil)
         end
