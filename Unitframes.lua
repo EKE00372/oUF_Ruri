@@ -135,10 +135,10 @@ local function CreateUnitShared(self, unit)
 	Combat:SetVertexColor(1, 1, 0)
 	self.CombatIndicator = Combat
 	-- 休息狀態
-	--local Resting = StringParent:CreateTexture(nil, "OVERLAY")
-	--Resting:SetSize(20, 20)
-	--Resting:SetTexture(G.media.resting)
-	--self.RestingIndicator = Resting
+	local Resting = StringParent:CreateTexture(nil, "OVERLAY")
+	Resting:SetSize(20, 20)
+	Resting:SetTexture(G.media.resting)
+	self.RestingIndicator = Resting
 	-- 位面狀態
 	local Phase = StringParent:CreateTexture(nil, "OVERLAY")
 	Phase:SetSize(20, 20)
@@ -223,7 +223,9 @@ local function CreatePlayerStyle(self, unit)
 	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, -4, C.PHeight/2)
 	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, -4, C.PHeight/2)
 	self.CombatIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
-	--self.RestingIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
+	self.RestingIndicator:SetPoint("TOPLEFT", self.Health, 4, -4)
+	self.RestingIndicator.Override = T.PostUpdateRestingIndicator
+	self:RegisterEvent("UNIT_FLAGS", T.PostUpdateRestingIndicator)
 
 	if C.Fade then self.fade = true end
 end
@@ -296,7 +298,9 @@ local function CreateVPlayerStyle(self, unit)
 	self.AssistantIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 4)
 	self.LeaderIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 4)
 	self.CombatIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
-	--self.RestingIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
+	self.RestingIndicator:SetPoint("CENTER", self.Health, "BOTTOM", 0, 20)
+	self.RestingIndicator.Override = T.PostUpdateRestingIndicator
+	self:RegisterEvent("UNIT_FLAGS", T.PostUpdateRestingIndicator)
 
 	if C.Fade then self.fade = true end
 end

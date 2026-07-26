@@ -66,25 +66,20 @@ T.PostUpdateHealth = function(element, unit)
 end
 
 -- [[ 戰鬥狀態隱藏休息指示器 ]] --
---[[
-T.CombatPostUpdate = function(element, inCombat)
-	local rest = IsResting() 
-	if inCombat then
-		element.__owner.RestingIndicator:SetAlpha(0)
-	elseif rest then
-		element.__owner.RestingIndicator:SetAlpha(1)
-	end
-end
-]]--
---[[
-T.PostUpdateResting = function(element, isResting)
-	if isResting then
-		element:SetAlpha(1)
+
+T.PostUpdateRestingIndicator = function(self, event, unit)
+	if unit and unit ~= self.unit then return end
+
+	local element = self.RestingIndicator
+	if not element then return end
+
+	if IsResting() and (not UnitAffectingCombat(self.unit)) then
+		element:Show()
 	else
-		element:SetAlpha(0)
+		element:Hide()
 	end
 end
-]]--
+
 --==================================================================--
 ------------------    [[ Resource: Post update ]]    -----------------
 --==================================================================--
