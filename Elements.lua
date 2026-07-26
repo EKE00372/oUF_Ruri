@@ -240,46 +240,25 @@ local function UpdateTankResourceBars(element)
 	UpdateTankResourcePosition(element)
 end
 
--- 更新酒池位置
-local function UpdateStaggerLayout(element)
+-- 更新單條職業資源位置
+local function UpdateSingleResourceLayout(element)
 	local parentFrame = element.__owner
 	if not parentFrame then return end
 
-	local _, _, staggerOffset = T.GetPlayerResourceLayout()
+	local _, _, resourceOffset = T.GetPlayerResourceLayout()
 
 	element:ClearAllPoints()
 
 	if parentFrame.mystyle == "VL" then
 		element:SetWidth(C.PPHeight)
 		element:SetOrientation("VERTICAL")
-		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", staggerOffset, 0)
-		element:SetPoint("TOPLEFT", parentFrame.Health, "TOPRIGHT", staggerOffset, 0)
-	else
-		element:SetHeight(C.PPHeight)
-		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 0, staggerOffset)
-		element:SetPoint("BOTTOMRIGHT", parentFrame.Health, "TOPRIGHT", 0, staggerOffset)
-	end
-end
-
--- 更新額外能量位置
-local function UpdateAddPowerLayout(element)
-	local parentFrame = element.__owner
-	if not parentFrame then return end
-
-	local _, _, additionalPowerOffset = T.GetPlayerResourceLayout()
-
-	element:ClearAllPoints()
-
-	if parentFrame.mystyle == "VL" then
-		element:SetWidth(C.PPHeight)
-		element:SetOrientation("VERTICAL")
-		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", additionalPowerOffset, 0)
-		element:SetPoint("TOPLEFT", parentFrame.Health, "TOPRIGHT", additionalPowerOffset, 0)
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", resourceOffset, 0)
+		element:SetPoint("TOPLEFT", parentFrame.Health, "TOPRIGHT", resourceOffset, 0)
 	else
 		element:SetHeight(C.PPHeight)
 		element:SetOrientation("HORIZONTAL")
-		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 0, additionalPowerOffset)
-		element:SetPoint("BOTTOMRIGHT", parentFrame.Health, "TOPRIGHT", 0, additionalPowerOffset)
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 0, resourceOffset)
+		element:SetPoint("BOTTOMRIGHT", parentFrame.Health, "TOPRIGHT", 0, resourceOffset)
 	end
 end
 
@@ -299,12 +278,15 @@ local function UpdateResourceLayout(self)
 
 	if self.AdditionalPower then
 		if self.AdditionalPower.ForceUpdate then self.AdditionalPower:ForceUpdate() end
-		UpdateAddPowerLayout(self.AdditionalPower)
+		UpdateSingleResourceLayout(self.AdditionalPower)
 	end
 
 	if self.Runes then UpdateClassPowerPosition(self.Runes) end
-	if self.Essence then UpdateClassPowerPosition(self.Essence) end
-	if self.Stagger then UpdateStaggerLayout(self.Stagger) end
+	if self.Essence then
+		if self.Essence.ForceUpdate then self.Essence:ForceUpdate() end
+		UpdateClassPowerPosition(self.Essence)
+	end
+	if self.Stagger then UpdateSingleResourceLayout(self.Stagger) end
 	if self.Debuffs and T.UpdatePlayerDebuffsLayout then T.UpdatePlayerDebuffsLayout(self.Debuffs) end
 end
 
@@ -426,7 +408,7 @@ T.CreateClassPower = function(self, unit)
 	
 	local isDK = G.myClass == "DEATHKNIGHT"
 	local isEVOKER = G.myClass == "EVOKER"
-	local maxPoint = (isDK and 6) or (isEVOKER and 5) or 7
+	local maxPoint = (isDK and 6) or (isEVOKER and 6) or 7
 	
 	local ClassPower = {}
 	
@@ -459,6 +441,7 @@ T.CreateClassPower = function(self, unit)
 		self.Essence = ClassPower
 		self.Essence.color = {0.02, 0.9, 0.9}
 		self.Essence.updateInterval = .1
+		self.Essence.MaxChangeUpdate = UpdateClassPowerBars
 	else
 		self.ClassPower = ClassPower
 		self.ClassPower.PostUpdate = T.PostUpdateClassPower
@@ -474,7 +457,7 @@ T.CreateAddPower = function(self, unit)
 	local AddPower = F.CreateStatusbar(self, G.addon..unit.."_AddPowerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
 	AddPower:SetFrameLevel(self:GetFrameLevel() + 2)
 	AddPower.__owner = self
-	UpdateAddPowerLayout(AddPower)
+	UpdateSingleResourceLayout(AddPower)
 	
 	-- 選項
 	AddPower.colorPower = true
@@ -540,7 +523,7 @@ T.CreateStagger = function(self, unit)
 	local Stagger = F.CreateStatusbar(self, G.addon..unit.."_StaggerBar", "ARTWORK", nil, nil, 1, 1, 0, 1)
 	Stagger:SetFrameLevel(self:GetFrameLevel() + 2)
 	Stagger.__owner = self
-	UpdateStaggerLayout(Stagger)
+	UpdateSingleResourceLayout(Stagger)
 	
 	-- 背景
 	Stagger.bg = Stagger:CreateTexture(nil, "BACKGROUND")
