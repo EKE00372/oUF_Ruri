@@ -1,16 +1,18 @@
-## Interface: 120100
+## Interface: 120007
 ## Title: oUF_|cff00ffffRuri|r
-## Version: B5.6
+## Version: R5.7
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
-## X-SavedVariables: Ruri_MovableDB
-## X-SlashCmdList: /omf
+## SavedVariables: RuriDB
 ## X-Credits: Siweia, Paopao, Dawn, HopeASD, Rhythm
 
+Init.lua
+Locales.lua
 Config.lua
 FilterList.lua
 API.lua
+GUI.lua
 
 Libs\oUF\oUF.xml
 Libs\oUF_Essence.lua
@@ -22,11 +24,11 @@ Embeds\Crosshairs.lua
 #Embeds\Totems.lua
 
 Tags.lua
-Castbar.lua
-Auras.lua
-Elements.lua
+Core\Castbar.lua
+Core\Auras.lua
+Core\Elements.lua
 
-Unitframes.lua
-Raidframes.lua
-Nameplates.lua
+Core\Unitframes.lua
+Core\Raidframes.lua
+Core\Nameplates.lua
 
