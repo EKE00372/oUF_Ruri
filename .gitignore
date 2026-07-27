@@ -1,3 +1,5 @@
-# Local Codex/agent memory; keep out of remote repositories.
+# Local Codex/agent memory and review records; keep out of remote repositories.
 AGENT_NOTES.md
 CODE_REVIEW.md
+.agents/code_reviews/
+.agents/code_reviews/*.md
