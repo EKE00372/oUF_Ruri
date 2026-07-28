@@ -2,7 +2,9 @@ local addon, ns = ...
 local C, F, G, T = unpack(ns)
 local oUF = ns.oUF or oUF
 
-if not C.Crosshairs then return end
+local function CrosshairsEnabled()
+	return F.GetRuriOption("Nameplates") and F.GetRuriOption("Crosshairs")
+end
 
 local alpha = 0.7 -- Overall alpha
 local Speed = 10 -- Higher number moves crosshair faster
@@ -206,6 +208,11 @@ local function FocusPlate(plate)
 end
 
 function f:PLAYER_TARGET_CHANGED()
+	if not CrosshairsEnabled() then
+		fadeOut:Play()
+		return
+	end
+
 	local nameplate = C_NamePlate.GetNamePlateForUnit('target') --f:GetPlateByGUID(targetGUID)
 	if nameplate then
 		FocusPlate(nameplate)
@@ -230,6 +237,8 @@ function ScaleCoords(xPixel, yPixel, trueScale)
 end
 
 function f:NAME_PLATE_UNIT_ADDED(unit)
+	if not CrosshairsEnabled() then return end
+
 	local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
 	if nameplate and UnitIsUnit('target', unit) then
 		FocusPlate(nameplate)
@@ -239,6 +248,8 @@ end
 f:RegisterEvent('NAME_PLATE_UNIT_ADDED')
 
 function f:NAME_PLATE_UNIT_REMOVED(unit)
+	if not CrosshairsEnabled() then return end
+
 	local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
 	if UnitIsUnit('target', unit) then
 		fadeOut:Play()
