@@ -2,7 +2,14 @@ local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
-if not (C.RaidFrames or C.PartyFrames) then return end
+local function GroupFramesEnabled()
+	return F.GetRuriOption("RaidFrames") or F.GetRuriOption("PartyFrames")
+end
+
+local defaultGroupFramesHooked
+local function HookDefaultGroupFrames()
+	if defaultGroupFramesHooked then return end
+	defaultGroupFramesHooked = true
 
 -- Hide Default CompactRaidFrame and keep CompactRaidFrameManager
 do
@@ -71,6 +78,7 @@ do
 
 	hooksecurefunc("CompactUnitFrame_UpdateVisible", CRFCUpdate)
 	hooksecurefunc("CompactUnitFrame_UpdateAll", CRFCUpdate)
+end
 end
 
 --[[
@@ -348,20 +356,27 @@ end
 --------------    [[ RegisterStyle ]]     -------------
 --===================================================--
 -- 註冊樣式
-if C.RaidFrames then
-	oUF:RegisterStyle("Raid", CreateRaidStyle)
-end
-
-if C.PartyFrames then
-	oUF:RegisterStyle("Party", CreatePartyStyle)
-end
-
 --===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
 
 oUF:Factory(function(self)
-	if C.PartyFrames then
+	if not GroupFramesEnabled() then return end
+
+	local partyFrames = F.GetRuriOption("PartyFrames")
+	local raidFrames = F.GetRuriOption("RaidFrames")
+
+	HookDefaultGroupFrames()
+
+	if raidFrames then
+		self:RegisterStyle("Raid", CreateRaidStyle)
+	end
+
+	if partyFrames then
+		self:RegisterStyle("Party", CreatePartyStyle)
+	end
+
+	if partyFrames then
 		local partyAnchor = CreateFrame("Frame", nil, UIParent)
 		partyAnchor:SetSize(20, 20)
 		partyAnchor:ClearAllPoints()
@@ -409,7 +424,7 @@ oUF:Factory(function(self)
 		end]]--
 	end
 
-	if C.RaidFrames then
+	if raidFrames then
         local raidAnchor = CreateFrame("Frame", nil, UIParent)
         raidAnchor:SetSize(20, 20)
         raidAnchor:ClearAllPoints()

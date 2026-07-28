@@ -3,7 +3,7 @@ local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
 local GetFrameLevel, SetFrameLevel = GetFrameLevel, SetFrameLevel
---local standalone = C.StandaloneCastbar
+--local standalone = F.GetRuriOption("StandaloneCastbar")
 
 --=======================================================--
 -----------------    [[ Post Update ]]    -----------------

@@ -2,8 +2,6 @@ local addon, ns = ...
 local C, F, G, T = unpack(ns)
 local oUF = ns.oUF or oUF
 
-if not C.Fade then return end
-
 ------------------------------------------------------
 -- Credits: zork, p3lim, Azilroka, Simpy, Witnesscm --
 ------------------------------------------------------

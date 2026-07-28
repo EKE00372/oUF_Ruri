@@ -134,7 +134,7 @@ local function UpdateClassPowerPosition(element)
 	if style == "VL" then
 		bar:SetPoint("BOTTOMLEFT", parentFrame, "BOTTOMRIGHT", classPowerOffset, 0)
 	elseif style == "NPP" or style == "BPP" then
-		if C.NumberStylePP then
+		if F.GetRuriOption("NumberstylePP") then
 			bar:SetPoint("TOP", parentFrame.HealthText, "BOTTOM", -(C.PlayerNPWidth - 3*C.PPOffset)/2, -C.PPOffset)
 		else
 			bar:SetPoint("TOPLEFT", parentFrame.Power, "BOTTOMLEFT", 0, -4)
@@ -190,7 +190,7 @@ local function UpdateTankResourcePosition(element)
 	local parentFrame = element.__owner
 	if not parentFrame then return end
 
-	local bar = element[1]
+	local bar = element[1] or element.rechargeBar or element.__rechargeBar
 	if not bar then return end
 
 	local style = parentFrame.mystyle
@@ -214,6 +214,41 @@ local function UpdateTankResourceBars(element)
 	if max <= 0 then return end
 
 	local style = parentFrame.mystyle
+	local rechargeBar = element.rechargeBar or element.__rechargeBar
+	local chargeBarCount = element.chargeBarCount or element.__chargeBarCount
+
+	if rechargeBar and chargeBarCount == 2 and element[1] and element[2] then
+		local charge1 = element[1]
+		local charge2 = element[2]
+		local unitLength = (C.PWidth - 2*C.PPOffset) / 4
+
+		charge1:ClearAllPoints()
+		charge2:ClearAllPoints()
+		rechargeBar:ClearAllPoints()
+
+		if style == "VL" then
+			charge1:SetOrientation("VERTICAL")
+			charge2:SetOrientation("VERTICAL")
+			rechargeBar:SetOrientation("VERTICAL")
+
+			charge1:SetSize(C.PPHeight, unitLength)
+			charge2:SetSize(C.PPHeight, unitLength)
+			rechargeBar:SetSize(C.PPHeight, unitLength*2)
+
+			charge2:SetPoint("BOTTOM", charge1, "TOP", 0, C.PPOffset)
+			rechargeBar:SetPoint("BOTTOM", charge2, "TOP", 0, C.PPOffset)
+		else
+			charge1:SetSize(unitLength, C.PPHeight)
+			charge2:SetSize(unitLength, C.PPHeight)
+			rechargeBar:SetSize(unitLength*2, C.PPHeight)
+
+			charge2:SetPoint("LEFT", charge1, "RIGHT", C.PPOffset, 0)
+			rechargeBar:SetPoint("LEFT", charge2, "RIGHT", C.PPOffset, 0)
+		end
+
+		UpdateTankResourcePosition(element)
+		return
+	end
 
 	for i = 1, max do
 		local bar = element[i]
@@ -610,17 +645,14 @@ end
 
 T.CreateTankResource = function(self, unit)
 	local TankResource = {}
-	local maxLength = 2
+	local maxLength = 3
 
 	TankResource.overrideSpellOptions = {
 		["PALADIN"] = {
-			[432459] = {1, 1, 0},
-			[432472] = {0, 1, .92}
+			[432472] = {1, .92, .55}
 		}
 	}
-	TankResource.colors = {
-		["PALADIN"] = {1, 1, 0},
-	}
+	TankResource.chargeBarCount = 2
 
     for i = 1, maxLength do
 		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
@@ -633,15 +665,8 @@ T.CreateTankResource = function(self, unit)
 		TankResource[i].bg:SetTexture(G.media.blank)
 		TankResource[i].bg.multiplier = .4
 
-    end
-	--[[
-	TankResource.colors = {
-		["WARRIOR"] = {.2,.5,.7},
-		["PALADIN"] = {1, 1, 0},
-		["DEMONHUNTER"] = {.7,.6,.4},
-		["MONK"] = {.7,.6,.4},
-	}
-	]]--
+	end
+	TankResource.rechargeBar = TankResource[maxLength]
 	TankResource.__owner = self
 	UpdateTankResourceBars(TankResource)
 

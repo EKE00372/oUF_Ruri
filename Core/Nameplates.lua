@@ -6,8 +6,6 @@ local UnitGUID, UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected = UnitGUI
 local UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction = UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction
 --local IsAddOnLoaded = C_AddOns.IsAddOnLoaded
 
-if not C.Nameplates then return end
-
 --================================================--
 -----------------    [[ CVAR ]]    -----------------
 --================================================--
@@ -19,6 +17,8 @@ local function SetFont(obj, optSize)
 end
 
 local function OnEvent()
+	if not F.GetRuriOption("Nameplates") then return end
+
 	SetFont(SystemFont_LargeNamePlate, 16)
 	SetFont(SystemFont_NamePlate, 16)
 	SetFont(SystemFont_LargeNamePlateFixed, 16)
@@ -82,7 +82,7 @@ local function OnEvent()
 	--SetCVar("nameplateMotionSpeed", .01)				-- motion speed / 名條位移速度，預設0.025
 
 	-- 調整堆疊血條的間距
-	if C.NumberStyle then
+	if F.GetRuriOption("NumberStyle") then
 		SetCVar("nameplateOverlapH",  .7)				-- default 0.8
 		SetCVar("nameplateOverlapV",  .9)				-- default 1.1
 	else
@@ -146,13 +146,13 @@ local function UpdateColor(self, unit)
 		if customUnit then				-- 目標白名單
 			r, g, b = unpack(customUnit)
 		elseif player and (reaction and reaction >= 5) then
-			if C.friendlyCR then
+			if F.GetRuriOption("friendlyCR") then
 				r, g, b =  unpack(ccolor)
 			else						-- 標準pve狀態玩家色
 				r, g, b = .3, .3, 1
 			end
 		elseif player and (reaction and reaction <= 4) then
-			if C.enemyCR then
+			if F.GetRuriOption("enemyCR") then
 				r, g, b =  unpack(ccolor)
 			else						-- 標準pve狀態玩家色
 				r, g, b = .3, .3, 1
@@ -547,16 +547,16 @@ local function CreateNumberPlates(self, unit)
 	self.RaidTargetIndicator = RaidIcon
 	
 	-- 光環
-	if C.ShowAuras then
+	if F.GetRuriOption("ShowAuras") then
 		CreateAuras(self, unit)
 		self.Auras:SetPoint("BOTTOM", self.HealthText, "TOP", 0, 2)
 	end
 	-- 指向高亮
-	if C.HLMouseover then
+	if F.GetRuriOption("HLMouseover") then
 		MouseoverIndicator(self)
 	end
 	-- 目標高亮
-	if C.HLTarget then
+	if F.GetRuriOption("HLTarget") then
 		TargetIndicator(self)
 	end
 end
@@ -627,16 +627,16 @@ local function CreateBarPlates(self, unit)
 	CreateStandaloneCastbar(self, unit)
 	
 	-- 光環
-	--[[if C.ShowAuras then
+	--[[if F.GetRuriOption("ShowAuras") then
 		CreateAuras(self, unit)
 		self.Auras:SetPoint("BOTTOM", self.Name, "TOP", 0, 4)
 	end]]--
 	-- 指向高亮
-	if C.HLMouseover then
+	if F.GetRuriOption("HLMouseover") then
 		MouseoverIndicator(self)
 	end
 	-- 目標高亮
-	if C.HLTarget then
+	if F.GetRuriOption("HLTarget") then
 		TargetIndicator(self)
 	end
 end
@@ -648,7 +648,7 @@ local function PostUpdatePlates(self, event, unit)
 	-- 目標高亮
 	UpdateHighlight(self)
 	-- 使數字模式的施法條位置能正確隨每個名條的施法狀態重置
-	if C.NumberStyle then
+	if F.GetRuriOption("NumberStyle") then
 		T.PostCastStopUpdate(self, event, unit)
 	end
 
@@ -708,13 +708,13 @@ local function CreatePlayerNumberPlate(self, unit)
 	T.CreateClassPower(self, unit)
 	
 	-- 光環
-	if C.PlayerBuffs then
+	if F.GetRuriOption("PlayerBuffs") then
 		CreateAuras(self, unit)
 		self.Auras.numDebuffs = 0
 		self.Auras:SetPoint("BOTTOM", self.HealthText, "TOP", 0, 0)
 	end
 	
-	if C.Fade then
+	if F.GetRuriOption("Fade") then
 		self.FadeMinAlpha = C.FadeOutAlpha
 		self.FadeInSmooth = 0.4
 		self.FadeOutSmooth = 1.5
@@ -774,7 +774,7 @@ local function CreatePlayerBarPlate(self, unit)
 	self.RaidTargetIndicator = RaidIcon
 	
 	-- 光環
-	if C.PlayerBuffs then
+	if F.GetRuriOption("PlayerBuffs") then
 		CreateAuras(self, unit)
 		self.Auras.numDebuffs = 0
 		self.Auras:SetPoint("BOTTOM", self.Health, "TOP", 0, 8)
@@ -787,7 +787,7 @@ local function CreatePlayerBarPlate(self, unit)
 	--self.HealthPrediction.absorbBar:SetWidth(C.PlayerNPWidth)
 	--self.HealthPrediction.overAbsorb:SetWidth(C.PlayerNPWidth)
 	
-	if C.Fade then
+	if F.GetRuriOption("Fade") then
 		self.FadeMinAlpha = C.FadeOutAlpha
 		self.FadeInSmooth = 0.4
 		self.FadeOutSmooth = 1.5
@@ -804,14 +804,9 @@ end
 --------------    [[ RegisterStyle ]]     -------------
 --===================================================--
 
-if C.NumberStyle then
-	oUF:RegisterStyle("Nameplate", CreateNumberPlates)
-else
-	oUF:RegisterStyle("Nameplate", CreateBarPlates)
-end
 --[[
-if C.PlayerPlate then
-	if C.NumberstylePP then
+if F.GetRuriOption("PlayerPlate") then
+	if F.GetRuriOption("NumberstylePP") then
 		oUF:RegisterStyle("PlayerPlate", CreatePlayerNumberPlate)
 	else
 		oUF:RegisterStyle("PlayerPlate", CreatePlayerBarPlate)
@@ -823,10 +818,18 @@ end
 --===================================================--
 
 oUF:Factory(function(self)
+	if not F.GetRuriOption("Nameplates") then return end
+
+	if F.GetRuriOption("NumberStyle") then
+		self:RegisterStyle("Nameplate", CreateNumberPlates)
+	else
+		self:RegisterStyle("Nameplate", CreateBarPlates)
+	end
+
 	self:SetActiveStyle("Nameplate")
 	self:SpawnNamePlates("oUF_Nameplate", PostUpdatePlates)
 
-	--[[if C.PlayerPlate then
+	--[[if F.GetRuriOption("PlayerPlate") then
 		self:SetActiveStyle("PlayerPlate")
 		local plate = self:Spawn("player", "oUF_PlayerPlate", true)
 		plate:SetPoint(unpack(C.Position.PlayerPlate))
