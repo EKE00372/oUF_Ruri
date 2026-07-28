@@ -1,6 +1,6 @@
 ## Interface: 120007
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R5.7
+## Version: B5.7
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
@@ -8,8 +8,8 @@
 ## X-Credits: Siweia, Paopao, Dawn, HopeASD, Rhythm
 
 Init.lua
-Locales.lua
 Config.lua
+Locales.lua
 FilterList.lua
 API.lua
 GUI.lua
@@ -31,4 +31,3 @@ Core\Elements.lua
 Core\Unitframes.lua
 Core\Raidframes.lua
 Core\Nameplates.lua
-

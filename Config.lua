@@ -1,56 +1,14 @@
-----------------------
--- Dont touch this! --
-----------------------
-
 local addon, ns = ...
-	ns[1] = {} -- C, config
-	ns[2] = {} -- F, functions, constants, variables
-	ns[3] = {} -- G, globals (Optionnal)
-	ns[4] = {} -- T, ouf custom
-	
-local C, F, G, T = unpack(ns)
+local C, F, G, T, L = unpack(ns)
 
-	G.addon = "oUF_Ruri_"
-	G.myClass = select(2, UnitClass("player"))
-	
-local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
+local MediaFolder = G.MediaFolder
 
-------------
--- Global --
-------------
+-------------------
+-- User settings --
+-------------------
 
-	-- NOTE: ture = enable, false = disable / enable = 啟用，disable = 停用
-	C.UnitFrames = true		-- Enable Unitframes  / 啟用單位框架
-	C.RaidFrames = false	-- Enable Raidframes / 啟用團隊框架
-	C.PartyFrames = false	-- Enable Partyframes / 啟用隊伍框架
-	C.Nameplates = false	-- Enable Nameplates/ 啟用名條
-
--------------
--- Texture --
--------------
-
-	G.media = {
-		blank = MediaFolder.."dM3",		-- "Interface\\Buttons\\WHITE8x8",
-		raidbar = MediaFolder.."Inner-Shadow.blp",
-		glow = MediaFolder.."glow.tga",
-		barhightlight = MediaFolder.."highlight.tga",
-		
-		spark = MediaFolder.."spark.tga",	-- "Interface\\UnitPowerBarAlt\\Generic1Player_Pill_Flash"
-		border = MediaFolder.."border.tga",
-		
-		resting = MediaFolder.."resting.blp",
-		combat = MediaFolder.."combat.blp",
-		raidicon = MediaFolder.."raidicons.blp",
-		skull = MediaFolder.."RaidFrameDeathIcon.blp",
-		
-		circle = MediaFolder.."crosshair_circle.blp",
-		arrows = MediaFolder.."crosshair_arrows.blp",
-		
-		role = MediaFolder.."UI-LFG-ICON-PORTRAITROLES.blp", -- from matty's texture
-		role_dps = MediaFolder.."role_DPS.tga",
-		role_tank = MediaFolder.."role_Tank.tga",
-		role_healer = MediaFolder.."role_Healer.tga",
-	}
+	-- GUI-controlled toggles are defined in Init.lua.
+	-- GUI 控制的開關定義在 Init.lua。
 
 -----------
 -- Fonts --
@@ -74,13 +32,6 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 
 	-- [[ UnitFrames / 單位框架 ]] --
 	
-	C.vertPlayer = true			-- Vertical Player and Pet frame / 直式玩家
-	C.vertTarget = true			-- Vertical Target and ToT frame / 直式目標頭
-	C.SimpleFocus = true		-- Simply show fucos as simple number style / 簡易模式：數字形式的焦點目標
-	
-	C.Boss = true				-- Enable Boss frame / 首領
-	C.Arena = true				-- Enable Brena frame / 競技場
-	
 	-- Size / 大小
 	C.PWidth = 220				-- Player/Target/Focus frame width / 主框體寬度：玩家/目標/焦點
 	C.TOTWidth = 120			-- Targettarget/Focusetarget/Pet frame width / 副框體寬度：寵物/目標的目標/焦點目標
@@ -94,25 +45,21 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 	C.maxAura = 14				-- How many auras show / 顯示光環數量
 	
 	-- Options / 選項
-	C.PlayerDebuffs = true		-- Show debuffs on the player frame / 顯示自身減益
 	--C.Totems = false			-- Show player totems / 顯示玩家圖騰
-	C.TankResource = false		-- Show player main tank resource as class power / 以職業資源形式顯示坦克核心技能
 
-	C.Fade = true				-- Hide UFs when out of combat or not casting (Include Player/Target/Focus) / 戰鬥外閒置狀態淡出，作用於玩家/目標/焦點
 	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
 	
 	--[[ Castbar / 施法條 ]] --
 	
-	-- Options / 選項
+	-- Size / 大小
 	-- NOTICE: when Vertical style and StandaloneCastbar both enable, castbar size will match vert frame height.
-	C.StandaloneCastbar = false	-- Independent castbar for player and target / 玩家與目標的獨立施法條
-	C.CastbarWidth = 200		-- Castbar width, ONLY can be config when not vertical unitframe / 橫式頭像時，獨立施法條的寬度
+	C.CastbarWidth = 200		-- Horizontal castbar width / 橫式頭像時，獨立施法條的寬度
 	
 	-- Colors / 顏色
 	-- NOTICE: This effect on BOTH unitframe standalone castbar and nameplates castbar.
 	C.CastNormal = {.6, .6, .6}	-- Normal castbar / 普通施法條
 	C.CastFailed = {.5, .2, .2}	-- Cast failed / 施法失敗
-	C.CastShield = {.9, .3, .5}	-- Non-InterruptibleColor castbar / 不可打斷的施法條
+	C.CastShield = {.9, .3, .5}	-- Non-interruptible castbar / 不可打斷的施法條
 
 ------------------------
 -- GroupFrame settings --
@@ -138,38 +85,20 @@ local MediaFolder = "Interface\\AddOns\\oUF_Ruri\\Media\\"
 -- Nameplate settings --
 ------------------------
 
-	-- NOTICE: Will do some change since version 5.2, because the layout of number style is not good for mythic+.
-	-- maybe change size.
-	C.NumberStyle = false	-- Number style nameplates / 數字模式的名條
-	
 	-- Number style nameplate config
-	C.NPCastIcon = 28		-- Nmber style nameplate cast icon size /  數字模式的施法圖示大小
+	C.NPCastIcon = 28		-- Number style nameplate cast icon size /  數字模式的施法圖示大小
 	
 	-- Bar style nameplate config
 	C.NPWidth = 140			-- Nameplate frame width / 名條寬度
 	C.NPHeight = 10			-- Nameplate frame height / 名條高度
 	
 	-- Auras / 光環
-	C.ShowAuras = true		-- Show auras / 顯示光環
 	C.Auranum = 5			-- How many aura show / 顯示光環數量
 	C.AuraSize = 16			-- Aura icon size / 光環大小
 
-	-- Colors / 顏色
-	C.friendlyCR = true		-- Friendly unit class color / 友方職業染色
-	C.enemyCR = true		-- Enemy unit class color / 敵方職業染色
-	
-	C.HLTarget = true		-- Highlight target and focus / 高亮目標和焦點
-	C.HLMouseover = true	-- Highlight mouseover / 高亮滑鼠指向
-	
-	-- Options / 選項
-	C.Crosshairs = true		-- Show crosshairs red line on target / 在目標名條上顯示準星
-	
 	-- [[ Player plate ]] --
 	
-	C.PlayerPlate = false	-- Enable player plate / 玩家自身名條，即個人資源
-	C.NumberstylePP = false	-- Number style player plate / 數字模式的玩家名條
-	C.PlayerBuffs = true	-- Show player buff on player plate / 顯示自身增益
-	C.PlayerNPWidth = 180	-- Player plate width
+	C.PlayerNPWidth = 180	-- Player plate width / 玩家個人資源寬度
 
 	--[[ Nameplates CVar ]] --
 	
