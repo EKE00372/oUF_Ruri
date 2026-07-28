@@ -2,8 +2,6 @@ local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
-if not C.UnitFrames then return end
-
 --===================================================--
 ---------------    [[ UnitShared ]]     ---------------
 --===================================================--
@@ -184,11 +182,11 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	if C.TankResource then T.CreateTankResource(self, unit) end
+	if F.GetRuriOption("TankResource") then T.CreateTankResource(self, unit) end
 	--if C.Totems then T.CreateTotemBar(self) end
 
 	-- 施法條
-	if C.StandaloneCastbar then
+	if F.GetRuriOption("StandaloneCastbar") then
 		T.CreateStandaloneCastbar(self, unit)
 		self.Castbar:SetWidth(C.CastbarWidth)
 		self.Castbar.IconBG:SetPoint(unpack(C.Position.PlayerCastbar))
@@ -204,7 +202,7 @@ local function CreatePlayerStyle(self, unit)
 	end
 	
 	-- 減益
-	if C.PlayerDebuffs then
+	if F.GetRuriOption("PlayerDebuffs") then
 		T.CreateDebuffs(self)		
 		self.Debuffs.growthX = "RIGHT"
 		self.Debuffs.growthY = "UP"
@@ -227,7 +225,7 @@ local function CreatePlayerStyle(self, unit)
 	self.RestingIndicator.Override = T.PostUpdateRestingIndicator
 	self:RegisterEvent("UNIT_FLAGS", T.PostUpdateRestingIndicator)
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 玩家直式 / Vert plater
@@ -251,11 +249,11 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateClassPower(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
-	if C.TankResource then T.CreateTankResource(self, unit) end
+	if F.GetRuriOption("TankResource") then T.CreateTankResource(self, unit) end
 	--if C.Totems then T.CreateTotemBar(self) end
 	
 	-- 減益
-	if C.PlayerDebuffs then
+	if F.GetRuriOption("PlayerDebuffs") then
 		T.CreateDebuffs(self)
 		self.Debuffs.growthX = "UP"
 		self.Debuffs.growthY = "RIGHT"
@@ -271,7 +269,7 @@ local function CreateVPlayerStyle(self, unit)
 	T.RegisterResourceLayout(self)
 
 	-- 施法條
-	if C.StandaloneCastbar then
+	if F.GetRuriOption("StandaloneCastbar") then
 		T.CreateStandaloneCastbar(self, unit)	
 		self.Castbar.IconBG:SetPoint(unpack(C.Position.VPlayerCastbar))
 		--self.Castbar.IconBG:SetPoint("BOTTOMLEFT", self.Health, "BOTTOMRIGHT", self.Debuffs:GetWidth() + C.PPOffset*3 + C.PPHeight, 0)
@@ -302,7 +300,7 @@ local function CreateVPlayerStyle(self, unit)
 	self.RestingIndicator.Override = T.PostUpdateRestingIndicator
 	self:RegisterEvent("UNIT_FLAGS", T.PostUpdateRestingIndicator)
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 目標橫式 / Target
@@ -326,7 +324,7 @@ local function CreateTargetStyle(self, unit)
 	self.Power.value:SetJustifyH("LEFT")
 	
 	-- 施法條
-	if C.StandaloneCastbar then
+	if F.GetRuriOption("StandaloneCastbar") then
 		T.CreateStandaloneCastbar(self, unit)
 		self.Castbar:SetWidth(C.CastbarWidth)
 		self.Castbar.IconBG:SetPoint(unpack(C.Position.TargetCastbar))
@@ -350,7 +348,7 @@ local function CreateTargetStyle(self, unit)
 	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 目標直式 / Vert target
@@ -370,7 +368,7 @@ local function CreateVTargetStyle(self, unit)
 	self.Auras.tooltipAnchor = "ANCHOR_BOTTOMLEFT"
 	
 	-- 施法條
-	if C.StandaloneCastbar then
+	if F.GetRuriOption("StandaloneCastbar") then
 		T.CreateStandaloneCastbar(self, unit)
 		self.Castbar.IconBG:SetPoint(unpack(C.Position.VTargetCastbar))
 		--self.Castbar.IconBG:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -(C.PPOffset*2+self.Auras:GetWidth()), 0)
@@ -403,7 +401,7 @@ local function CreateVTargetStyle(self, unit)
 	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, 0, -4)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, 0, -4)
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 焦點 / Focus
@@ -424,8 +422,8 @@ local function CreateFocusStyle(self, unit)
 	self.Power.value:SetJustifyH("LEFT")
 	
 	-- 施法條
-	if C.StandaloneCastbar then
-		if C.vertTarget then
+	if F.GetRuriOption("StandaloneCastbar") then
+		if F.GetRuriOption("vertTarget") then
 			T.CreateStandaloneCastbar(self, unit)
 			self.Castbar:SetWidth(C.PWidth-self.Castbar.IconBG:GetWidth()-C.PPOffset)
 			self.Castbar.IconBG:SetPoint(unpack(C.Position.VFocusCastbar))
@@ -455,7 +453,7 @@ local function CreateFocusStyle(self, unit)
 	self.AssistantIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 	self.LeaderIndicator:SetPoint("BOTTOM", self.Health, -10, -2)
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 簡易焦點 / Simple focus
@@ -521,7 +519,7 @@ local function CreateSFocusStyle(self, unit)
 	self.RaidTargetIndicator = RaidIcon
 	
 	-- 簡易焦點是純文字的，從框體繼承來的淡出沒有套用到文字上
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 寵物橫式 / Pet
@@ -547,7 +545,7 @@ local function CreatePetStyle(self, unit)
 	self.Debuffs.spacing = 5
 	self.Debuffs:SetSize(C.buSize*2, C.buSize)
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 寵物直式 / Vert pet
@@ -573,7 +571,7 @@ local function CreateVPetStyle(self, unit)
 	self.Debuffs.spacing = 5
 	self.Debuffs:SetSize(C.buSize, C.buSize*2)
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 目標的目標橫式 / ToT
@@ -613,7 +611,7 @@ local function CreateToTStyle(self, unit)
 		self.Debuffs:SetSize(C.buSize*2, C.buSize)
 	end
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 目標的目標直式 / Vert ToT
@@ -651,7 +649,7 @@ local function CreateVToTStyle(self, unit)
 		self.Debuffs:SetSize(C.buSize, C.buSize*2)
 	end
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 焦點目標 / FoT
@@ -672,7 +670,7 @@ local function CreateFoTStyle(self, unit)
 	if UnitCanAttack("player", unit) then
 		-- 敵方顯示增益
 		T.CreateBuffs(self)
-		if C.vertTarget then
+		if F.GetRuriOption("vertTarget") then
 			self.Buffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
 			self.Buffs.initialAnchor = "BOTTOMLEFT"
 			self.Buffs.growthX = "RIGHT"
@@ -688,7 +686,7 @@ local function CreateFoTStyle(self, unit)
 	else
 		-- 友方顯示減益
 		T.CreateDebuffs(self)
-		if C.vertTarget then
+		if F.GetRuriOption("vertTarget") then
 			self.Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
 			self.Debuffs.initialAnchor = "BOTTOMLEFT"
 			self.Debuffs.growthX = "RIGHT"
@@ -703,7 +701,7 @@ local function CreateFoTStyle(self, unit)
 		self.Debuffs:SetSize(C.buSize*2, C.buSize)
 	end
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 簡易焦點目標 / Simple FoT
@@ -766,7 +764,7 @@ local function CreateSFoTStyle(self, unit)
 	RaidIcon:SetPoint("RIGHT", self.HealthText, "LEFT", 0, 0)
 	self.RaidTargetIndicator = RaidIcon
 
-	if C.Fade then self.fade = true end
+	if F.GetRuriOption("Fade") then self.fade = true end
 end
 
 -- 首領 / Boss
@@ -897,52 +895,49 @@ local function CreateArenaStyle(self, unit)
 end
 
 --===================================================--
---------------    [[ RegisterStyle ]]     -------------
---===================================================--
-
-if C.vertPlayer then
-	oUF:RegisterStyle("Player", CreateVPlayerStyle)
-	oUF:RegisterStyle("Pet", CreateVPetStyle)
-else
-	oUF:RegisterStyle("Player", CreatePlayerStyle)
-	oUF:RegisterStyle("Pet", CreatePetStyle)
-end
-
-if C.vertTarget then
-	oUF:RegisterStyle("Target", CreateVTargetStyle)
-	oUF:RegisterStyle("ToT", CreateVToTStyle)
-else
-	oUF:RegisterStyle("Target", CreateTargetStyle)
-	oUF:RegisterStyle("ToT", CreateToTStyle)
-end
-
-
-if C.SimpleFocus then
-	oUF:RegisterStyle("Focus", CreateSFocusStyle)
-	oUF:RegisterStyle("FoT", CreateSFoTStyle)
-else
-	oUF:RegisterStyle("Focus", CreateFocusStyle)
-	oUF:RegisterStyle("FoT", CreateFoTStyle)
-end
-
-if C.Boss then
-	oUF:RegisterStyle("Boss", CreateBossStyle)
-end
-
-if C.Arena then
-	oUF:RegisterStyle("Arena", CreateArenaStyle)
-end
-
---===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
 -- 生成
 
 oUF:Factory(function(self)
+	if not F.GetRuriOption("UnitFrames") then return end
+
+	if F.GetRuriOption("vertPlayer") then
+		self:RegisterStyle("Player", CreateVPlayerStyle)
+		self:RegisterStyle("Pet", CreateVPetStyle)
+	else
+		self:RegisterStyle("Player", CreatePlayerStyle)
+		self:RegisterStyle("Pet", CreatePetStyle)
+	end
+
+	if F.GetRuriOption("vertTarget") then
+		self:RegisterStyle("Target", CreateVTargetStyle)
+		self:RegisterStyle("ToT", CreateVToTStyle)
+	else
+		self:RegisterStyle("Target", CreateTargetStyle)
+		self:RegisterStyle("ToT", CreateToTStyle)
+	end
+
+	if F.GetRuriOption("SimpleFocus") then
+		self:RegisterStyle("Focus", CreateSFocusStyle)
+		self:RegisterStyle("FoT", CreateSFoTStyle)
+	else
+		self:RegisterStyle("Focus", CreateFocusStyle)
+		self:RegisterStyle("FoT", CreateFoTStyle)
+	end
+
+	if F.GetRuriOption("Boss") then
+		self:RegisterStyle("Boss", CreateBossStyle)
+	end
+
+	if F.GetRuriOption("Arena") then
+		self:RegisterStyle("Arena", CreateArenaStyle)
+	end
+
 	-- Should not disable it, may cause refresh delay issue
 	SetCVar("predictedHealth", 1)
 	
-	if C.vertPlayer then
+	if F.GetRuriOption("vertPlayer") then
 		-- 玩家
 		self:SetActiveStyle("Player")
 		local player = self:Spawn("player", "oUF_Player")
@@ -962,7 +957,7 @@ oUF:Factory(function(self)
 		pet:SetPoint(unpack(C.Position.Pet))
 	end
 	
-	if C.vertTarget then
+	if F.GetRuriOption("vertTarget") then
 		-- 目標
 		self:SetActiveStyle("Target")
 		local target = self:Spawn("target", "oUF_Target")
@@ -976,7 +971,7 @@ oUF:Factory(function(self)
 		local focus = self:Spawn("focus", "oUF_Focus")
 		focus:SetPoint(unpack(C.Position.VFocus))
 		-- 焦點目標
-		if C.SimpleFocus then
+		if F.GetRuriOption("SimpleFocus") then
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.SFOT))
@@ -999,7 +994,7 @@ oUF:Factory(function(self)
 		local focus = self:Spawn("focus", "oUF_Focus")
 		focus:SetPoint(unpack(C.Position.Focus))
 		-- 焦點目標
-		if C.SimpleFocus then
+		if F.GetRuriOption("SimpleFocus") then
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.SFOT))
@@ -1010,7 +1005,7 @@ oUF:Factory(function(self)
 		end
 	end
 	
-	if C.Boss then
+	if F.GetRuriOption("Boss") then
 		-- 首領
 		self:SetActiveStyle("Boss")
 		local boss = {}
@@ -1025,7 +1020,7 @@ oUF:Factory(function(self)
 		end
 	end
 	
-	if C.Arena then
+	if F.GetRuriOption("Arena") then
 		-- 競技場
 		self:SetActiveStyle("Arena")
 		local arena = {}

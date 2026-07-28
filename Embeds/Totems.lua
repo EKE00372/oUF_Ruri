@@ -31,7 +31,7 @@ end
 
 -- 初始化
 local function TotemBar_Init()
-	local vertical = C.vertPlayer				-- 判斷直式或橫式
+	local vertical = F.GetRuriOption("vertPlayer")				-- 判斷直式或橫式
 	local Offset = C.PPOffset					-- 圖騰間距
 	local altOffset = C.PPHeight + C.PPOffset	-- 特殊能量條存在時偏移
 	local iconSize = (C.buSize + 4)				-- 和玩家自身光環一樣大
@@ -146,7 +146,7 @@ local function UpdateTotemBarOffset()
 	local hasAlt = HasAltPower()
 	local hasPet = UnitExists("pet")
 
-	local vertical = C.vertPlayer
+	local vertical = F.GetRuriOption("vertPlayer")
 	local offsetBase = C.PPOffset
     local altOffset  = C.PPHeight + offsetBase
     local petOffset  = C.PHeight  + offsetBase

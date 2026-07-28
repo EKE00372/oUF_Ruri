@@ -9,7 +9,6 @@ local SetCVar = C_CVar.SetCVar
 local C_Timer_After = C_Timer.After
 local C_SpecializationInfo_GetSpecialization = C_SpecializationInfo.GetSpecialization
 local C_SpecializationInfo_GetSpecializationInfo = C_SpecializationInfo.GetSpecializationInfo
-local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
 local C_ClassTalents_GetActiveConfigID = C_ClassTalents.GetActiveConfigID
 
 --======================================================--
@@ -60,16 +59,14 @@ end
 local function SpecUpdate()
 	local specIndex = C_SpecializationInfo_GetSpecialization()
 	local specID = specIndex and C_SpecializationInfo_GetSpecializationInfo(specIndex) or 0
-	local lightSmith = C_SpellBook_IsSpellKnownOrInSpellBook(432459)
 
 	-- 第一層：坦克資源
-	-- 啟用坦克資源的酒僧/血DK/復仇/防戰/熊/光鑄防騎
-	local hasTankResource =
-		C.TankResource and (F.IsAny(specID, 268, 250, 581, 73, 104) or (specID == 66 and lightSmith))
+	-- 實際啟用條件集中在 Libs/oUF_TankResource.lua
+	local hasTankResource = F.GetRuriOption("TankResource") and T.PlayerHasTankResource and T.PlayerHasTankResource()
 
 	-- 第二層：職業資源：ClassPower/Runes/Essence/Stagger/AdditionalPower 共用
 	-- 死騎/盜賊/術士/喚能/聖騎
-	-- 鳥貓/秘法/暗牧/元薩/酒僧/風僧
+	-- 鳥貓/秘法/暗牧/元薩/酒僧/風僧 https://warcraft.wiki.gg/wiki/SpecializationID
 	local hasClassResource =
 		F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER", "PALADIN") or
 		F.IsAny(specID, 102, 103, 62, 258, 262, 268, 269)
