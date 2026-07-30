@@ -15,12 +15,12 @@ local BREATH_MIN_ALPHA, BREATH_MAX_ALPHA = .25, .75
 local BREATH_IN_DURATION, BREATH_OUT_DURATION = 5, 7
 local BREATH_MAIN_SIZE, BREATH_TAB_SIZE = 12, 10
 
-local MAIN_WIDTH, MAIN_HEIGHT = 470, 340
-local COLUMN_WIDTH, COLUMN_GAP = 200, 18
+local MAIN_WIDTH, MAIN_HEIGHT = 480, 340
+local COLUMN_WIDTH, COLUMN_GAP = 205, 18
 local SECTION_HEIGHT, SECTION_GAP = 24, 8
 local OPTION_HEIGHT, OPTION_GAP = 26, 2
 local OVERVIEW_ROW_HEIGHT, OVERVIEW_ROW_GAP = 52, 4
-local TAB_WIDTH, TAB_HEIGHT, TAB_GAP = 150, 32, 8
+local TAB_WIDTH, TAB_HEIGHT, TAB_GAP = 150, 32, 10
 local TITLE_Y_OFFSET = 14
 
 -----------
@@ -35,17 +35,6 @@ local function ResetDB()
 		RuriDB = {}
 	end
 end
-
-StaticPopupDialogs["OUFRURI_RESET_OPTIONS"] = {
-	text = L.ResetOptionsConfirm or "ResetOptionsConfirm",
-	button1 = YES,
-	button2 = NO,
-	OnAccept = function()
-		ResetDB()
-		ReloadUI()
-	end,
-	whileDead = 1,
-}
 
 ---------------
 -- Functions --
@@ -118,7 +107,7 @@ end
 
 -- 寫入設定值
 local function SetOptionValue(option, value)
-	-- 禁用的開發中選項直接回傳預設值
+	-- 禁用選項直接回傳預設值
 	if option.disabled then
 		return F.GetRuriOption(option.key)
 	end
@@ -129,6 +118,14 @@ local function SetOptionValue(option, value)
 		MainFrame.StatusText:SetText("|cffffd100"..(L.StatusChanged or "StatusChanged").."|r")
 	end
 	return normalized
+end
+
+local function GetOptionLabel(option)
+	local labelText = L[option.label] or option.label
+	if option.wip then
+		labelText = labelText.." ("..(L.WIP or "WIP")..")"
+	end
+	return labelText
 end
 
 -- Title template / 標題模板
@@ -177,12 +174,7 @@ local function CreateOverviewOption(parent, option, index, yBase)
 		check:Disable()
 	end
 
-	local labelText = L[option.label] or option.label
-	if disabled then
-		labelText = labelText.." ("..(L.WIP or "WIP")..")"
-	end
-
-	local label = CreateText(row, labelText, G.NameFS, "LEFT")
+	local label = CreateText(row, GetOptionLabel(option), G.NameFS, "LEFT")
 	label:SetPoint("TOPLEFT", check, "TOPRIGHT", 2, -5)
 	label:SetPoint("RIGHT", row, "RIGHT", 0, 0)
 	if disabled then
@@ -237,12 +229,7 @@ local function CreateCheckOption(parent, option, index, yBase)
 		check:Disable()
 	end
 
-	local labelText = L[option.label] or option.label
-	if disabled then
-		labelText = labelText.." ("..(L.WIP or "WIP")..")"
-	end
-
-	local label = CreateText(row, labelText, G.NameFS, "LEFT")
+	local label = CreateText(row, GetOptionLabel(option), G.NameFS, "LEFT")
 	label:SetPoint("LEFT", check, "RIGHT", 2, 0)
 	if disabled then
 		label:SetTextColor(DISABLED_TEXT_R, DISABLED_TEXT_G, DISABLED_TEXT_B, 1)
@@ -346,7 +333,7 @@ end
 -- Create left tab button / 創建分頁按鈕
 local function CreateTab(parent, index, text)
 	local tab = CreateButton(parent, TAB_WIDTH, TAB_HEIGHT, L[text] or text)
-	tab:SetPoint("TOPRIGHT", parent, "TOPLEFT", -8, -48 - (index - 1) * (TAB_HEIGHT + TAB_GAP))
+	tab:SetPoint("TOPRIGHT", parent, "TOPLEFT", -10, -48 - (index - 1) * (TAB_HEIGHT + TAB_GAP))
 	tab.Text:SetFont(G.Font, G.NameFS, G.FontFlag)
 	tab:SetBackdropColor(0, 0, 0, PANEL_ALPHA)
 	CreateBreathGlow(tab, BREATH_TAB_SIZE)
@@ -398,7 +385,7 @@ local function BuildGUI()
 	local title = CreateText(MainFrame, "|cff00ffffoUF_Ruri|r "..version, titleSize, "CENTER")
 	title:SetPoint("TOP", MainFrame, "TOP", 0, TITLE_Y_OFFSET)
 
-	MainFrame.StatusText = CreateText(MainFrame, L.StatusApply or "StatusApply", G.NameFS, "LEFT")
+	MainFrame.StatusText = CreateText(MainFrame, "", G.NameFS, "LEFT")
 	MainFrame.StatusText:SetPoint("BOTTOMLEFT", 20, 22)
 
 	MainFrame.Tabs = {}
@@ -422,7 +409,8 @@ local function BuildGUI()
 	local resetButton = CreateButton(MainFrame, 88, 28, RESET)
 	resetButton:SetPoint("RIGHT", reloadButton, "LEFT", -10, 0)
 	resetButton:SetScript("OnClick", function()
-		StaticPopup_Show("OUFRURI_RESET_OPTIONS")
+		ResetDB()
+		ReloadUI()
 	end)
 
 	SelectTab(MainFrame, 1)

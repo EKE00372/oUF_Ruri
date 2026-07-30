@@ -61,9 +61,9 @@ local MediaFolder = G.MediaFolder
 			name = "Overview",
 			options = {
 				{ type = "toggle", key = "UnitFrames", label = "UnitFrames", desc = "UnitFramesDesc", default = true },
-				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = false, disabled = true },
-				{ type = "toggle", key = "PartyFrames", label = "PartyFrames", desc = "PartyFramesDesc", default = false, disabled = true },
-				{ type = "toggle", key = "Nameplates", label = "Nameplates", desc = "NameplatesDesc", default = false, disabled = true },
+				{ type = "toggle", key = "PartyFrames", label = "PartyFrames", desc = "PartyFramesDesc", default = false },
+				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = true },
+				{ type = "toggle", key = "Nameplates", label = "Nameplates", desc = "NameplatesDesc", default = false, disabled = true, wip = true },
 			},
 		},
 		{
@@ -88,7 +88,8 @@ local MediaFolder = G.MediaFolder
 					name = "DisplayElements",
 					options = {
 						{ type = "toggle", key = "PlayerDebuffs", label = "PlayerDebuffs", default = true },
-						{ type = "toggle", key = "TankResource", label = "TankResource", default = true, tooltip = "TankResourceTip" },
+						{ type = "toggle", key = "Totems", label = "Totems", default = false, tooltip = "TotemsTip" },
+						{ type = "toggle", key = "TankResource", label = "TankResource", default = false, tooltip = "TankResourceTip" },
 						{ type = "toggle", key = "StandaloneCastbar", label = "StandaloneCastbar", default = false, tooltip = "StandaloneCastbarTip" },
 						{ type = "toggle", key = "Fade", label = "Fade", default = true, tooltip = "FadeTip" },
 					},
