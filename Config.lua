@@ -43,9 +43,6 @@ local MediaFolder = G.MediaFolder
 
 	C.buSize = 26				-- Aura icon size for all frames, except player debuff / 光環圖示大小
 	C.maxAura = 14				-- How many auras show / 顯示光環數量
-	
-	-- Options / 選項
-	--C.Totems = false			-- Show player totems / 顯示玩家圖騰
 
 	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
 	
