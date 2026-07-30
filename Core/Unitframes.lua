@@ -183,7 +183,7 @@ local function CreatePlayerStyle(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
 	if F.GetRuriOption("TankResource") then T.CreateTankResource(self, unit) end
-	--if C.Totems then T.CreateTotemBar(self) end
+	if F.GetRuriOption("Totems") then T.CreateTotemBar(self) end
 
 	-- 施法條
 	if F.GetRuriOption("StandaloneCastbar") then
@@ -250,7 +250,7 @@ local function CreateVPlayerStyle(self, unit)
 	T.CreateAddPower(self, unit)
 	T.CreateStagger(self, unit)
 	if F.GetRuriOption("TankResource") then T.CreateTankResource(self, unit) end
-	--if C.Totems then T.CreateTotemBar(self) end
+	if F.GetRuriOption("Totems") then T.CreateTotemBar(self) end
 	
 	-- 減益
 	if F.GetRuriOption("PlayerDebuffs") then
