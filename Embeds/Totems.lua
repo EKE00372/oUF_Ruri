@@ -1,189 +1,409 @@
 local addon, ns = ...
 local C, F, G, T = unpack(ns)
-local oUF = ns.oUF or oUF
 
 -- https://github.com/FireSiku/LUI/blob/master/modules/unitframes/layout/layout.lua
 -- https://github.com/siweia/NDui/blob/master/Interface/AddOns/NDui/Modules/Auras/Totems.lua
 
-if not C.Totems then return end
+local _G, CreateFrame, hooksecurefunc = _G, CreateFrame, hooksecurefunc
+local C_DurationUtil_CreateDurationTextBinding = C_DurationUtil.CreateDurationTextBinding
+local C_StringUtil_CreateNumericRuleFormatter = C_StringUtil.CreateNumericRuleFormatter
+local GetTotemDuration = GetTotemDuration
+local wipe = wipe
 
-local _G = _G
-local GetTotemInfo = GetTotemInfo
-local GetTime = GetTime
-local totems = {}
-local MAX_TOTEMS = 4
+local MAX_TOTEMS = _G.MAX_TOTEMS or 4
+local totemBarHooked
 
--- 幹掉CooldownFrameTemplate，用OnUpdate顯示秒數
-local function Totems_Update(self, elapsed)
-	self.elapsed = (self.elapsed or 0) + elapsed
-	
-	if self.elapsed >= .1 then
-		local timeLeft = self.expirationTime - GetTime()
-		if timeLeft > 0 then
-			self.CD:SetText(F.FormatTime(timeLeft))
-		else
-			self:SetScript("OnUpdate", nil)
-			self.CD:SetText("")
-		end
-		self.elapsed = 0
+-------------
+-- 緊湊顯示 --
+-------------
+
+-- 1 = 單圖騰，秒數在圖示中
+-- 4 = 多圖騰只顯示一個圖示，秒數在圖示兩側
+local compactClasses = {
+	PALADIN = 1,
+	MONK = 1,
+	DEATHKNIGHT = 1,
+	DRUID = 4,
+	WARLOCK = 4,
+}
+
+-- 多圖騰緊湊模式的秒數位置
+local compactTextPoints = {
+	[1] = {
+		{ "RIGHT", "LEFT", -2, 0 },
+	},
+	[2] = {
+		{ "RIGHT", "LEFT", -2, 0 },
+		{ "LEFT", "RIGHT", 2, 0 },
+	},
+	[3] = {
+		{ "RIGHT", "LEFT", -2, 6 },
+		{ "RIGHT", "LEFT", -2, -6 },
+		{ "LEFT", "RIGHT", 2, 0 },
+	},
+	[4] = {
+		{ "RIGHT", "LEFT", -2, 6 },
+		{ "RIGHT", "LEFT", -2, -6 },
+		{ "LEFT", "RIGHT", 2, 6 },
+		{ "LEFT", "RIGHT", 2, -6 },
+	},
+}
+
+-------------
+-- 普通顯示 --
+-------------
+
+-- 普通四格圖騰條：保留給薩滿的圖騰使用
+local normalClasses = {}
+
+--------------
+-- Function --
+--------------
+
+-- 秒數文字格式
+local durationFormatter = C_StringUtil_CreateNumericRuleFormatter()
+durationFormatter:AddBreakpoint({
+	threshold = 0,
+	step = 1,
+	rounding = Enum.NumericRuleFormatRounding.Up,
+	min = 0,
+	format = "%d",
+})
+
+-- 設定文字外觀
+local function ConfigureCooldown(cooldown)
+	-- 關掉所有動畫
+	cooldown:SetDrawSwipe(false)
+	cooldown:SetDrawEdge(false)
+	cooldown:SetDrawBling(false)
+	cooldown:SetReverse(true)
+	cooldown:SetHideCountdownNumbers(false)
+
+	local cooldownText = cooldown:GetRegions()
+	if cooldownText and cooldownText.SetFont then
+		cooldownText:SetFont(G.NFont or G.Font, G.NumberFS, G.FontFlag)
+		cooldownText:ClearAllPoints()
+		cooldownText:SetPoint("TOP", cooldown, 0, 3)
 	end
 end
 
--- 初始化
-local function TotemBar_Init()
-	local vertical = F.GetRuriOption("vertPlayer")				-- 判斷直式或橫式
-	local Offset = C.PPOffset					-- 圖騰間距
-	local altOffset = C.PPHeight + C.PPOffset	-- 特殊能量條存在時偏移
-	local iconSize = (C.buSize + 4)				-- 和玩家自身光環一樣大
-	local width = (iconSize*4 + Offset*5)		-- 上下左右都要多
-	local height = (iconSize + Offset*2)
-	
-	-- 創建圖騰條
-	local totemBar = CreateFrame("Frame", "Ruri_TotemBar", oUF_Player)
-	totemBar:ClearAllPoints()
-	if vertical then
-		totemBar:SetSize(height, width)
-		totemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", -altOffset, 0) -- 直式在能量條左
-	else
-		totemBar:SetSize(width, height)
-		totemBar:SetPoint("TOPRIGHT", oUF_Player, "BOTTOMRIGHT", -altOffset, -Offset) -- 橫式在能量條下
+-- 設定圖騰格子外觀：外框與 castbar icon 相同
+local function StyleTotemButton(totem)
+	totem.Shadow = F.CreateSD(totem, totem, 5)
+
+	totem.Icon = totem:CreateTexture(nil, "OVERLAY")
+	totem.Icon:SetAllPoints(totem)
+	totem.Icon:SetTexCoord(.08, .92, .08, .92)
+	totem.Icon:SetTexture(nil)
+
+	totem.CD = CreateFrame("Cooldown", nil, totem, "CooldownFrameTemplate")
+	totem.CD:SetAllPoints(totem)
+	ConfigureCooldown(totem.CD)
+
+	totem:SetAlpha(0)
+	totem:EnableMouse(true)
+end
+
+-- 創建秒數文字
+local function CreateDurationText(element, index)
+	local text = F.CreateText(element[1] or element, "OVERLAY", G.NFont or G.Font, G.NumberFS, G.FontFlag, "CENTER")
+	text:SetDrawLayer("OVERLAY", 7)
+	text:SetText("")
+	text:Hide()
+
+	text.DurationBinding = C_DurationUtil_CreateDurationTextBinding()
+	text.DurationBinding:SetFontString(text)
+	text.DurationBinding:SetFormatter(durationFormatter)
+	text.DurationBinding:SetUpdateInterval(.1)
+
+	element.DurationTexts[index] = text
+	return text
+end
+
+-- 類 oUF element 的子框結構：element[index] 保存每個自製圖騰格
+local function CreateTotemButton(element, index)
+	local totem = CreateFrame("Frame", nil, element)
+	StyleTotemButton(totem)
+
+	element[index] = totem
+	return totem
+end
+
+-- 樣式布局：普通圖騰條保留原本四格一字排列；緊湊模式則是單圖示
+local function LayoutTotemBar(element, compactLimit)
+	local owner = element.__owner or _G.oUF_Player
+	if not owner then return end
+
+	local vertical = F.GetRuriOption("vertPlayer")
+	local spacing = C.PPOffset
+	local sideOffset = C.PPHeight + C.PPOffset
+	local iconSize = C.buSize + 4
+	local castIconSize = C.PHeight + C.PPHeight*2
+
+	element:ClearAllPoints()
+
+	if compactLimit then
+		element:SetSize(castIconSize, castIconSize)
+		if vertical then
+			element:SetPoint("BOTTOM", owner.Health, "TOP", -(C.PPHeight + 1), C.PPOffset)
+		else
+			element:SetPoint("TOPRIGHT", owner.Health, "TOPLEFT", -C.PPOffset, -1)
+		end
+
+		for i = 1, MAX_TOTEMS do
+			local totem = element[i]
+			if not totem then break end
+
+			totem:SetSize(castIconSize, castIconSize)
+			totem:ClearAllPoints()
+
+			if i == 1 then
+				totem:SetPoint("CENTER", element, "CENTER", 0, 0)
+			else
+				totem.Icon:SetTexture(nil)
+				totem.CD:Hide()
+				totem:SetAlpha(0)
+				totem:Hide()
+			end
+		end
+
+		for i = 1, MAX_TOTEMS do
+			local text = element.DurationTexts[i]
+			if text then text:ClearAllPoints() end
+		end
+
+		return
 	end
 
-	for i = 1, 4 do
-		local totem = totems[i]
-		if not totem then
-			totem = F.CreateBD(totemBar, totemBar, 1)
-			totem.BD = F.CreateSD(totem, totem, 3)
-			
-			totem.Icon = totem:CreateTexture(nil, "OVERLAY")
-			totem.Icon:SetTexCoord(.08, .92, .08, .92)
-			totem.Icon:SetAllPoints(totem)
-			totem.Icon:SetTexture("")
-			
-			totem.CD = F.CreateText(totem, "OVERLAY", G.Font, G.NumberFS, G.FontFlag, "CENTER")
-			--totem.CD = CreateFrame("Cooldown", nil, self, "CooldownFrameTemplate")
-			--totem.CD:SetAllPoints(totem)
-			totem.CD:ClearAllPoints()
-			totem.CD:SetPoint("TOP", totem, 0, 4)
-			
-			totem:SetAlpha(0)
-			totem:EnableMouse(true)
-			totems[i] = totem
-		end
+	if vertical then
+		element:SetSize(iconSize + spacing*2, iconSize*MAX_TOTEMS + spacing*(MAX_TOTEMS + 1))
+		element:SetPoint("TOPRIGHT", owner, "TOPLEFT", -sideOffset, 0)
+	else
+		element:SetSize(iconSize*MAX_TOTEMS + spacing*(MAX_TOTEMS + 1), iconSize + spacing*2)
+		element:SetPoint("TOPRIGHT", owner, "BOTTOMRIGHT", -sideOffset, -spacing)
+	end
+
+	for i = 1, MAX_TOTEMS do
+		local totem = element[i]
+		if not totem then break end
 
 		totem:SetSize(iconSize, iconSize)
 		totem:ClearAllPoints()
+		totem:Show()
+
 		if vertical then
 			if i == 1 then
-				totem:SetPoint("TOP", 0, 0)
+				totem:SetPoint("TOP", element, "TOP", 0, 0)
 			else
-				totem:SetPoint("TOP", totems[i-1], "BOTTOM", 0, -Offset)
+				totem:SetPoint("TOP", element[i - 1], "BOTTOM", 0, -spacing)
 			end
 		else
 			if i == 1 then
-				totem:SetPoint("BOTTOMRIGHT", Offset, Offset)
+				totem:SetPoint("BOTTOMRIGHT", element, "BOTTOMRIGHT", spacing, spacing)
 			else
-				totem:SetPoint("RIGHT", totems[i-1], "LEFT", -Offset, 0)
+				totem:SetPoint("RIGHT", element[i - 1], "LEFT", -spacing, 0)
 			end
 		end
 	end
+
+	for i = 1, MAX_TOTEMS do
+		local text = element.DurationTexts[i]
+		if text then text:ClearAllPoints() end
+	end
 end
 
--- 圖騰更新
-local function TotemBar_Update(self)
-	local activeTotems = 0
-	for button in _G.TotemFrame.totemPool:EnumerateActive() do
-		activeTotems = activeTotems + 1
+-- 建立類 oUF element 的圖騰列容器
+local function CreateTotemElement(owner)
+	local element = _G.Ruri_TotemBar
+	if not element then
+		element = CreateFrame("Frame", "Ruri_TotemBar", owner)
+	end
 
-		local haveTotem, _, start, dur, icon = GetTotemInfo(button.slot)
-		local totem = totems[activeTotems]
-		if haveTotem and dur > 0 then
-			totem.Icon:SetTexture(icon)
-			--totem.CD:SetCooldown(start, dur)
-			--totem.CD:Show()
-			totem:SetAlpha(1)
-			
-			-- 獲取時間，起始+持續=結束
-			totem.expirationTime = dur + start
-			totem:SetScript("OnUpdate", Totems_Update)
-			totem:Show()
-		else
-			totem.Icon:SetTexture("")
-			--totem.CD:Hide()
-			totem:SetAlpha(0)
+	element:SetParent(owner)
+	element.__owner = owner
+	element.ForceUpdate = T.UpdateTotemBar
+	element.activeButtons = element.activeButtons or {}
+	element.DurationTexts = element.DurationTexts or {}
+
+	for i = 1, MAX_TOTEMS do
+		if not element[i] then
+			CreateTotemButton(element, i)
 		end
+		if not element.DurationTexts[i] then
+			CreateDurationText(element, i)
+		end
+	end
 
-		-- hide blizzard original totem frame / 幹掉暴雪圖騰條
+	LayoutTotemBar(element, compactClasses[G.myClass])
+	element:Hide()
+	owner.RuriTotems = element
+
+	return element
+end
+
+-- 圖示沿用原生材質
+local function GetTotemIcon(button)
+	return button.Icon.Texture:GetTexture()
+end
+
+-- 顯示冷卻計時
+local function SetTotemCooldown(totem, slot, showNumbers)
+	local cooldown = totem.CD
+
+	cooldown:SetHideCountdownNumbers(showNumbers == false)
+
+	-- Secret value 不可計算
+	cooldown:SetCooldownFromDurationObject(GetTotemDuration(slot))
+	cooldown:Show()
+end
+
+-- 清空圖騰消失剩下的空格子
+local function ClearTotem(totem)
+	if not totem then return end
+
+	totem.Icon:SetTexture(nil)
+	totem.CD:Hide()
+	totem:SetAlpha(0)
+	totem:Hide()
+end
+
+-- 保留暴雪原生圖騰按鈕，用於點擊
+local function AttachBlizzardButton(button, totem)
+	button:ClearAllPoints()
+	button:SetParent(totem)
+	button:SetAllPoints(totem)
+	button:SetAlpha(0)
+	button:SetFrameLevel(totem:GetFrameLevel() + 3)
+	button:EnableMouse(true)
+end
+
+-- 將圖騰的狀態同步到插件創建的圖騰格子
+local function UpdateTotemButton(totem, button, showNumbers)
+	totem.Icon:SetTexture(GetTotemIcon(button))
+	SetTotemCooldown(totem, button.slot, showNumbers)
+	totem:SetAlpha(1)
+	totem:Show()
+
+	-- 保留暴雪原生圖騰按鈕，才能右鍵取消
+	AttachBlizzardButton(button, totem)
+end
+
+-- 更新緊湊模式
+local function UpdateCompactTotemBar(element, activeButtons, compactLimit)
+	local count = #activeButtons
+	if count == 0 then
+		ClearTotem(element[1])
+		for i = 1, MAX_TOTEMS do
+			local text = element.DurationTexts[i]
+			text.DurationBinding:SetEnabled(false)
+			text:SetText("")
+			text:Hide()
+		end
+		element:SetShown(false)
+		return
+	end
+
+	UpdateTotemButton(element[1], activeButtons[1], compactLimit == 1)
+
+	for i = 2, MAX_TOTEMS do
+		ClearTotem(element[i])
+	end
+
+	local displayCount = count > compactLimit and compactLimit or count
+	local textPoints = compactLimit > 1 and compactTextPoints[displayCount]
+	for i = 1, MAX_TOTEMS do
+		local text = element.DurationTexts[i]
+		local button = activeButtons[i]
+		if textPoints and textPoints[i] and button and i <= compactLimit then
+			local point = textPoints[i]
+			text:ClearAllPoints()
+			text:SetPoint(point[1], element[1], point[2], point[3], point[4])
+			text.DurationBinding:SetDuration(GetTotemDuration(button.slot))
+			text.DurationBinding:SetEnabled(true)
+			text:Show()
+		else
+			text.DurationBinding:SetEnabled(false)
+			text:SetText("")
+			text:Hide()
+		end
+	end
+
+	for i = 2, count do
+		local button = activeButtons[i]
 		button:ClearAllPoints()
-		button:SetParent(totem)
-		button:SetAllPoints(totem)
+		button:SetParent(element)
+		button:SetSize(1, 1)
+		button:SetPoint("CENTER", element, "CENTER", 0, 0)
 		button:SetAlpha(0)
-		button:SetFrameLevel(totem:GetFrameLevel() + 1)
+		button:SetFrameLevel(element:GetFrameLevel())
+		button:EnableMouse(false)
 	end
 
-	for i = activeTotems + 1, 4 do
-		local totem = totems[i]
-		totem.Icon:SetTexture("")
-		totem:SetAlpha(0)
+	element:SetShown(true)
+end
+
+-- 更新普通圖騰條：格子固定
+local function UpdateNormalTotemBar(element, activeButtons)
+	for i = 1, MAX_TOTEMS do
+		local text = element.DurationTexts[i]
+		text.DurationBinding:SetEnabled(false)
+		text:SetText("")
+		text:Hide()
 	end
+
+	for i = 1, #activeButtons do
+		UpdateTotemButton(element[i], activeButtons[i], true)
+	end
+
+	for i = #activeButtons + 1, MAX_TOTEMS do
+		ClearTotem(element[i])
+	end
+
+	element:SetShown(#activeButtons > 0)
 end
 
-T.CreateTotemBar = function(self)
-	TotemBar_Init()
-	hooksecurefunc(TotemFrame, "Update", TotemBar_Update)
-end
+-- hook 原生的狀態更新，Ruri 只同步外觀
+function T.UpdateTotemBar()
+	local element = _G.Ruri_TotemBar
+	local totemFrame = _G.TotemFrame
+	if not element or not totemFrame or not totemFrame.totemPool then return end
 
--- 判斷是否顯示替代能量
-local function HasAltPower()
-    local barID = UnitPowerBarID("player")       -- 0 == 沒有 AltPowerBar
-    return barID and barID ~= 0
-end
+	local compactLimit = compactClasses[G.myClass]
+	local useNormal = normalClasses[G.myClass]
+	if not compactLimit and not useNormal then
+		element:SetShown(false)
+		return
+	end
 
--- 位置更新
-local function UpdateTotemBarOffset()
-    if not Ruri_TotemBar then return end         -- 圖騰條還未建立時防呆
+	local activeButtons = element.activeButtons
+	wipe(activeButtons)
 
-	local hasAlt = HasAltPower()
-	local hasPet = UnitExists("pet")
-
-	local vertical = F.GetRuriOption("vertPlayer")
-	local offsetBase = C.PPOffset
-    local altOffset  = C.PPHeight + offsetBase
-    local petOffset  = C.PHeight  + offsetBase
-
-    Ruri_TotemBar:ClearAllPoints()
-	if vertical then
-		local x
-		if hasAlt and hasPet then
-			x = -(altOffset + petOffset)
-		elseif hasAlt then
-			x = -altOffset*2
-		elseif hasPet then
-			x = -petOffset
-		else
-			x = -offsetBase
+	for button in totemFrame.totemPool:EnumerateActive() do
+		if button:IsShown() and button.slot and #activeButtons < MAX_TOTEMS then
+			activeButtons[#activeButtons + 1] = button
 		end
+	end
 
-		Ruri_TotemBar:SetPoint("TOPRIGHT", oUF_Player, "TOPLEFT", x, 0)
+	LayoutTotemBar(element, compactLimit)
+
+	if compactLimit then
+		UpdateCompactTotemBar(element, activeButtons, compactLimit)
 	else
-		local x, y
-		if hasAlt then
-			x, y = -OffsetBase, -altOffset*2
-		else
-			x, y = -offsetBase, -altOffset
-		end
-
-		Ruri_TotemBar:SetPoint("TOPRIGHT", oUF_Player, "BOTTOMRIGHT", x, y)
+		UpdateNormalTotemBar(element, activeButtons)
 	end
 end
 
---=================================================--
------------------    [[ Event ]]    -----------------
---=================================================--
+-- 註冊圖騰條
+T.CreateTotemBar = function(self)
+	if not compactClasses[G.myClass] and not normalClasses[G.myClass] then return end
+	if not _G.TotemFrame or not _G.TotemFrame.totemPool then return end
 
-local offsetWatcher = CreateFrame("Frame")
-offsetWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
-offsetWatcher:RegisterEvent("UNIT_PET")
-offsetWatcher:RegisterEvent("UNIT_POWER_BAR_SHOW")
-offsetWatcher:RegisterEvent("UNIT_POWER_BAR_HIDE")
-offsetWatcher:SetScript("OnEvent", UpdateTotemBarOffset)
+	CreateTotemElement(self)
+
+	if not totemBarHooked then
+		hooksecurefunc(_G.TotemFrame, "Update", T.UpdateTotemBar)
+		totemBarHooked = true
+	end
+
+	T.UpdateTotemBar()
+end
