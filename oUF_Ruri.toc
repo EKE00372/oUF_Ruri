@@ -21,6 +21,7 @@ Libs\oUF_Fader.lua
 #Libs\oUF_MovableFrames.lua
 
 Embeds\Crosshairs.lua
+Embeds\CompactRaid.lua
 Embeds\Totems.lua
 
 Tags.lua

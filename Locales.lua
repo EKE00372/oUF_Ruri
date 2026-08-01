@@ -9,22 +9,26 @@ local GetLocale = GetLocale
 
 if GetLocale() == "zhTW" then
 
+	-- Tab
 	L.Overview = "總覽"
 	L.UnitFrames = "單位框架"
 	L.RaidFrames = "團隊框架"
 	L.PartyFrames = "隊伍框架"
 	L.Nameplates = "名條"
 
+	-- Overview
 	L.UnitFramesDesc = "包含玩家、寵物、目標、目標的目標、專注目標、專注目標的目標、競技場、首領。"
 	L.RaidFramesDesc = "簡單的團隊框架，只顯示團隊，不顯示隊友寵物、主坦克和主助攻的單獨框架。"
 	L.PartyFramesDesc = "簡單的隊伍框架，不顯示隊友寵物。"
 	L.NameplatesDesc = "簡單的名條。"
 
+	-- subTitle
 	L.StyleSwitch = "樣式"
 	L.DisplayFrames = "框架"
 	L.DisplayElements = "元素"
 	L.PlayerResource = "個人資源"
 
+	-- Unitframes
 	L.VerticalPlayer = "直式玩家框架"
 	L.VerticalTarget = "直式目標框架"
 	L.SimpleFocus = "簡易專注目標"
@@ -42,6 +46,14 @@ if GetLocale() == "zhTW" then
 	L.FadeTip = "當你不在戰鬥中或施法狀態，滿生命值且沒有目標時，隱藏玩家框架。"
 	L.StandaloneCastbarTip = "玩家、目標和非簡易模式專注目標的獨立施法條。"
 
+	-- Raidframes
+	L.HideBlizzardRaidFrames = "隱藏原生團隊框架"
+	L.HideCompactRaidManager = "淡出團隊管理介面"
+
+	L.HideBlizzardRaidFramesTip = "隱藏原生團隊框架，不隱藏畫面左上角的團隊管理介面。"
+	L.HideCompactRaidManagerTip = "淡出畫面左上角的團隊管理介面，滑鼠指向時顯示。"
+
+	-- Nameplates
 	L.NumberStyle = "數字模式"
 	L.ShowAuras = "顯示光環"
 	L.FriendlyClassColor = "友方職業染色"
@@ -53,27 +65,33 @@ if GetLocale() == "zhTW" then
 	L.PlayerPlate = "玩家個人資源"
 	L.PlayerBuffs = "顯示增益"
 
+	-- Other
 	L.ReloadUI = "重載 UI"
 	L.StatusChanged = "設定已變更，重載後生效。"
 	L.WIP = "開發中"
 
 elseif GetLocale() == "zhCN" then
 
+	-- Tab
 	L.Overview = "总览"
 	L.UnitFrames = "单位框架"
 	L.RaidFrames = "团队框架"
 	L.PartyFrames = "队伍框架"
 	L.Nameplates = "姓名板"
+
+	-- Overview
 	L.UnitFramesDesc = "包含玩家、宠物、目标、目标的目标、焦点目标、焦点目标的目标、竞技场、首领。"
 	L.RaidFramesDesc = "简单的团队框架，只显示团队，不显示队友宠物、主坦克和主助攻的独立框架。"
 	L.PartyFramesDesc = "简单的队伍框架，不显示队友宠物。"
 	L.NameplatesDesc = "简单的姓名板。"
-	
+
+	-- subTitle
 	L.StyleSwitch = "样式"
 	L.DisplayFrames = "框架"
 	L.DisplayElements = "元素"
 	L.PlayerResource = "个人资源"
 
+	-- Unitframes
 	L.VerticalPlayer = "直式玩家框架"
 	L.VerticalTarget = "直式目标框架"
 	L.SimpleFocus = "简易焦点框架"
@@ -91,6 +109,14 @@ elseif GetLocale() == "zhCN" then
 	L.FadeTip = "当你不在战斗中或施法状态，满生命值且没有目标时，隐藏玩家框架。"
 	L.StandaloneCastbarTip = "玩家、目标和非简易模式焦点目标的独立施法条。"
 
+	-- Raidframes
+	L.HideBlizzardRaidFrames = "隐藏原生团队框架"
+	L.HideCompactRaidManager = "淡出团队管理界面"
+
+	L.HideBlizzardRaidFramesTip = "隐藏原生团队框架，不隐藏画面左上角的团队管理界面。"
+	L.HideCompactRaidManagerTip = "淡出画面左上角的团队管理界面，鼠标指向时显示。"
+
+	-- Nameplates
 	L.NumberStyle = "数字模式"
 	L.ShowAuras = "显示光环"
 	L.FriendlyClassColor = "友方职业染色"
@@ -102,27 +128,33 @@ elseif GetLocale() == "zhCN" then
 	L.PlayerPlate = "玩家个人资源"
 	L.PlayerBuffs = "显示增益"
 
+	-- Other
 	L.ReloadUI = "重载 UI"
 	L.StatusChanged = "设置已变更，重载后生效。"
 	L.WIP = "开发中"
 
 else
 
+	-- Tab
 	L.Overview = "Overview"
 	L.UnitFrames = "Unit Frames"
 	L.RaidFrames = "Raid Frames"
 	L.PartyFrames = "Party Frames"
 	L.Nameplates = "Nameplates"
+
+	-- Overview
 	L.UnitFramesDesc = "Includes Player, Pet, Target, Target of target, Focus, Focus target, Arena, and Boss frames."
 	L.RaidFramesDesc = "Simple raid frames; only the raid is shown. Party-member pets, main tanks, and main assists are not shown."
 	L.PartyFramesDesc = "Simple party frames; party-member pets are not shown."
 	L.NameplatesDesc = "Simple nameplates."
 
+	-- subTitle
 	L.StyleSwitch = "Style"
 	L.DisplayFrames = "Frames"
 	L.DisplayElements = "Elements"
 	L.PlayerResource = "Player Resource"
 
+	-- Unitframes
 	L.VerticalPlayer = "Vertical Player Frame"
 	L.VerticalTarget = "Vertical Target Frame"
 	L.SimpleFocus = "Simple Focus Frame"
@@ -140,6 +172,14 @@ else
 	L.FadeTip = "Hide the player frame while:\n\nOut of combat or not casting, at full health, and with no target."
 	L.StandaloneCastbarTip = "Standalone castbars for:\n\nPlayer, Target, and non-simple-mode Focus target."
 
+	-- Raidframes
+	L.HideBlizzardRaidFrames = "Hide Blizzard RaidFrames"
+	L.HideCompactRaidManager = "Fade RaidManager"
+
+	L.HideBlizzardRaidFramesTip = "Hide the default Blizzard raid frames without hiding the raid manager in the upper-left corner."
+	L.HideCompactRaidManagerTip = "Fade the raid manager in the upper-left corner. It is shown on mouseover."
+
+	-- Nameplates
 	L.NumberStyle = "Number Style"
 	L.ShowAuras = "Show Auras"
 	L.FriendlyClassColor = "Friendly Class Color"
@@ -151,6 +191,7 @@ else
 	L.PlayerPlate = "Player Plate"
 	L.PlayerBuffs = "Show Buffs"
 
+	-- Other
 	L.ReloadUI = "Reload UI"
 	L.StatusChanged = "Reload UI to apply settings."
 	L.WIP = "WIP"
