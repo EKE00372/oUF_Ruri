@@ -10,7 +10,6 @@ Try layout as same as classpower/rune.
 ## Options
 
 .color
-.spacing - respacing
 .updateInterval - number, seconds between Charging_OnUpdate ticks (default 0.05)
 .PostUpdate(self, cur, max) - callback after every refresh, If you want more custom
 
@@ -52,7 +51,7 @@ local function Charging_OnUpdate(bar, elapsed)
 end
 
 local function Update(self, _, unit, ptype)
-    if self.unit ~= unit or (ptype and ptype ~= 'ESSENCE') then return end
+    if self.__unit ~= unit or (ptype and ptype ~= 'ESSENCE') then return end
 
     local element = self.Essence
     local cur     = UnitPower(unit, PTYPE) or 0
@@ -140,18 +139,25 @@ local function Enable(self, unit)
 
     element.__owner     = self
     element.ForceUpdate = function()
-        return Path(self, 'ForceUpdate', self.unit, 'ESSENCE')
+        return Path(self, 'ForceUpdate', self.__unit, 'ESSENCE')
     end
     return true
 end
 
 local function Disable(self)
-    if self.Essence then
+    local element = self.Essence
+    if element then
         self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
         self:UnregisterEvent('UNIT_MAXPOWER',       Path)
-        for i = 1, #self.Essence do
-            self.Essence[i]:SetScript('OnUpdate', nil)
+
+        for i = 1, #element do
+            local bar = element[i]
+            bar:SetScript('OnUpdate', nil)
+            bar.t = nil
+            bar:Hide()
         end
+
+        element.__max = nil
     end
 end
 
