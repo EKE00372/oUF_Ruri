@@ -98,7 +98,10 @@ local MediaFolder = G.MediaFolder
 		},
 		{
 			name = "RaidFrames",
-			options = {},
+			options = {
+				{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip" },
+				{ type = "toggle", key = "HideCompactRaidManager", label = "HideCompactRaidManager", default = true, tooltip = "HideCompactRaidManagerTip" },
+			},
 		},
 		{
 			name = "Nameplates",
