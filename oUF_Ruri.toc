@@ -1,4 +1,4 @@
-## Interface: 120007
+## Interface: 120100
 ## Title: oUF_|cff00ffffRuri|r
 ## Version: B5.7
 ## Author: EK (Linodas@Illidan-US)
