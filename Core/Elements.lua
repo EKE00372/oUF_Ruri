@@ -2,15 +2,15 @@ local addon, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
-local UnitGetIncomingHeals, UnitGetTotalAbsorbs, UnitClass, UnitAffectingCombat = UnitGetIncomingHeals, UnitGetTotalAbsorbs, UnitClass, UnitAffectingCombat
+local UnitClass, UnitAffectingCombat = UnitClass, UnitAffectingCombat
 local UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown = UnitHealth, UnitHealthMax, UnitPowerType, GetRuneCooldown
-local UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer = UnitIsConnected, UnitIsDead, UnitIsGhost, UnitGUID, UnitIsPlayer
+local UnitIsConnected, UnitIsDead, UnitIsGhost, UnitIsPlayer = UnitIsConnected, UnitIsDead, UnitIsGhost, UnitIsPlayer
 local GetTime, format = GetTime, format
 local CreateFrame, GetFrameLevel, SetFrameLevel = CreateFrame, GetFrameLevel, SetFrameLevel
 local C_Timer_After = C_Timer.After
 local C_ClassTalents_GetActiveConfigID = C_ClassTalents.GetActiveConfigID
 
--- 在 CreateCastbar 等創建元素的的 function 裡，self.Castbar 中的 self 指的是所屬框架，即頭像本身
+-- 在施法條等元素的建立函式裡，self.Castbar 中的 self 指的是所屬框架，即頭像本身
 -- 而在施法條、光環、副資源等元素的 PostUpdate 中，self 指的是施法條等元素自身
 -- 為了防止搞混，PostUpdate 寫為 function(element, unit)
 -- 如果在這裡需要調用頭像本身，element.__owner 快取時命名為 parentFrame
@@ -21,6 +21,26 @@ local C_ClassTalents_GetActiveConfigID = C_ClassTalents.GetActiveConfigID
 
 -- [[ 通用的 multiplier postupdate ]] -- 
 
+-- 建立著色背景與固定黑色底層；既有背景可由 bg 傳入。
+T.CreateMultiplierBG = function(element, bg, multiplier)
+	if not bg then
+		bg = element:CreateTexture(nil, "BACKGROUND")
+		bg:SetAllPoints()
+		bg:SetTexture(G.media.blank)
+	end
+
+	bg.multiplier = multiplier or 0.3
+	element.bg = bg
+
+	local colorRegion = bg.Center or bg
+	colorRegion:SetDrawLayer("BACKGROUND", 1)
+
+	local shade = colorRegion:GetParent():CreateTexture(nil, "BACKGROUND", nil, 0)
+	shade:SetAllPoints(colorRegion)
+	shade:SetColorTexture(0, 0, 0, 1)
+	element.bgShade = shade
+end
+
 local function UpdateMultiplierBG(element, color, r, g, b)
 	if not element.bg then return end
 
@@ -30,11 +50,12 @@ local function UpdateMultiplierBG(element, color, r, g, b)
 
 	if not r then return end
 
-	local mu = element.bg.multiplier or 0.3
-	element.bg:SetVertexColor(r * mu, g * mu, b * mu)
+	-- RGB 可能是 secret value，直接交給允許 secret 參數的 API；底層黑色背景提供實色基底。
+	local colorRegion = element.bg.Center or element.bg
+	colorRegion:SetVertexColor(r, g, b, element.bg.multiplier)
 end
 
-T.PostUpdateColor_ElementMultiBGColor = function(element, color)
+local function PostUpdateColor_ElementMultiBGColor(element, color)
 	UpdateMultiplierBG(element, color)
 end
 
@@ -80,19 +101,51 @@ T.PostUpdateRestingIndicator = function(self, event, unit)
 	end
 end
 
+-- [[ 吸收盾 ]] --
+
+local function SkinHealthAbsorbBar(bar, texture, r, g, b, a, tiled, blendMode)
+	bar:SetStatusBarColor(r, g, b, a)
+
+	local statusTexture = bar:GetStatusBarTexture()
+	local addressMode = (tiled and "REPEAT") or "CLAMP"	-- 必須 REPEAT，只設定 SetHorizTile/SetVertTile 只會拉伸材質
+	statusTexture:SetTexture(texture, addressMode, addressMode)
+	statusTexture:SetHorizTile(tiled)
+	statusTexture:SetVertTile(tiled)
+	if blendMode then
+		statusTexture:SetBlendMode(blendMode)
+	end
+
+	bar:SetMinMaxValues(0, 1)
+	bar:SetValue(0)
+	bar:EnableMouse(false)
+end
+
+-- 將 Health.DamageAbsorb 獲取的吸收盾數值同步給自訂的 OverDamageAbsorb，避免重複執行 prediction 查詢，節省資源
+local function PostUpdateHealthPrediction(element, unit, cur, max, lossPerc)
+	if element.__ruriPostUpdate then
+		element.__ruriPostUpdate(element, unit, cur, max, lossPerc)
+	end
+
+	-- 限制 oUF Health calculator 取得的盾量上限為最大血量
+	local overAbsorb = element.OverDamageAbsorb
+	local amount = element.values:GetDamageAbsorbs()
+	overAbsorb:SetMinMaxValues(0, max)
+	overAbsorb:SetValue(amount)
+end
+
 --==================================================================--
 ------------------    [[ Resource: Post update ]]    -----------------
 --==================================================================--
 
 -- [[ 特殊能量文本 ]] --
 
-T.PostUpdateAltPower = function(element, unit, cur)
+local function PostUpdateAltPower(element, unit, cur)
 	element.value:SetText(cur)
 end
 
 -- [[ 酒池文本 ]] --
 
-T.PostUpdateStagger = function(element, cur, max)
+local function PostUpdateStagger(element, cur, max)
 	local perc = cur / max
 	
 	if cur == 0 then
@@ -115,8 +168,6 @@ T.GetPlayerResourceLayout = function()
 
 	return rows, firstOffset, classOffset, auraOffset
 end
-
-local playerResourceLayoutQueued
 
 -- 更新職業資源位置
 local function UpdateClassPowerPosition(element)
@@ -326,6 +377,7 @@ local function UpdateResourceLayout(self)
 end
 
 -- 執行更新，延遲以避免多事件連續觸發
+local playerResourceLayoutQueued
 local function QueueResourceLayoutUpdate(self, event, arg1)
 	if event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 ~= "player" then return end
 	if event == "TRAIT_CONFIG_UPDATED" and C_ClassTalents_GetActiveConfigID() ~= arg1 then return end
@@ -362,10 +414,12 @@ local cpColor = {
 }
 
 -- 更新顏色
-T.PostUpdateClassPower = function(element, cur, max, MaxChanged, powerType)
+local function PostUpdateClassPower(element, cur, max, hasCurChanged, hasMaxChanged, powerType)
 	if not max or not cur then return end
 
-	if MaxChanged then
+	-- oUF 回傳順序為 cur, max, hasCurChanged, hasMaxChanged, powerType。
+	-- 只在最大豆子數變化時重排，避免登入後等到數量變化才修正位置。
+	if hasMaxChanged then
 		UpdateClassPowerBars(element, max)
 	end
 
@@ -389,7 +443,7 @@ end
 
 -- [[ 符文 ]] --
 
-T.OnUpdateRunes = function(element, elapsed)
+local function OnUpdateRunes(element, elapsed)
 	local duration = element.duration + elapsed
 	element.duration = duration
 	element:SetValue(duration)
@@ -406,7 +460,7 @@ end
 
 -- [[ 符文更新 ]] --
 
-T.PostUpdateRunes = function(element, runemap)
+local function PostUpdateRunes(element, runemap)
 	for index, runeID in next, runemap do
 		-- 把符文整段搬過來
 		local rune = element[index]
@@ -419,7 +473,7 @@ T.PostUpdateRunes = function(element, runemap)
 			elseif start then
 				--rune:SetAlpha(.6)
 				rune.runeDuration = duration
-				rune:SetScript("OnUpdate", T.OnUpdateRunes)
+				rune:SetScript("OnUpdate", OnUpdateRunes)
 			end
 		end
 		-- 背景
@@ -471,7 +525,7 @@ T.CreateClassPower = function(self, unit)
 		ClassPower.colorSpec = true
 		ClassPower.sortOrder = "asc"
 		self.Runes = ClassPower
-		self.Runes.PostUpdate = T.PostUpdateRunes
+		self.Runes.PostUpdate = PostUpdateRunes
 	elseif isEVOKER then
 		self.Essence = ClassPower
 		self.Essence.color = {0.02, 0.9, 0.9}
@@ -479,7 +533,7 @@ T.CreateClassPower = function(self, unit)
 		self.Essence.MaxChangeUpdate = UpdateClassPowerBars
 	else
 		self.ClassPower = ClassPower
-		self.ClassPower.PostUpdate = T.PostUpdateClassPower
+		self.ClassPower.PostUpdate = PostUpdateClassPower
 	end
 end
 
@@ -497,15 +551,12 @@ T.CreateAddPower = function(self, unit)
 	-- 選項
 	AddPower.colorPower = true
 	-- 背景
-	AddPower.bg = AddPower:CreateTexture(nil, "BACKGROUND")
-	AddPower.bg:SetAllPoints()
-	AddPower.bg:SetTexture(G.media.blank)
-	AddPower.bg.multiplier = .3
+	T.CreateMultiplierBG(AddPower)
 	-- 陰影
 	AddPower.border = F.CreateSD(AddPower, AddPower, 4)
 	-- 註冊到ouf
 	self.AdditionalPower = AddPower
-	self.AdditionalPower.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
+	self.AdditionalPower.PostUpdateColor = PostUpdateColor_ElementMultiBGColor
 	self.AdditionalPower.PostVisibility = function(element)
 		local parentFrame = element.__owner
 		if parentFrame then UpdateResourceLayout(parentFrame) end
@@ -544,8 +595,7 @@ T.CreateAltPowerBar = function(self, unit)
 	AltPower.border = F.CreateSD(AltPower, AltPower, 4)
 	-- 註冊到ouf
 	self.AlternativePower = AltPower
-	self.AlternativePower.PostUpdate = T.PostUpdateAltPower
-	--self.AlternativePower.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
+	self.AlternativePower.PostUpdate = PostUpdateAltPower
 	-- 文本
 	self.AlternativePower.value = F.CreateText(self.AlternativePower, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
 end
@@ -561,10 +611,7 @@ T.CreateStagger = function(self, unit)
 	UpdateSingleResourceLayout(Stagger)
 	
 	-- 背景
-	Stagger.bg = Stagger:CreateTexture(nil, "BACKGROUND")
-	Stagger.bg:SetAllPoints()
-	Stagger.bg:SetTexture(G.media.blank)
-	Stagger.bg.multiplier = .3
+	T.CreateMultiplierBG(Stagger)
 	-- 陰影
 	Stagger.border = F.CreateSD(Stagger, Stagger, 4)
 	-- 文本
@@ -578,72 +625,139 @@ T.CreateStagger = function(self, unit)
 	end
 	
 	self.Stagger = Stagger
-	self.Stagger.PostUpdate = T.PostUpdateStagger
-	self.Stagger.PostUpdateColor = T.PostUpdateColor_ElementMultiBGColor
+	self.Stagger.PostUpdate = PostUpdateStagger
+	self.Stagger.PostUpdateColor = PostUpdateColor_ElementMultiBGColor
 end
 
 
--- [[ 預估治療 ]] --
+-- [[ 吸收盾 ]] --
 
-T.CreateHealthPrediction = function(self, unit)
-	-- Why GetSize()?
-	-- Unitframe和Raidframe的self大小等於self.health大小，且創建時用了Custom API，size是nil
-	-- Nameplate的self是點擊範圍，self.health是元素實際大小
-	-- Unitframe和Raidframe的吸收盾錨點相反是因為血量條反轉
-	
-	-- 吸收盾
-	local abb = F.CreateStatusbar(self, G.addon..unit.."_AbsorbBar", "ARTWORK", nil, nil, 0, .5, .8, .5)
-	abb:SetFrameLevel(self:GetFrameLevel() + 2)
-	
-	if F.IsAny(self.mystyle, "VL", "VR") then
-		-- 直式
-		abb:SetOrientation("VERTICAL")
-		abb:SetSize(self:GetSize())
-		abb:SetPoint("BOTTOM", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.IsAny(self.mystyle, "H", "R") then
-		-- 橫式
-		abb:SetSize(self:GetSize())
-		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "LEFT")
-	elseif F.IsAny(self.mystyle, "BP", "BPP") then
-		-- 條形名條
-		abb:SetSize(self.Health:GetSize())
-		abb:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
-	end
-	
-	-- 過量吸收盾
-	local abbo = self.Health:CreateTexture(nil, "OVERLAY")
-	abbo:SetTexture(G.media.blank, true, true)
-	abbo:SetBlendMode("ADD")
-	abbo:SetVertexColor( 0, .5, .8, .7)
-	
-	if F.IsAny(self.mystyle, "VL", "VR") then
-		-- 直式
-		abbo:SetSize(self:GetSize())
-		abbo:SetPoint("TOP", self.Health:GetStatusBarTexture(), "BOTTOM")
-	elseif F.IsAny(self.mystyle, "H", "R") then
-		-- 橫式
-		abbo:SetSize(self:GetSize())
-		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "LEFT")
-	elseif F.IsAny(self.mystyle, "BP", "BPP") then
-		-- 條形名條
-		abbo:SetSize(self.Health:GetSize())
-		abbo:SetPoint("RIGHT", self.Health:GetStatusBarTexture(), "RIGHT")
+--創建時，增加一個是否創建治療吸收盾的判斷值
+
+T.CreateHealthPrediction = function(self, createHealAbsorb)
+	local Health = self.Health
+	if not Health then return end
+
+	-- 設定 Health calculator 對傷害吸收與治療吸收的截斷方式，吸收盾最多只到最大血量，治療吸收盾最多只到當前血量
+	Health.damageAbsorbClampMode = Enum.UnitDamageAbsorbClampMode.MaximumHealth
+	if createHealAbsorb then
+		Health.healAbsorbClampMode = Enum.UnitHealAbsorbClampMode.CurrentHealth
 	end
 
-	self.HealthPrediction = {
-        absorbBar = abb,	-- 吸收盾
-        -- healAbsorbBar
-		overAbsorb = abbo,	-- 過量吸收盾
-		-- overHealAbsorb
-        frequentUpdates = true,
-		maxOverflow = 1.01,
-    }
-	self.HealthPrediction.PostUpdate = T.PostUpdateHealthPrediction
+	local isVertical = F.IsAny(self.mystyle, "VL", "VR")
+	local healthTexture = Health:GetStatusBarTexture()
+	local frameLevel = Health:GetFrameLevel()
+
+	-- 傷害吸收盾
+
+	-- 顯示邏輯：
+	-- 吸收盾：實際血量未滿時，盾先從血量往前長，形成有效血量條
+	-- 溢出傷害吸收盾：有效血量 (血量+盾量) > 最大血量，溢出的盾從當前血量的位置往回長
+	-- 舉例：
+	-- 目前血量 80%、吸收盾數值為 50% 最大血量
+	-- DamageAbsorbClip：由 80% 向 130% 填充，裁切後顯示 80%～100%，顯示長度為最大血量的 20%
+	-- OverDamageAbsorbClip：由 100% 反向填充至 50%，裁切後顯示 50%～80%，顯示長度為最大血量的 30%
+
+	local DamageAbsorbClip = CreateFrame("Frame", nil, Health)
+	DamageAbsorbClip:SetAllPoints(Health)
+	DamageAbsorbClip:SetFrameLevel(frameLevel + 1)
+	DamageAbsorbClip:EnableMouse(false)
+	DamageAbsorbClip:SetClipsChildren(true)
+
+	local DamageAbsorb = F.CreateStatusbar(DamageAbsorbClip, nil, "ARTWORK")
+	DamageAbsorb:SetFrameLevel(DamageAbsorbClip:GetFrameLevel() + 1)
+	SkinHealthAbsorbBar(DamageAbsorb, G.media.absorb, .45, .8, .45, .6, true, "ADD")
+
+	local OverDamageAbsorbClip = CreateFrame("Frame", nil, Health)
+	OverDamageAbsorbClip:SetFrameLevel(frameLevel + 2)
+	OverDamageAbsorbClip:EnableMouse(false)
+	OverDamageAbsorbClip:SetClipsChildren(true)
+
+	local OverDamageAbsorb = F.CreateStatusbar(OverDamageAbsorbClip, nil, "ARTWORK")
+	OverDamageAbsorb:SetAllPoints(Health)
+	OverDamageAbsorb:SetFrameLevel(OverDamageAbsorbClip:GetFrameLevel() + 1)
+	OverDamageAbsorb:SetReverseFill(true)
+	SkinHealthAbsorbBar(OverDamageAbsorb, G.media.absorb, .5, .9, .6, .5, true, "ADD")
+
+	-- 治療吸收盾
+	
+	local HealAbsorb, OverHealAbsorbIndicator
+	if createHealAbsorb then
+		-- 從目前血量端點反向覆蓋血量
+		HealAbsorb = F.CreateStatusbar(Health, nil, "ARTWORK")
+		HealAbsorb:SetFrameLevel(frameLevel + 4)
+		HealAbsorb:SetReverseFill(true)
+		SkinHealthAbsorbBar(HealAbsorb, G.media.blank, 0, .8, 1, .5, false)
+
+		-- 治療吸收大於當前血量時，在零血量端顯示溢出提示
+		OverHealAbsorbIndicator = HealAbsorb:CreateTexture(nil, "OVERLAY")
+		OverHealAbsorbIndicator:SetTexture("Interface\\RaidFrame\\Absorb-Overabsorb")
+		OverHealAbsorbIndicator:SetBlendMode("ADD")
+		OverHealAbsorbIndicator:SetDesaturated(true)
+		OverHealAbsorbIndicator:SetVertexColor(0, .8, 1)
+		OverHealAbsorbIndicator:SetAlpha(0)
+	end
+
+	if isVertical then
+		DamageAbsorb:SetOrientation("VERTICAL")
+		DamageAbsorb:SetPoint("LEFT", Health, "LEFT")
+		DamageAbsorb:SetPoint("RIGHT", Health, "RIGHT")
+		DamageAbsorb:SetPoint("BOTTOM", healthTexture, "TOP")
+
+		OverDamageAbsorb:SetOrientation("VERTICAL")
+		OverDamageAbsorbClip:SetPoint("BOTTOMLEFT", Health, "BOTTOMLEFT")
+		OverDamageAbsorbClip:SetPoint("TOPRIGHT", healthTexture, "TOPRIGHT")
+
+		if HealAbsorb then
+			HealAbsorb:SetOrientation("VERTICAL")
+			HealAbsorb:SetPoint("LEFT", Health, "LEFT")
+			HealAbsorb:SetPoint("RIGHT", Health, "RIGHT")
+			HealAbsorb:SetPoint("TOP", healthTexture, "TOP")
+
+			-- 用 SetTexCoord 重新映射四角座標，SetRotation 旋轉非正方形材質可能顯示異常
+			OverHealAbsorbIndicator:SetTexCoord(0, 1, 1, 1, 0, 0, 1, 0)
+			OverHealAbsorbIndicator:SetPoint("BOTTOMLEFT", Health, "BOTTOMLEFT")
+			OverHealAbsorbIndicator:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT")
+			OverHealAbsorbIndicator:SetHeight(6)
+		end
+	else
+		DamageAbsorb:SetPoint("TOP", Health, "TOP")
+		DamageAbsorb:SetPoint("BOTTOM", Health, "BOTTOM")
+		DamageAbsorb:SetPoint("LEFT", healthTexture, "RIGHT")
+
+		OverDamageAbsorbClip:SetPoint("TOPLEFT", Health, "TOPLEFT")
+		OverDamageAbsorbClip:SetPoint("BOTTOMRIGHT", healthTexture, "BOTTOMRIGHT")
+
+		if HealAbsorb then
+			HealAbsorb:SetPoint("TOP", Health, "TOP")
+			HealAbsorb:SetPoint("BOTTOM", Health, "BOTTOM")
+			HealAbsorb:SetPoint("RIGHT", healthTexture, "RIGHT")
+
+			OverHealAbsorbIndicator:SetPoint("TOPLEFT", Health, "TOPLEFT")
+			OverHealAbsorbIndicator:SetPoint("BOTTOMLEFT", Health, "BOTTOMLEFT")
+			OverHealAbsorbIndicator:SetWidth(6)
+		end
+	end
+
+	Health.DamageAbsorb = DamageAbsorb
+	Health.OverDamageAbsorb = OverDamageAbsorb
+	if HealAbsorb then
+		Health.HealAbsorb = HealAbsorb
+		Health.OverHealAbsorbIndicator = OverHealAbsorbIndicator
+	end
+	-- 自製的溢出吸收盾，顯示精確長度，而非原生只有 Spark
+	if Health.PostUpdate ~= PostUpdateHealthPrediction then
+		Health.__ruriPostUpdate = Health.PostUpdate
+		Health.PostUpdate = PostUpdateHealthPrediction
+	end
 end
 
 -- [[ 坦克資源 ]] --
 
 T.CreateTankResource = function(self, unit)
+	-- 只為可能擁有坦克資源的職業建立框架，是否顯示交給 oUF_TankResource 判斷
+	if not F.IsAny(G.myClass, "MONK", "PALADIN", "DEMONHUNTER", "WARRIOR", "DRUID") then return end
+
 	local TankResource = {}
 	local maxLength = 3
 
@@ -669,6 +783,11 @@ T.CreateTankResource = function(self, unit)
 	TankResource.rechargeBar = TankResource[maxLength]
 	TankResource.__owner = self
 	UpdateTankResourceBars(TankResource)
+
+	-- 建立後先隱藏，等 oUF_TankResource 接管顯示
+	for i = 1, #TankResource do
+		TankResource[i]:Hide()
+	end
 
     -- 註冊到 oUF
     self.TankResource = TankResource
