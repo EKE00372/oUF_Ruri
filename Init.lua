@@ -30,6 +30,7 @@ local MediaFolder = G.MediaFolder
 
 	G.media = {
 		blank = MediaFolder.."dM3",		-- "Interface\\Buttons\\WHITE8x8",
+		absorb = MediaFolder.."absorb.tga",
 		raidbar = MediaFolder.."Inner-Shadow.blp",
 		glow = MediaFolder.."glow.tga",
 		barhightlight = MediaFolder.."highlight.tga",
