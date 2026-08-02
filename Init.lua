@@ -9,7 +9,7 @@ local addon, ns = ...
 	ns[4] = {} -- T, ouf custom
 	ns[5] = {} -- L, locale
 
-local C, F, G, T, L = unpack(ns)
+local F, G = ns[2], ns[3]
 
 	G.addon = "oUF_Ruri_"
 	G.myClass = select(2, UnitClass("player"))
@@ -36,7 +36,6 @@ local MediaFolder = G.MediaFolder
 		barhightlight = MediaFolder.."highlight.tga",
 
 		spark = MediaFolder.."spark.tga",	-- "Interface\\UnitPowerBarAlt\\Generic1Player_Pill_Flash"
-		border = MediaFolder.."border.tga",
 
 		resting = MediaFolder.."resting.blp",
 		combat = MediaFolder.."combat.blp",
@@ -46,7 +45,6 @@ local MediaFolder = G.MediaFolder
 		circle = MediaFolder.."crosshair_circle.blp",
 		arrows = MediaFolder.."crosshair_arrows.blp",
 
-		role = MediaFolder.."UI-LFG-ICON-PORTRAITROLES.blp", -- from matty's texture
 		role_dps = MediaFolder.."role_DPS.tga",
 		role_tank = MediaFolder.."role_Tank.tga",
 		role_healer = MediaFolder.."role_Healer.tga",
@@ -63,12 +61,13 @@ local MediaFolder = G.MediaFolder
 			options = {
 				{ type = "toggle", key = "UnitFrames", label = "UnitFrames", desc = "UnitFramesDesc", default = true },
 				{ type = "toggle", key = "PartyFrames", label = "PartyFrames", desc = "PartyFramesDesc", default = false },
-				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = true },
-				{ type = "toggle", key = "Nameplates", label = "Nameplates", desc = "NameplatesDesc", default = false, disabled = true, wip = true },
+				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = false },
+				{ type = "toggle", key = "Nameplates", label = "Nameplates", desc = "NameplatesDesc", default = false },
 			},
 		},
 		{
 			name = "UnitFrames",
+			requiresAny = { "UnitFrames" },
 			sections = {
 				{
 					name = "StyleSwitch",
@@ -100,7 +99,7 @@ local MediaFolder = G.MediaFolder
 		{
 			name = "RaidFrames",
 			options = {
-				{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip" },
+				{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip", requiresAny = { "PartyFrames", "RaidFrames" } },
 				{ type = "toggle", key = "HideCompactRaidManager", label = "HideCompactRaidManager", default = true, tooltip = "HideCompactRaidManagerTip" },
 			},
 		},
@@ -109,22 +108,22 @@ local MediaFolder = G.MediaFolder
 			sections = {
 				{
 					name = "Nameplates",
+					requiresAny = { "Nameplates" },
 					options = {
-						{ type = "toggle", key = "NumberStyle", label = "NumberStyle", default = false, disabled = true },
-						{ type = "toggle", key = "ShowAuras", label = "ShowAuras", default = true, disabled = true },
-						{ type = "toggle", key = "friendlyCR", label = "FriendlyClassColor", default = true, disabled = true },
-						{ type = "toggle", key = "enemyCR", label = "EnemyClassColor", default = true, disabled = true },
-						{ type = "toggle", key = "HLTarget", label = "HighlightTargetFocus", default = true, disabled = true },
-						{ type = "toggle", key = "HLMouseover", label = "HighlightMouseover", default = true, disabled = true },
-						{ type = "toggle", key = "Crosshairs", label = "Crosshairs", default = true, tooltip = "CrosshairsTip", disabled = true },
+						{ type = "toggle", key = "NumberStyle", label = "NumberStyle", default = false },
+						{ type = "toggle", key = "ShowAuras", label = "ShowAuras", default = true },
+						{ type = "toggle", key = "HLTarget", label = "HighlightTargetFocus", default = true },
+						{ type = "toggle", key = "HLMouseover", label = "HighlightMouseover", default = true },
 					},
 				},
 				{
-					name = "PlayerResource",
+					name = "Extensions",
 					options = {
-						{ type = "toggle", key = "PlayerPlate", label = "PlayerPlate", default = false, disabled = true },
-						{ type = "toggle", key = "NumberstylePP", label = "NumberStyle", default = false, disabled = true },
-						{ type = "toggle", key = "PlayerBuffs", label = "PlayerBuffs", default = true, disabled = true },
+						{ type = "toggle", key = "Crosshairs", label = "Crosshairs", default = false },
+						{ type = "toggle", key = "FriendlyNameSize", label = "FriendlyNameSize", default = true, tooltip = "FriendlyNameSizeTip", requiresAny = { "Nameplates" } },
+						{ type = "toggle", key = "CVars", label = "CVars", default = true, tooltip = "CVarsTip" },
+						{ type = "toggle", key = "PlayerPlate", label = "PlayerPlate", default = false, tooltip = "PlayerPlateTip", requiresAny = { "UnitFrames" } },
+						-- { type = "toggle", key = "PlayerBuffs", label = "PlayerBuffs", default = false },
 					},
 				},
 			},
