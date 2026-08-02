@@ -1,13 +1,13 @@
-﻿local addon, ns = ...
+﻿local _, ns = ...
 local oUF = ns.oUF
-local C, F, G, T = unpack(ns)
+local _, F, G = unpack(ns)
 
-local UnitAffectingCombat, UnitClass, UnitExists, UnitGUID, GetUnitName = UnitAffectingCombat, UnitClass, UnitExists, UnitGUID, GetUnitName
-local UnitGetTotalAbsorbs, UnitReaction, UnitThreatSituation = UnitGetTotalAbsorbs, UnitReaction, UnitThreatSituation
-local UnitHealth, UnitHealthMax, UnitPower, UnitPowerMax, UnitPowerType = UnitHealth, UnitHealthMax, UnitPower, UnitPowerMax, UnitPowerType
+local UnitClass = UnitClass
+local UnitReaction = UnitReaction
+local UnitHealth, UnitPower, UnitPowerType = UnitHealth, UnitPower, UnitPowerType
 local UnitIsAFK, UnitIsConnected, UnitIsDND, UnitIsDead, UnitIsGhost = UnitIsAFK, UnitIsConnected, UnitIsDND, UnitIsDead, UnitIsGhost
-local UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName = UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied, UnitIsUnit, UnitName
-local issecretvalue = issecretvalue
+local UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied = UnitIsPlayer, UnitIsQuestBoss, UnitIsTapDenied
+local canaccessvalue, issecretvalue = canaccessvalue, issecretvalue
 
 --==================================================--
 -----------------    [[ Colors ]]    -----------------
@@ -38,8 +38,8 @@ oUF.colors.threat[3] = oUF:CreateColor(.9, .1, .4) -- 當前仇恨，威脅值�
 
 -- [[ Aura type color ]] --
 
-oUF.colors.dispel[oUF.Enum.DispelType.None] = oUF:CreateColor(.9, .05, .05)
-oUF.colors.dispel[oUF.Enum.DispelType.Disease] = oUF:CreateColor(.8, .5, .2)
+oUF.colors.dispel.None = oUF:CreateColor(.9, .05, .05)
+oUF.colors.dispel.Disease = oUF:CreateColor(.8, .5, .2)
 
 -- [[ Power type color ]] --
 
@@ -89,16 +89,24 @@ oUF.colors.reaction[8] = oUF:CreateColor(.26, 1, .22)
 
 -- [[ Name colored by Player class and NPC faction ]] --
 
-oUF.Tags.Methods["namecolor"] = function(unit, r)
+oUF.Tags.Methods["namecolor"] = function(unit)
 	local reaction = UnitReaction(unit, "player")
-	local _, class = UnitClass(unit)
-	local color = oUF.colors.class[class]
 
 	if UnitIsTapDenied(unit) then
 		return F.Hex(oUF.colors.tapped)
 	--elseif UnitIsPlayer(unit) or UnitPlayerControlled(unit) then
 	elseif UnitIsPlayer(unit) then
-		return F.Hex(color)
+		local _, class = UnitClass(unit)
+		local color
+
+		if issecretvalue(class) then
+			-- 受限時不能用 secret class 索引自訂顏色表，改用暴雪職業色。
+			color = C_ClassColor.GetClassColor(class)
+		else
+			color = oUF.colors.class[class]
+		end
+
+		return color and color:GenerateHexColorMarkup() or F.Hex(1, 1, 1)
 	elseif reaction then
 		return F.Hex(oUF.colors.reaction[reaction])
 	else
@@ -142,15 +150,15 @@ oUF.Tags.Events["deadskull"] = "UNIT_HEALTH"
 oUF.Tags.Methods["afkdnd"] = function(unit)
 	if not (unit and UnitIsPlayer(unit)) then return end
 	
-	local isAFK = (not issecretvalue(UnitIsAFK(unit))) and UnitIsAFK(unit)
-    local isDND = (not issecretvalue(UnitIsDND(unit))) and UnitIsDND(unit)
-    local isConnected = (not issecretvalue(UnitIsConnected(unit))) and UnitIsConnected(unit)
+	local isAFK = UnitIsAFK(unit)
+	local isDND = UnitIsDND(unit)
+	local isConnected = UnitIsConnected(unit)
 	
-	if isAFK then					-- 暫離
+	if canaccessvalue(isAFK) and isAFK then				-- 暫離
 		return "|T"..FRIENDS_TEXTURE_AFK..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif isDND then				-- 忙錄
+	elseif canaccessvalue(isDND) and isDND then			-- 忙錄
 		return "|T"..FRIENDS_TEXTURE_DND..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif (not isConnected) then	-- 離線
+	elseif canaccessvalue(isConnected) and not isConnected then	-- 離線
 		return "|T"..FRIENDS_TEXTURE_OFFLINE..":14:14:0:0:16:16:1:15:1:15|t"
 	end
 end
@@ -164,30 +172,23 @@ oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED UNIT_CONNECTION"
 
 -- health: cur per
 oUF.Tags.Methods["unit:hp"] = function(unit)
-	local max = F.NumberAbbrValue(UnitHealthMax(unit))
-	local cur = F.NumberAbbrValue(UnitHealth(unit))
-	local per = format("%d", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
-
 	if UnitIsDead(unit) then				-- 死亡
 		return "|cff559655RIP|r"			-- or DEAD
 	elseif UnitIsGhost(unit) then			-- 鬼魂
 		return "|cff559655GHO|r"
 	elseif not UnitIsConnected(unit) then	-- 離線
 		return "|cff559655OFF|r"			-- or PLAYER_OFFLINE
-	else -- 血量
-		if C.verticalTarget and unit == "target" then
-			return F.Hex(1, 1, 0)..per.."|r "..F.Hex(1, 1, 1)..cur.."|r"
-		else
-			return F.Hex(1, 1, 1)..cur.." "..F.Hex(1, 1, 0)..per.."|r"
-		end
 	end
+
+	local cur = F.NumberAbbrValue(UnitHealth(unit))
+	local per = format("%d", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
+	return F.Hex(1, 1, 1)..cur.." "..F.Hex(1, 1, 0)..per.."|r"
 end
 oUF.Tags.Events["unit:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION PLAYER_FLAGS_CHANGED PARTY_MEMBER_ENABLE PARTY_MEMBER_DISABLE"
 
 -- power: cur
 oUF.Tags.Methods["unit:pp"]  = function(unit)
-	local cur, max = UnitPower(unit), UnitPowerMax(unit)
-	local _, class = UnitClass(unit)
+	local cur = UnitPower(unit)
 	local _, type = UnitPowerType(unit)
 	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
 
@@ -198,115 +199,3 @@ oUF.Tags.Methods["unit:pp"]  = function(unit)
 	end
 end
 oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
-
--- [[ Nameplates ]] --
-
-
--- number style nameplates
-oUF.Tags.Methods["np:hp"] = function(unit)
-	local per = oUF.Tags.Methods["perhp"](unit)
-	--local player = UnitIsPlayer(unit)
-	local reaction = UnitReaction(unit, "player")
-	local absorb = UnitGetTotalAbsorbs(unit) or 0
-	local color
-	
-	if per < 25 then
-		color = F.Hex(.8, .05, 0)
-	elseif per < 30 then
-		color = F.Hex(.95, .7, .25)
-	else
-		color = F.Hex(1, 1, 1)
-	end
-	
-	if reaction and reaction >= 5 then
-		return ""
-	else
-		if UnitIsDead(unit) then
-			-- 死亡
-			return ""
-		elseif not UnitIsConnected(unit) then
-			-- 離線
-			return ""
-		elseif per == 100 then
-			-- 滿血不顯示血量
-			--return UnitAffectingCombat("player") and "100" or ""
-			return (absorb > 0 and "+") or ""
-		elseif per ~= 100 then
-			return color..per.."|r"
-		else
-			return ""
-		end
-	end
-end
-oUF.Tags.Events["np:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION"
-
--- nameplates
-oUF.Tags.Methods["np:pp"] = function(unitnit)
-	-- 只監控白名單的能量
-	local npcID = F.GetNPCID(unitnitGUID(unitnit))
-	if not C.ShowPower[npcID] then return end
-	
-	local per = oUF.Tags.Methods["perpp"](unitnit)
-	local color
-	
-	if per < 25 then
-		color = F.Hex(.2, .2, 1)
-	elseif per < 30 then
-		color = F.Hex(.4, .4, 1)
-	else
-		color = F.Hex(.8, .8, 1)
-	end
-	
-	per = color..per.."|r"
-
-	return per
-end
-oUF.Tags.Events["np:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER"
-
--- [[ 吸收量 ]] --
-
-
--- [[ 單位的目標 ]] --
---[[
-oUF.Tags.Methods["np:tar"] = function(unitnit)
-	local targetUnit = unit.."target"
-
-	if UnitExists(targetUnit) then
-		local targetClass = select(2, UnitClass(targetUnit))
-		return F.Hex(oUF.colors.class[targetClass])..UnitName(targetUnit)
-	else
-		return ""
-	end
-end
-oUF.Tags.Events["np:tar"] = "UNIT_NAME_UPDATE UNIT_THREAT_SITUATION_UPDATE UNIT_HEALTH"
-]]--
-
---[[
-oUF.Tags.Methods["np:name"] = function(unit)
-	local name = GetUnitName(unit) or UNKNOWN
-	local status = UnitThreatSituation("player", u) or false
-	local reaction = UnitReaction(unit, "player")
-	
-	if UnitIsTapDenied(unit) then
-		return F.Hex(oUF.colors.tapped)
-	elseif UnitIsPlayer(unit) then
-		local _, class = UnitClass(unit)
-		return F.Hex(oUF.colors.class[class])
-	elseif reaction and reaction >= 5 then
-		return F.Hex(oUF.colors.reaction[reaction])
-	elseif status then
-		if status == 0 then
-			return F.Hex(.1, .7, .9)
-		elseif status == 1 then
-			return F.Hex(.4, .1, .9)
-		elseif status == 2 then
-			return F.Hex(.9, .1, .9)
-		elseif status == 3 then
-			return F.Hex(.9, .1, .4)
-		end
-	else
-		return F.Hex(1, 0, 0)
-	end
-end
-oUF.Tags.Events["np:name"] = "UNIT_NAME_UPDATE UNIT_FACTION UNIT_THREAT_SITUATION_UPDATE"
-]]--
