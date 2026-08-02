@@ -137,7 +137,7 @@ local function LayoutTotemBar(element, compactLimit)
 	local vertical = F.GetRuriOption("vertPlayer")
 	local spacing = C.PPOffset
 	local sideOffset = C.PPHeight + C.PPOffset
-	local iconSize = C.buSize + 4
+	local iconSize = C.AuraSize + 4
 	local castIconSize = C.PHeight + C.PPHeight*2
 
 	element:ClearAllPoints()

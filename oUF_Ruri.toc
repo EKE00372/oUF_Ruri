@@ -1,16 +1,16 @@
 ## Interface: 120100
 ## Title: oUF_|cff00ffffRuri|r
-## Version: B5.7
+## Version: B5.8
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
 ## SavedVariables: RuriDB
-## X-Credits: Siweia, Paopao, Dawn, HopeASD, Rhythm
+## X-Credits: Siweia, Paopao, Dawn, HopeASD, Rhythm, zork
 
 Init.lua
 Config.lua
 Locales.lua
-FilterList.lua
+#FilterList.lua
 API.lua
 GUI.lua
 
@@ -18,8 +18,8 @@ Libs\oUF\oUF.xml
 Libs\oUF_Essence.lua
 Libs\oUF_TankResource.lua
 Libs\oUF_Fader.lua
-#Libs\oUF_MovableFrames.lua
 
+Embeds\CVars.lua
 Embeds\Crosshairs.lua
 Embeds\CompactRaid.lua
 Embeds\Totems.lua

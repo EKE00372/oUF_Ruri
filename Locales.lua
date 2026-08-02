@@ -1,5 +1,5 @@
-local addon, ns = ...
-local C, F, G, T, L = unpack(ns)
+local _, ns = ...
+local L = ns[5]
 
 local GetLocale = GetLocale
 
@@ -26,7 +26,7 @@ if GetLocale() == "zhTW" then
 	L.StyleSwitch = "樣式"
 	L.DisplayFrames = "框架"
 	L.DisplayElements = "元素"
-	L.PlayerResource = "個人資源"
+	L.Extensions = "擴充"
 
 	-- Unitframes
 	L.VerticalPlayer = "直式玩家框架"
@@ -43,7 +43,7 @@ if GetLocale() == "zhTW" then
 	L.SimpleFocusTip = "數字模式的簡易專注目標，只顯示血量百分比和必要資訊，不顯示完整框架。\n\n停用此選項則顯示與目標相同外觀的標準專注目標框架。"
 	L.TotemsTip = "顯示簡易的玩家圖騰列，適用於|cff0070dd薩滿|r以外的職業。\n\n|cfff48cba聖騎士|r：奉獻\n|cffff7c0a德魯伊|r：林地守護者\n|cff00ff98武僧|r：雕像\n|cff8788ee術士|r：狂野小鬼\n|cffc41e3a死亡騎士|r：食屍鬼"
 	L.TankResourceTip = "以個人資源形式顯示坦克的二層充能技能。\n\n|cfff48cba聖騎士|r：光鑄師\n|cffa330c9惡魔獵人|r：惡魔尖刺\n|cffff7c0a德魯伊|r：狂暴恢復\n|cff00ff98武僧|r：清心絕釀\n|cffc69b6d戰士|r：盾牌格擋"
-	L.FadeTip = "當你不在戰鬥中或施法狀態，滿生命值且沒有目標時，隱藏玩家框架。"
+	L.FadeTip = "當你不在戰鬥中、沒有施法且沒有目標時，淡出玩家與寵物框架。"
 	L.StandaloneCastbarTip = "玩家、目標和非簡易模式專注目標的獨立施法條。"
 
 	-- Raidframes
@@ -56,14 +56,16 @@ if GetLocale() == "zhTW" then
 	-- Nameplates
 	L.NumberStyle = "數字模式"
 	L.ShowAuras = "顯示光環"
-	L.FriendlyClassColor = "友方職業染色"
-	L.EnemyClassColor = "敵方職業染色"
 	L.HighlightTargetFocus = "高亮目標和專注目標"
 	L.HighlightMouseover = "高亮滑鼠指向"
 	L.Crosshairs = "目標準星"
-	L.CrosshairsTip = "以準星標記你的當前目標。"
+	L.CVars = "調整 CVar"
+	L.CVarsTip = "調整一些名條的 CVar。\n\n可以在 Embeds\\CVars.lua 查看改動的 CVar 清單。"
+	L.FriendlyNameSize = "調整友方名字"
+	L.FriendlyNameSizeTip = "啟用友方名字模式，隱藏血量條並使用描邊與較大字型。\n\n這項功能受暴雪限制，啟用後會更改原生名條外觀。"
 	L.PlayerPlate = "玩家個人資源"
-	L.PlayerBuffs = "顯示增益"
+	L.PlayerPlateTip = "顯示血量、能量與職業資源的簡易資源條。\n\n啟用後會停用暴雪原生的玩家個人資源條。"
+	-- L.PlayerBuffs = "顯示增益"
 
 	-- Other
 	L.ReloadUI = "重載 UI"
@@ -89,7 +91,7 @@ elseif GetLocale() == "zhCN" then
 	L.StyleSwitch = "样式"
 	L.DisplayFrames = "框架"
 	L.DisplayElements = "元素"
-	L.PlayerResource = "个人资源"
+	L.Extensions = "扩展"
 
 	-- Unitframes
 	L.VerticalPlayer = "直式玩家框架"
@@ -106,7 +108,7 @@ elseif GetLocale() == "zhCN" then
 	L.SimpleFocusTip = "数字模式的简易焦点目标，只显示血量百分比和必要信息，不显示完整框架。"
 	L.TotemsTip = "显示简易的玩家图腾列，适用于|cff0070dd萨满|r以外的职业。\n\n|cfff48cba圣骑士|r：奉献\n|cffff7c0a德鲁伊|r：林地守护者\n|cff00ff98武僧|r：雕像\n|cff8788ee术士|r：狂野小鬼\n|cffc41e3a死亡骑士|r：食尸鬼"
 	L.TankResourceTip = "以个人资源形式显示坦克的二层充能技能。\n\n|cfff48cba圣骑士|r：铸光者\n|cffa330c9恶魔猎手|r：恶魔尖刺\n|cffff7c0a德鲁伊|r：狂暴回复\n|cff00ff98武僧|r：清心酒\n|cffc69b6d战士|r：盾牌格挡"
-	L.FadeTip = "当你不在战斗中或施法状态，满生命值且没有目标时，隐藏玩家框架。"
+	L.FadeTip = "当你不在战斗中、没有施法且没有目标时，淡出玩家与宠物框架。"
 	L.StandaloneCastbarTip = "玩家、目标和非简易模式焦点目标的独立施法条。"
 
 	-- Raidframes
@@ -119,14 +121,16 @@ elseif GetLocale() == "zhCN" then
 	-- Nameplates
 	L.NumberStyle = "数字模式"
 	L.ShowAuras = "显示光环"
-	L.FriendlyClassColor = "友方职业染色"
-	L.EnemyClassColor = "敌方职业染色"
 	L.HighlightTargetFocus = "高亮目标和焦点"
 	L.HighlightMouseover = "高亮鼠标指向"
 	L.Crosshairs = "目标准星"
-	L.CrosshairsTip = "以准星标记你的当前目标。"
+	L.CVars = "调整 CVar"
+	L.CVarsTip = "调整一些姓名板的 CVar。\n\n可以在 Embeds\\CVars.lua 中查看改动的 CVar 列表。"
+	L.FriendlyNameSize = "调整友方名字"
+	L.FriendlyNameSizeTip = "启用友方名字模式，隐藏血量条并使用描边和较大字体。\n\n此功能受暴雪限制，启用后会更改原生姓名板外观。"
 	L.PlayerPlate = "玩家个人资源"
-	L.PlayerBuffs = "显示增益"
+	L.PlayerPlateTip = "显示血量、能量与职业资源的简易资源条。启用后会停用暴雪原生的玩家个人资源条。"
+	-- L.PlayerBuffs = "显示增益"
 
 	-- Other
 	L.ReloadUI = "重载 UI"
@@ -152,7 +156,7 @@ else
 	L.StyleSwitch = "Style"
 	L.DisplayFrames = "Frames"
 	L.DisplayElements = "Elements"
-	L.PlayerResource = "Player Resource"
+	L.Extensions = "Extensions"
 
 	-- Unitframes
 	L.VerticalPlayer = "Vertical Player Frame"
@@ -169,7 +173,7 @@ else
 	L.SimpleFocusTip = "Numeric-style simple focus target. \n\nShows only health percentage and essential info, not the full frame."
 	L.TotemsTip = "Show a simple player totem bar for non-|cff0070ddShaman|r classes.\n\n|cfff48cbaPaladin|r: Consecration\n|cffff7c0aDruid|r: Grove Guardians\n|cff00ff98Monk|r: Statue\n|cff8788eeWarlock|r: Wild Imps\n|cffc41e3aDeath Knight|r: Ghoul"
 	L.TankResourceTip = "Show two-charge tank skills as player resources.\n\n|cfff48cbaPaladin|r: Lightsmith\n|cffa330c9Demon Hunter|r: Demon Spikes\n|cffff7c0aDruid|r: Frenzied Regeneration\n|cff00ff98Monk|r: Purifying Brew\n|cffc69b6dWarrior|r: Shield Block"
-	L.FadeTip = "Hide the player frame while:\n\nOut of combat or not casting, at full health, and with no target."
+	L.FadeTip = "Fade the player and pet frames while out of combat, not casting, and with no target."
 	L.StandaloneCastbarTip = "Standalone castbars for:\n\nPlayer, Target, and non-simple-mode Focus target."
 
 	-- Raidframes
@@ -182,14 +186,16 @@ else
 	-- Nameplates
 	L.NumberStyle = "Number Style"
 	L.ShowAuras = "Show Auras"
-	L.FriendlyClassColor = "Friendly Class Color"
-	L.EnemyClassColor = "Enemy Class Color"
 	L.HighlightTargetFocus = "Highlight Target/Focus"
 	L.HighlightMouseover = "Highlight Mouseover"
 	L.Crosshairs = "Target Crosshairs"
-	L.CrosshairsTip = "Mark your currently selected target with crosshairs."
+	L.CVars = "Adjust CVars"
+	L.CVarsTip = "Adjust some nameplate CVars.\n\nSee Embeds\\CVars.lua for the list of changed CVars."
+	L.FriendlyNameSize = "Adjust Friendly Names"
+	L.FriendlyNameSizeTip = "Enable friendly player name-only mode, which hides health bars and uses larger outlined text.\n\nBecause of Blizzard restrictions, enabling this changes the appearance of Blizzard nameplates."
 	L.PlayerPlate = "Player Plate"
-	L.PlayerBuffs = "Show Buffs"
+	L.PlayerPlateTip = "Show a simple resource bar for health, power, and class resources. Enabling it disables Blizzard's default Personal Resource Display."
+	-- L.PlayerBuffs = "Show Buffs"
 
 	-- Other
 	L.ReloadUI = "Reload UI"

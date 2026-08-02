@@ -1,5 +1,5 @@
-local addon, ns = ...
-local C, F, G, T, L = unpack(ns)
+local _, ns = ...
+local C, G = ns[1], ns[3]
 
 local MediaFolder = G.MediaFolder
 
@@ -22,9 +22,9 @@ local MediaFolder = G.MediaFolder
 	G.NFont = STANDARD_TEXT_FONT
 	G.NumberFS = 14
 	
-	G.NPNameFS = 16									-- Nameplate font size / 名條的字型
+	G.NPNameFS = 12									-- Nameplate font size / 名條的字型
 	G.NPFont = MediaFolder.."Infinity Gears.ttf"	-- Number style nameplate health text font / 數字模式名條的血量字型
-	G.NPFS = 16										-- Number style nameplate health text font size / 數字模式名條的血量字型大小
+	G.NPFS = 24										-- Number style nameplate health text font size / 數字模式名條的血量字型大小
 
 ------------------------
 -- UnitFrame settings --
@@ -41,8 +41,8 @@ local MediaFolder = G.MediaFolder
 	C.PPHeight = 4				-- Power bar height / 能量條高度
 	C.PPOffset = 6				-- Power bar offset / 能量條向下偏移
 
-	C.buSize = 26				-- Aura icon size for all frames, except player debuff / 光環圖示大小
-	C.maxAura = 14				-- How many auras show / 顯示光環數量
+	C.AuraSize = 26				-- Base aura icon size / 基準光環圖示大小
+	C.MaxAura = 14				-- How many auras show / 顯示光環數量
 
 	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
 	
@@ -55,7 +55,6 @@ local MediaFolder = G.MediaFolder
 	-- Colors / 顏色
 	-- NOTICE: This effect on BOTH unitframe standalone castbar and nameplates castbar.
 	C.CastNormal = {.6, .6, .6}	-- Normal castbar / 普通施法條
-	C.CastFailed = {.5, .2, .2}	-- Cast failed / 施法失敗
 	C.CastShield = {.9, .3, .5}	-- Non-interruptible castbar / 不可打斷的施法條
 
 ------------------------
@@ -67,8 +66,8 @@ local MediaFolder = G.MediaFolder
 	
 	C.RPHeight = 2				-- Raid frame power height / 團隊能量條高度
 	C.RSpace = 6				-- Raid frame space / 團隊間距
-	C.sAuSize = 18				-- Raid corner small aura size / 團隊邊角光環大小
-	--C.bAuSize = 20				-- Middle big aura size
+	C.RaidAuraSize = 18			-- Raid aura icon size / 團隊光環圖示大小
+	--C.midAuraSize = 20				-- Middle big aura size
 	C.RangeAlpha = 0.4			-- Alpha for out of range units / 超距離淡出透明度
 	
 	C.PartyWidth = 156			-- Party frame width / 隊伍寬度
@@ -82,27 +81,17 @@ local MediaFolder = G.MediaFolder
 -- Nameplate settings --
 ------------------------
 
-	-- Number style nameplate config
-	C.NPCastIcon = 28		-- Number style nameplate cast icon size /  數字模式的施法圖示大小
-	
 	-- Bar style nameplate config
 	C.NPWidth = 140			-- Nameplate frame width / 名條寬度
 	C.NPHeight = 10			-- Nameplate frame height / 名條高度
 	
 	-- Auras / 光環
-	C.Auranum = 5			-- How many aura show / 顯示光環數量
-	C.AuraSize = 16			-- Aura icon size / 光環大小
+	C.NPMaxAura = 5			-- How many aura show / 顯示光環數量
+	C.NPAuraSize = 20		-- Nameplate aura icon size / 名條光環圖示大小
 
 	-- [[ Player plate ]] --
 	
-	C.PlayerNPWidth = 180	-- Player plate width / 玩家個人資源寬度
-
-	--[[ Nameplates CVar ]] --
-	
-	C.Inset = true			-- Let Nameplates don't go off screen / 名條貼齊畫面邊緣
-	C.MaxDistance = 45		-- Max distance for nameplate show on / 名條顯示的最大距離
-	C.SelectedScale = 1		-- Scale select target nameplate / 縮放當前目標的名條大小
-	C.MinAlpha = 1			-- Set fadeout for out of range and non-target / 非當前目標與遠距離名條的透明度
+	C.PlayerPlateWidth = 180	-- Player plate width / 玩家個人資源寬度
 	
 -----------------------
 -- Position settings --
@@ -160,8 +149,8 @@ local MediaFolder = G.MediaFolder
 		TargetCastbar = {"RIGHT", "oUF_Target", "LEFT", -C.PPOffset, 0},
 		FocusCastbar = {"RIGHT", "oUF_Focus", "LEFT", -C.PPOffset, 0},
 		
-		VPlayerCastbar = {"BOTTOMLEFT", "oUF_Player", "BOTTOMRIGHT", C.buSize + C.PPOffset + C.PHeight, 0},
-		VTargetCastbar = {"BOTTOMRIGHT", "oUF_Target", "BOTTOMLEFT", -(C.buSize*2 + C.PPOffset*2 + C.PHeight), 0},
+		VPlayerCastbar = {"BOTTOMLEFT", "oUF_Player", "BOTTOMRIGHT", C.AuraSize + C.PPOffset + C.PHeight, 0},
+		VTargetCastbar = {"BOTTOMRIGHT", "oUF_Target", "BOTTOMLEFT", -(C.AuraSize*2 + C.PPOffset*2 + C.PHeight), 0},
 		VFocusCastbar = {"TOPLEFT", "oUF_Focus", "BOTTOMLEFT", 0, -C.PPOffset * 3}
 	}
 
