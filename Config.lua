@@ -18,8 +18,7 @@ local MediaFolder = G.MediaFolder
 	G.NameFS = 14									-- General font size / 字型大小
 	G.FontFlag = "OUTLINE"							-- General font flag / 描邊 "OUTLINE" or none
 	
-	--G.NFont = MediaFolder.."myriadHW.ttf"			-- Number font for auras / 光環數字字型
-	G.NFont = STANDARD_TEXT_FONT
+	G.NFont = MediaFolder.."myriadHW.ttf"			-- Number font for auras / 光環數字字型
 	G.NumberFS = 14
 	
 	G.NPNameFS = 16									-- Nameplate font size / 名條的字型

@@ -164,6 +164,22 @@ T.GetPlayerResourceLayout = function()
 	return rows, firstOffset, classOffset, auraOffset
 end
 
+-- 視不同專精的副資源存在與否，更新玩家減益光環位置
+T.UpdatePlayerDebuffsPosition = function(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local _, _, _, auraOffset = T.GetPlayerResourceLayout()
+
+	element:ClearAllPoints()
+
+	if parentFrame.mystyle == "VL" then
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", auraOffset, 0)
+	else
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 0, auraOffset)
+	end
+end
+
 -- 更新職業資源位置
 local function UpdateClassPowerPosition(element)
 	local parentFrame = element.__owner
