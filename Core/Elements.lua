@@ -145,14 +145,9 @@ end
 
 -- [[ 酒池文本 ]] --
 
-local function PostUpdateStagger(element, cur, max)
-	local perc = cur / max
-	
-	if cur == 0 then
-		element.value:SetText("")
-	else
-		element.value:SetText(F.ShortValue(cur) .. " |cff70C0F5" .. F.ShortValue(perc * 100) .. "|r")
-	end
+local function PostUpdateStagger(element, cur)
+	-- 酒池數值可能是 secret，避免在 Lua 中計算百分比或判斷是否為 0
+	element.value:SetText(F.NumberAbbrValue(cur))
 end
 
 -- [[ 玩家資源布局更新 ]] --
@@ -186,7 +181,7 @@ local function UpdateClassPowerPosition(element)
 		bar:SetPoint("BOTTOMLEFT", parentFrame, "BOTTOMRIGHT", classPowerOffset, 0)
 	elseif style == "NPP" or style == "BPP" then
 		if F.GetRuriOption("NumberstylePP") then
-			bar:SetPoint("TOP", parentFrame.HealthText, "BOTTOM", -(C.PlayerNPWidth - 3*C.PPOffset)/2, -C.PPOffset)
+			bar:SetPoint("TOP", parentFrame.HealthText, "BOTTOM", -(C.PlayerPlateWidth - 3*C.PPOffset)/2, -C.PPOffset)
 		else
 			bar:SetPoint("TOPLEFT", parentFrame.Power, "BOTTOMLEFT", 0, -4)
 		end
@@ -219,7 +214,7 @@ local function UpdateClassPowerBars(element, max)
 				bar:SetPoint("BOTTOM", element[i-1], "TOP", 0, C.PPOffset)
 			end
 		elseif style == "NPP" or style == "BPP" then
-			bar:SetSize((C.PlayerNPWidth - (max-1)*C.PPOffset)/max, C.PPHeight)
+			bar:SetSize((C.PlayerPlateWidth - (max-1)*C.PPOffset)/max, C.PPHeight)
 
 			if i > 1 then
 				bar:SetPoint("LEFT", element[i-1], "RIGHT", C.PPOffset, 0)
@@ -373,7 +368,7 @@ local function UpdateResourceLayout(self)
 		UpdateClassPowerPosition(self.Essence)
 	end
 	if self.Stagger then UpdateSingleResourceLayout(self.Stagger) end
-	if self.Debuffs and T.UpdatePlayerDebuffsLayout then T.UpdatePlayerDebuffsLayout(self.Debuffs) end
+	if self.Debuffs then T.UpdatePlayerDebuffsPosition(self.Debuffs) end
 end
 
 -- 執行更新，延遲以避免多事件連續觸發
