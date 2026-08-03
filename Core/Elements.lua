@@ -164,6 +164,23 @@ T.GetPlayerResourceLayout = function()
 	return rows, firstOffset, classOffset, auraOffset
 end
 
+-- 視不同專精的副資源存在與否，更新玩家減益光環位置
+T.UpdatePlayerDebuffsPosition = function(element)
+	local parentFrame = element.__owner
+	if not parentFrame then return end
+
+	local _, _, _, auraOffset = T.GetPlayerResourceLayout()
+
+	element:ClearAllPoints()
+
+	-- AuraButton 背景向外擴 1px；分隔軸補足間距，另一軸則對齊狀態條邊緣。
+	if parentFrame.mystyle == "VL" then
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "BOTTOMRIGHT", auraOffset + 1, 1)
+	else
+		element:SetPoint("BOTTOMLEFT", parentFrame.Health, "TOPLEFT", 1, auraOffset + 1)
+	end
+end
+
 -- 更新職業資源位置
 local function UpdateClassPowerPosition(element)
 	local parentFrame = element.__owner
