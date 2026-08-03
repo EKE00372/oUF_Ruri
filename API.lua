@@ -107,48 +107,16 @@ local frame = CreateFrame("Frame")
 
 local NumberAbbrConfig = {
     config = CreateAbbreviateConfig({
-        { breakpoint = 1e12, abbreviation = "T", significandDivisor = 1e10, fractionDivisor = 1e2, abbreviationIsGlobal = false },
-        { breakpoint = 1e9,  abbreviation = "B", significandDivisor = 1e7,  fractionDivisor = 1e2, abbreviationIsGlobal = false },
-        { breakpoint = 1e6,  abbreviation = "M", significandDivisor = 1e4,  fractionDivisor = 1e2, abbreviationIsGlobal = false },
-        { breakpoint = 1e3,  abbreviation = "K", significandDivisor = 1e2,  fractionDivisor = 1e1, abbreviationIsGlobal = false },
+        { breakpoint = 1e9, abbreviation = "b", significandDivisor = 1e5, fractionDivisor = 1e4, abbreviationIsGlobal = false },
+        { breakpoint = 1e6, abbreviation = "m", significandDivisor = 1e4, fractionDivisor = 1e2, abbreviationIsGlobal = false },
+        { breakpoint = 1e5, abbreviation = "k", significandDivisor = 1e3, fractionDivisor = 1,   abbreviationIsGlobal = false },
+        { breakpoint = 1e3, abbreviation = "k", significandDivisor = 1e2, fractionDivisor = 1e1, abbreviationIsGlobal = false },
     })
 }
-
+-- 直接交給允許 secret number 的原生 formatter
 F.NumberAbbrValue = function(value)
-	-- 將字串轉換為數字
-	value = tonumber(value)
-    if not value then return "" end
-    return AbbreviateNumbers(value, NumberAbbrConfig)
+	return AbbreviateNumbers(value, NumberAbbrConfig)
 end
-
-F.ShortValue = function(val)
-	-- 讓20k不顯示為20.0k
-	local round = function(val, idp)
-		if idp and idp > 0 then
-			local mult = 10^idp
-			return floor(val * mult + 0.5) / mult
-		end
-		return floor(val + 0.5)
-	end
-
-	if val >= 1e9 then
-		-- 億至小數點後四位
-		return ("%.4fb"):format(val / 1e9)
-	elseif val >= 1e6 then
-		-- 百萬至小數點後二位
-		return ("%.2fm"):format(val / 1e6)
-	elseif val >= 1e5 then
-		-- 十萬顯示千取整
-		return ("%.fk"):format(val / 1e3)	
-	elseif val >= 1e3 and val < 1e5 then
-		-- 不滿十萬顯示千後小數點一位
-		return round(val / 1e3, 1).."k"
-	else
-		-- 千以下
-		return ("%d"):format(val)
-	end
-end
-
 -- [[ 顏色 ]] --
 
 F.Hex = function(r, g, b)
