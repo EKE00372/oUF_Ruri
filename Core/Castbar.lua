@@ -1,42 +1,55 @@
-local addon, ns = ...
-local oUF = ns.oUF
+local _, ns = ...
 local C, F, G, T = unpack(ns)
 
+-- 嵌入式顏色
 local EMBED_CAST_NORMAL = CreateColor(.6, .6, .6, .6)
 local EMBED_CAST_SHIELD = CreateColor(.6, 0, .6, .6)
+local EMBED_CAST_FAILED = CreateColor(.6, .2, .2, .6)
+local CAST_ICON_BORDER_NORMAL = CreateColor(.2, .2, .2, 1)
+local CAST_ICON_BORDER_SHIELD = CreateColor(0, 0, 0, 1)
+-- 獨立式顏色
 local CAST_NORMAL = CreateColor(unpack(C.CastNormal))
 local CAST_SHIELD = CreateColor(unpack(C.CastShield))
+local CAST_FAILED = CreateColor(.6, .2, .2)
 
 --=====================================================--
 -----------------    [[ Functions ]]    -----------------
 --=====================================================--
 
--- 施法時間格式
-local function CreateCastbarTimeBinding()
-	local formatter = C_StringUtil.CreateSecondsFormatter()
-	formatter:SetDefaultAbbreviation(Enum.SecondsFormatterAbbreviation.OneLetter)
-	formatter:SetMinInterval(Enum.SecondsFormatterInterval.Seconds)
-	formatter:SetMillisecondsThreshold(60)
+-- 施法時間格式：小於60秒顯示小數點後一位，大於60秒顯示x分x秒
+local castTimeFormatter = C_StringUtil.CreateSecondsFormatter()
+	castTimeFormatter:SetDefaultAbbreviation(Enum.SecondsFormatterAbbreviation.OneLetter)
+	castTimeFormatter:SetMinInterval(Enum.SecondsFormatterInterval.Seconds)
+	castTimeFormatter:SetMillisecondsThreshold(60)
 
+-- 施法文字格式：當前/總共
+T.CreateCastbarTimeBinding = function(currentOnly)
 	local binding = C_DurationUtil.CreateDurationTextBinding()
-	binding:SetTextFormat("{}/{}", {
-		{ -- 當前
-			property = Enum.DurationTextBindingProperty.ElapsedDuration,
-			formatter = formatter,
-		},
-		{ -- 總共
-			property = Enum.DurationTextBindingProperty.TotalDuration,
-			formatter = formatter,
-		},
-	})
+	if currentOnly then
+		binding:SetTextFormat("{}", {
+			{
+				property = Enum.DurationTextBindingProperty.ElapsedDuration,
+				formatter = castTimeFormatter,
+			},
+		})
+	else
+		binding:SetTextFormat("{}/{}", {
+			{ -- 當前
+				property = Enum.DurationTextBindingProperty.ElapsedDuration,
+				formatter = castTimeFormatter,
+			},
+			{ -- 總共
+				property = Enum.DurationTextBindingProperty.TotalDuration,
+				formatter = castTimeFormatter,
+			},
+		})
+	end
 
 	return binding
 end
 
 -- 施法延遲
 local function CreateCastbarDelayText(element)
-	if not element.Time then return end
-
 	element.Delay = F.CreateText(element, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 	element.Delay:SetTextColor(1, 0, 0)
 	element.Delay:SetText("")
@@ -44,12 +57,20 @@ local function CreateCastbarDelayText(element)
 end
 
 -- 施法條顏色
-local function SetCastbarColor(element, notInterruptible, normalColor, shieldColor)
-	if not element then return end
-
-	local texture = element.GetStatusBarTexture and element:GetStatusBarTexture()
-	if texture then
-		texture:SetVertexColorFromBoolean(notInterruptible, shieldColor, normalColor)
+local function SetCastbarColor(element, notInterruptible)
+	if element.isPlayerCastbar then
+		element:SetStatusBarColor(element.castNormalColor:GetRGBA())
+	else
+		-- 施法條變色
+		element:GetStatusBarTexture():SetVertexColorFromBoolean(notInterruptible, element.castShieldColor, element.castNormalColor)
+		-- 嵌入式施法條的法術圖示邊框與陰影邊色
+		if element.ShieldShadow then
+			-- 邊框：常規深灰，不可打斷純黑
+			element.IconBorder:SetVertexColorFromBoolean(notInterruptible, CAST_ICON_BORDER_SHIELD, CAST_ICON_BORDER_NORMAL)
+			-- 陰影：常規黑色，不可打斷紅色
+			element.Shadow:SetAlphaFromBoolean(notInterruptible, 0, 1)
+			element.ShieldShadow:SetAlphaFromBoolean(notInterruptible, 1, 0)
+		end
 	end
 end
 
@@ -57,144 +78,43 @@ end
 -----------------    [[ Post Update ]]    -----------------
 --=======================================================--
 
--- [[ 更新施法目標 ]] --
---[[
-T.UpdateSpellTarget = function(element, unit)
-	if not unit then return end
-	if (F.GetNPCID(UnitGUID(unit)) ~= C.UnitSpellTarget[element.npcID]) then return end
-	
-	local unitTarget = unit.."target"
-	if UnitExists(unitTarget) then
-		local nameString
-		if UnitIsUnit(unitTarget, "player") then
-			nameString = format("|cffff0000%s|r", ">"..strupper(YOU).."<")
-		else
-			local class = select(2, UnitClass(unitTarget))
-			nameString = F.Hex(oUF.colors.class[class])..UnitName(unitTarget)
-		end
-		element.Text:SetText(nameString)
-	end
-end
-]]--
--- [[ 重置施法目標 ]] --
---[[
-T.ResetSpellTarget = function(element)
-	if element.Text then
-		element.Text:SetText("")
-	end
-end
-]]--
 -- [[ 開始施法 ]] --
 
-T.PostCastStart_Embed = function(element, unit, name, texture, isTradeSkill, notInterruptible, spellID, castID)
+local function PostCastStart_Embed(element, unit, spellID, notInterruptible)
 	local frame = element:GetParent()
-	
-    -- 嵌入式施法條：施法開始時隱藏名字
-    if frame.Name then frame.Name:SetAlpha(0) end
-    if frame.Status then frame.Status:SetAlpha(0) end
-    if element.Spark then element.Spark:SetAlpha(.8) end
 
-    -- 判斷打斷顏色
-    if unit == "player" then
-        element:SetStatusBarColor(.6, .6, .6, .6)
-    else
-        SetCastbarColor(element, notInterruptible, EMBED_CAST_NORMAL, EMBED_CAST_SHIELD)
-    end
+	-- 嵌入式施法條：開始施法時隱藏名字
+	if frame.Name then frame.Name:SetAlpha(0) end
+	if frame.Status then frame.Status:SetAlpha(0) end
+
+	SetCastbarColor(element, notInterruptible)
 end
 
-T.PostCastStart = function(element, unit, name, texture, isTradeSkill, notInterruptible, spellID, castID)
-    -- 判斷打斷顏色
-    if unit == "player" then
-        element:SetStatusBarColor(unpack(C.CastNormal))
-    else
-        SetCastbarColor(element, notInterruptible, CAST_NORMAL, CAST_SHIELD)
-    end
+T.PostCastStart = function(element, unit, spellID, notInterruptible)
+	SetCastbarColor(element, notInterruptible)
 end
 
 -- [[ 停止施法 ]] --
 
-T.PostCastStop_Embed = function(element, unit)
+local function PostCastStop_Embed(element, unit)
 	local frame = element:GetParent()
 
-	-- 嵌入式施法條：施法結束時顯示名字
+	-- 嵌入式施法條：結束施法時顯示名字
 	if frame.Name then frame.Name:SetAlpha(1) end
 	if frame.Status then frame.Status:SetAlpha(1) end
 end
---[[
-T.PostCastStop = function(element, unit)
-	local frame = element:GetParent()
-	
-	if frame.mystyle == "NP" then
-		-- 使數字模式名條的名字復位
-		frame.Name:SetPoint("BOTTOM", 0, 6)
-	elseif frame.mystyle == "BP" then
-		-- 清空施法目標
-		T.ResetSpellTarget(element)
-    end
-end
-]]--
--- [[ 狀態更新 ]] --
 
-T.PostCastStopUpdate = function(element)
-	-- target / focus 切換單位時，先復原嵌入式施法條的名字狀態
-	return T.PostCastStop_Embed(element.Castbar, element.unit)
-end
-
--- [[ 名條條形施法條：施法目標更新 ]] --
---[[
-T.PostCastUpdate = function(element, unit)
-	T.ResetSpellTarget(element)
-	T.UpdateSpellTarget(element, unit)
-end
-]]--
 -- [[ 施法失敗 ]] --
 
-T.PostCastFailed_Embed = function(element, unit)
-    --[[if frame.mystyle == "NP" then
-        -- 使數字模式名條的名字復位
-        frame.Name:SetPoint("BOTTOM", 0, 6)
-    else]]--
-    -- 嵌入式施法條：施法結束時顯示名字
-    C_Timer.After(.05, function()   -- timeToHold 是0.05
-        local frame = element:GetParent()
-        if frame.Name then frame.Name:SetAlpha(1) end
-        if frame.Status then frame.Status:SetAlpha(1) end
-    end)
-    -- 一閃而過的施法失敗紅色條
-    element:SetStatusBarColor(.5, .2, .2, .6)
-    element:SetValue(1)
-    if element.Spark then element.Spark:SetAlpha(0) end
-end
-
 T.PostCastFailed = function(element, unit)
-    --[[if frame.mystyle == "BP" then
-        -- 條形模式清空施法目標
-        T.ResetSpellTarget(element)
-    end]]--
-    -- 一閃而過的施法失敗紅色條
-    element:SetStatusBarColor(unpack(C.CastFailed))
-    element:SetValue(1)
-    --element:Show()
+	-- 一閃而過的施法失敗紅色條
+	element:SetStatusBarColor(element.castFailedColor:GetRGBA())
 end
 
 -- [[ 施法過程中打斷狀態更新 ]] --
 
--- 例子：燃燒王座三王小怪
-T.PostCastInterruptible_Embed = function(element, unit, notInterruptible)
-	-- 打斷狀態更新
-	if UnitIsUnit(unit, "player") then return end
-
-	SetCastbarColor(element, notInterruptible, EMBED_CAST_NORMAL, EMBED_CAST_SHIELD)
-	-- 被誰打斷
-	
-end
-
-T.PostCastInterruptible = function(element, unit, notInterruptible)
-	-- 打斷狀態更新
-	if UnitIsUnit(unit, "player") then return end
-	SetCastbarColor(element, notInterruptible, CAST_NORMAL, CAST_SHIELD)
-
-	-- 被誰打斷
+T.PostCastInterruptible = function(element, unit, spellID, notInterruptible)
+	SetCastbarColor(element, notInterruptible)
 end
 
 --===========================================================--
@@ -203,45 +123,44 @@ end
 
 -- [[ 嵌入施法條 ]] --
 
-T.CreateCastbar = function(self, unit)
-    self.standalone = false
-
+T.CreateCastbar_Embed = function(self, unit)
 	-- 創建一個條
-	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, 0, 0, 0, 0)
+	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK")
 	Castbar:SetAllPoints(self.Health)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)
 
-	-- Castbar.Icon 被保護了所以邊框陰影要自行創建
+	-- 法術圖示的基底框架
 	local IconBG = CreateFrame("Frame", nil, Castbar)
-	IconBG:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
+	IconBG:SetSize(C.PHeight + C.PPHeight * 2 - 1, C.PHeight + C.PPHeight * 2 - 1)
 	Castbar.IconBG = IconBG
-	-- 圖示
-	Castbar.Icon = Castbar.IconBG:CreateTexture(nil, "OVERLAY", nil, 1)
-	Castbar.Icon:SetAllPoints(IconBG)
-	--Castbar.Icon:SetSize(C.PHeight + (C.PPHeight*2), C.PHeight + (C.PPHeight*2))
+	-- 1px 邊框
+	local IconBorder = IconBG:CreateTexture(nil, "ARTWORK")
+	IconBorder:SetPoint("TOPLEFT", IconBG, "TOPLEFT", -1, 1)
+	IconBorder:SetPoint("BOTTOMRIGHT", IconBG, "BOTTOMRIGHT", 1, -1)
+	IconBorder:SetTexture(G.media.blank)
+	IconBorder:SetVertexColor(CAST_ICON_BORDER_NORMAL:GetRGBA())
+	Castbar.IconBorder = IconBorder
+	-- 法術圖示
+	Castbar.Icon = IconBG:CreateTexture(nil, "OVERLAY", nil, 1)
+	Castbar.Icon:SetAllPoints()
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
-	-- 圖示邊框
-    --Castbar.Border = F.CreateBD(Castbar, Castbar.Icon, 1, 0, 0, 0, 1)
-	--Castbar.Border = F.CreateBD(Castbar.IconBG, Castbar.IconBG, 1, 0, 0, 0, 1)
-	-- 陰影
-    --Castbar.Shadow = F.CreateSD(Castbar, Castbar.Border, 4)
-	Castbar.Shadow = F.CreateSD(Castbar.IconBG, Castbar.IconBG, 5)
+	-- 替法術圖示建立兩個陰影，設定顯示條件
+	Castbar.Shadow = F.CreateSD(IconBG, IconBorder, 4, 0, 0, 0)	-- 常規陰影
+	Castbar.ShieldShadow = F.CreateSD(IconBG, IconBorder, 4, .9, .05, .05)	-- 不可打斷陰影
+	Castbar.ShieldShadow:SetAlpha(0)
+
 	-- 文本
 	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 	Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-	Castbar.Time.binding = CreateCastbarTimeBinding()
+	Castbar.Time.binding = T.CreateCastbarTimeBinding()
 	if unit == "player" then
 		CreateCastbarDelayText(Castbar)
 	end
-	-- 隊列
-	--Castbar.SafeZone = Castbar:CreateTexture(nil, "OVERLAY")
-	--Castbar.SafeZone:SetAlpha(.6)
 	-- 進度高亮
 	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
 	Castbar.Spark:SetTexture(G.media.spark)
 	Castbar.Spark:SetBlendMode("ADD")
 	Castbar.Spark:SetVertexColor(1, 1, .85, .8)
-	Castbar.Spark:SetAlpha(.8)
 	-- 橫豎的spark不一樣
 	if self.mystyle ~= "H" then
 		Castbar:SetOrientation("VERTICAL")
@@ -255,44 +174,52 @@ T.CreateCastbar = function(self, unit)
 	
 	-- 選項
 	Castbar.timeToHold = 0.05
-	-- 註冊到ouf
+	-- 創建施法條時用公開 unit token 標記玩家施法條，而非用 UnitIsUnit() 觸發 secret value
+	Castbar.isPlayerCastbar = (unit == "player")
+	-- 指定顏色
+	Castbar.castNormalColor = EMBED_CAST_NORMAL
+	Castbar.castShieldColor = EMBED_CAST_SHIELD
+	Castbar.castFailedColor = EMBED_CAST_FAILED
+
+	Castbar.PostCastStart = PostCastStart_Embed			-- 施法開始
+	Castbar.PostCastStop = PostCastStop_Embed			-- 施法結束
+	Castbar.PostCastFail = T.PostCastFailed				-- 施法失敗
+	Castbar.PostCastInterrupted = T.PostCastFailed		-- 施法中斷
+	Castbar.PostCastInterruptible = T.PostCastInterruptible	-- 狀態刷新
+	-- 施法結束恢復名字顯示
+	Castbar:HookScript("OnHide", PostCastStop_Embed)
+
 	self.Castbar = Castbar
-	self.Castbar.PostCastStart = T.PostCastStart_Embed		-- 施法開始
-	self.Castbar.PostCastStop = T.PostCastStop_Embed		-- 施法結束
-	self.Castbar.PostCastFail = T.PostCastFailed_Embed			-- 施法失敗
-	self.Castbar.PostCastInterrupted = T.PostCastFailed_Embed		-- 施法中斷
-	self.Castbar.PostCastInterruptible = T.PostCastInterruptible_Embed	-- 狀態刷新
-	-- target / focus 切換後由 oUF 更新施法條，重新決定名字是否隱藏
-	if unit == "target" then
-		self:RegisterEvent("PLAYER_TARGET_CHANGED", T.PostCastStopUpdate, true)
-	elseif unit == "focus" then
-		self:RegisterEvent("PLAYER_FOCUS_CHANGED", T.PostCastStopUpdate, true)
-	end
 end
 
 -- [[ 獨立施法條 ]] --
 
-T.CreateStandaloneCastbar = function(self, unit)
-    self.standalone = true
-
+T.CreateCastbar_Standalone = function(self, unit)
 	-- 創建一個條
-	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", nil, nil, .6, .6, .6, 1)
+	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK")
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 4)	
 
 	-- 背景與邊框
 	Castbar.BarBG = F.CreateBD(Castbar, Castbar, 1, .15, .15, .15, .6)
 	-- 陰影
 	Castbar.BarShadow = F.CreateSD(Castbar, Castbar, 4)
-    -- Castbar.Icon 被保護了所以邊框陰影要自行創建
-    local IconBG = CreateFrame("Frame", nil, Castbar)
-	IconBG:SetSize(C.PHeight + C.PPHeight*2, C.PHeight + C.PPHeight*2)
+
+	-- 法術圖示的基底框架
+	local IconBG = CreateFrame("Frame", nil, Castbar)
+	IconBG:SetSize(C.PHeight + C.PPHeight * 2, C.PHeight + C.PPHeight * 2)
 	Castbar.IconBG = IconBG
-	-- 圖示
-	Castbar.Icon = Castbar.IconBG:CreateTexture(nil, "OVERLAY", nil, 1)
-	Castbar.Icon:SetAllPoints(IconBG)
+	--　1xp 邊框
+	local IconBorder = IconBG:CreateTexture(nil, "ARTWORK")
+	IconBorder:SetPoint("TOPLEFT", IconBG, "TOPLEFT", -1, 1)
+	IconBorder:SetPoint("BOTTOMRIGHT", IconBG, "BOTTOMRIGHT", 1, -1)
+	IconBorder:SetTexture(G.media.blank)
+	IconBorder:SetVertexColor(CAST_ICON_BORDER_NORMAL:GetRGBA())
+	-- 法術圖示
+	Castbar.Icon = IconBG:CreateTexture(nil, "OVERLAY", nil, 1)
+	Castbar.Icon:SetAllPoints()
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
-	-- 圖示邊框
-	Castbar.Shadow = F.CreateSD(Castbar.IconBG, Castbar.IconBG, 4)
+	Castbar.Shadow = F.CreateSD(IconBG, IconBorder, 5, 0, 0, 0)
+
 	-- 進度高亮
 	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY", nil, -1)
 	Castbar.Spark:SetTexture(G.media.spark)
@@ -304,18 +231,16 @@ T.CreateStandaloneCastbar = function(self, unit)
 	if self.mystyle == "S" then
 		-- 簡易焦點
 		Castbar:SetSize(C.PWidth/2, C.PHeight)
-		--Castbar.Icon:SetSize(C.PHeight * 1.5, C.PHeight * 1.5)
 		
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
 
 		Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 		Castbar.Text:SetPoint("LEFT", 5, 0)
-		Castbar.Text:SetWidth(self:GetWidth())		
+		Castbar.Text:SetWidth(self:GetWidth())
 	elseif self.mystyle == "H" then
 		-- 橫式
 		Castbar:SetHeight(C.PHeight)
-		--Castbar.Icon:SetSize(C.PHeight, C.PHeight)
 		
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
@@ -323,15 +248,11 @@ T.CreateStandaloneCastbar = function(self, unit)
 		Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 		Castbar.Text:SetPoint("LEFT", 5, 0)
 		Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "RIGHT")
-		Castbar.Time.binding = CreateCastbarTimeBinding()
+		Castbar.Time.binding = T.CreateCastbarTimeBinding()
 		Castbar.Time:SetPoint("RIGHT", -5, 0)
-		if unit == "player" then
-			CreateCastbarDelayText(Castbar)
-		end
 	else
 		-- 直式
 		Castbar:SetSize(C.PHeight, C.PWidth-(C.PHeight + C.PPHeight*2)-C.PPOffset)
-		--Castbar.Icon:SetSize(C.PHeight, C.PHeight)
 		Castbar:SetOrientation("VERTICAL")
 		
 		Castbar.Spark:SetRotation(math.rad(90))	-- spark材質也要轉90度
@@ -340,18 +261,25 @@ T.CreateStandaloneCastbar = function(self, unit)
 
 		Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
 		Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
-		Castbar.Time.binding = CreateCastbarTimeBinding()
-		if unit == "player" then
-			CreateCastbarDelayText(Castbar)
-		end
+		Castbar.Time.binding = T.CreateCastbarTimeBinding()
+	end
+	if unit == "player" and Castbar.Time then
+		CreateCastbarDelayText(Castbar)
 	end
 	
 	-- 選項
 	Castbar.timeToHold = 0.05
-	-- 註冊到ouf
-	self.Castbar = Castbar	
-	self.Castbar.PostCastStart = T.PostCastStart                            -- 施法開始
-	self.Castbar.PostCastFail = T.PostCastFailed                  -- 施法失敗
-    self.Castbar.PostCastInterrupted = T.PostCastFailed		    -- 施法中斷
-	self.Castbar.PostCastInterruptible = T.PostCastInterruptible	        -- 狀態更新
+	-- 創建施法條時用公開 unit token 標記玩家施法條，而非用 UnitIsUnit() 觸發 secret value
+	Castbar.isPlayerCastbar = (unit == "player")
+	-- 指定顏色
+	Castbar.castNormalColor = CAST_NORMAL
+	Castbar.castShieldColor = CAST_SHIELD
+	Castbar.castFailedColor = CAST_FAILED
+
+	Castbar.PostCastStart = T.PostCastStart					-- 施法開始
+	Castbar.PostCastFail = T.PostCastFailed					-- 施法失敗
+	Castbar.PostCastInterrupted = T.PostCastFailed			-- 施法中斷
+	Castbar.PostCastInterruptible = T.PostCastInterruptible	-- 狀態更新
+
+	self.Castbar = Castbar
 end
