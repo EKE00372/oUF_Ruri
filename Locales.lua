@@ -65,7 +65,6 @@ if GetLocale() == "zhTW" then
 	L.FriendlyNameSizeTip = "啟用友方名字模式，隱藏血量條並使用描邊與較大字型。\n\n這項功能受暴雪限制，啟用後會更改原生名條外觀。"
 	L.PlayerPlate = "玩家個人資源"
 	L.PlayerPlateTip = "顯示血量、能量與職業資源的簡易資源條。\n\n啟用後會停用暴雪原生的玩家個人資源條。"
-	-- L.PlayerBuffs = "顯示增益"
 
 	-- Other
 	L.ReloadUI = "重載 UI"
@@ -130,7 +129,6 @@ elseif GetLocale() == "zhCN" then
 	L.FriendlyNameSizeTip = "启用友方名字模式，隐藏血量条并使用描边和较大字体。\n\n此功能受暴雪限制，启用后会更改原生姓名板外观。"
 	L.PlayerPlate = "玩家个人资源"
 	L.PlayerPlateTip = "显示血量、能量与职业资源的简易资源条。启用后会停用暴雪原生的玩家个人资源条。"
-	-- L.PlayerBuffs = "显示增益"
 
 	-- Other
 	L.ReloadUI = "重载 UI"
@@ -195,7 +193,6 @@ else
 	L.FriendlyNameSizeTip = "Enable friendly player name-only mode, which hides health bars and uses larger outlined text.\n\nBecause of Blizzard restrictions, enabling this changes the appearance of Blizzard nameplates."
 	L.PlayerPlate = "Player Plate"
 	L.PlayerPlateTip = "Show a simple resource bar for health, power, and class resources. Enabling it disables Blizzard's default Personal Resource Display."
-	-- L.PlayerBuffs = "Show Buffs"
 
 	-- Other
 	L.ReloadUI = "Reload UI"
