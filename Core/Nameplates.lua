@@ -756,15 +756,6 @@ local function CreatePlayerBarPlate(self, unit)
 	RaidIcon:SetPoint("RIGHT", self.Health, "LEFT", -4, -2)
 	self.RaidTargetIndicator = RaidIcon
 	
-	-- PlayerPlate 光環已由 Cooldown Manager 取代，保留以下建立碼供日後評估。
-	--[=[
-	-- 光環
-	if F.GetRuriOption("PlayerBuffs") then
-		T.CreatePlayerPlateBuffs(self)
-		self.Buffs:SetPoint("BOTTOM", self.Health, "TOP", 0, 8)
-	end
-	--]=]
-	
 	-- 職業資源
 	T.CreateClassPower(self, unit)
 	-- 吸收盾

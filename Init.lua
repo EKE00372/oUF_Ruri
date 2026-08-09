@@ -123,7 +123,6 @@ local MediaFolder = G.MediaFolder
 						{ type = "toggle", key = "FriendlyNameSize", label = "FriendlyNameSize", default = true, tooltip = "FriendlyNameSizeTip", requiresAny = { "Nameplates" } },
 						{ type = "toggle", key = "CVars", label = "CVars", default = true, tooltip = "CVarsTip" },
 						{ type = "toggle", key = "PlayerPlate", label = "PlayerPlate", default = false, tooltip = "PlayerPlateTip", requiresAny = { "UnitFrames" } },
-						-- { type = "toggle", key = "PlayerBuffs", label = "PlayerBuffs", default = false },
 					},
 				},
 			},

@@ -518,7 +518,7 @@ local function CreateSFocusStyle(self, unit)
 	self.Castbar:SetPoint("RIGHT", self.Castbar.IconBG, "LEFT", -1, 0)
 
 	-- 光環
-	T.CreateSimpleFocusDebuffs(self)
+	T.CreateSimpleFocusAuras(self)
 
 	-- 圖示和標記
 	local RaidIcon = self:CreateTexture(nil, "OVERLAY")
@@ -887,7 +887,7 @@ oUF:Factory(function(self)
 		-- 首領
 		self:SetActiveStyle("Boss")
 		local boss = {}
-		for i = 1, 10 do
+		for i = 1, 5 do	-- MAX 10
 			local unit = self:Spawn("boss"..i, "oUF_Boss"..i)
 			if i == 1 then
 				unit:SetPoint(unpack(C.Position.Boss))

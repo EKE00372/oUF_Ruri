@@ -6,6 +6,56 @@ local HORIZONTAL = AnchorUtil.FlowLayoutAxis.Horizontal
 local VERTICAL = AnchorUtil.FlowLayoutAxis.Vertical
 local ROUND_DOWN = Enum.NumericRuleFormatRounding.Down
 
+--===================================================================--
+-------------    [[ Blizzard AuraContainer Filters ]]    -------------
+--===================================================================--
+
+-- 來源：
+-- Blizzard_FrameXMLUtil/AuraUtil.lua 的 AuraUtil.AuraFilters
+-- Blizzard_AuraContainer/Blizzard_CustomAuraContainer.lua
+--
+-- filter string 規則：
+-- 1. 以「|」串接的條件全部都要成立（AND），不提供 OR。
+-- 2. 條件前加「!」表示反向，例如 HARMFUL|!PLAYER。但 INCLUDE_NAME_PLATE_ONLY 與 MAW 不可反向。
+-- 3. INCLUDE_NAME_PLATE_ONLY 是「也納入只供名條顯示的光環」，不是「只顯示名條光環」。
+--
+-- 基礎條件：
+-- HELPFUL                 只納入增益。
+-- HARMFUL                 只納入減益。
+-- PLAYER                  只納入玩家、玩家寵物或載具施放的光環。
+-- RAID                    只納入玩家可施放的增益和玩家可驅散的減益。
+-- CANCELABLE              只納入玩家可主動取消的光環；反向請使用 !CANCELABLE。
+-- INCLUDE_NAME_PLATE_ONLY 額外納入標記為 nameplate-only 的光環；未指定時這類光環會被排除。
+-- MAW                     只納入 Torghast 光環；未指定時 Torghast 光環會被排除。
+--
+-- 暴雪維護的分類白名單：
+-- EXTERNAL_DEFENSIVE      只納入外部減傷。
+-- CROWD_CONTROL           只納入控場效果，例如暈眩、恐懼等。
+-- RAID_IN_COMBAT          只納入標記為戰鬥中應顯示於團框的光環。
+-- RAID_PLAYER_DISPELLABLE 只納入目前團隊中有人能驅散的光環。
+-- BIG_DEFENSIVE           只納入大型防禦技能。
+-- IMPORTANT               只納入重要光環；主要是即使不可偷取也應顯示於敵方名條的增益。
+-- DISPELLABLE             只納入可驅散光環，不考慮玩家團隊目前是否真的具備對應驅散能力。
+--
+-- 常用組合：
+-- HELPFUL|IMPORTANT|INCLUDE_NAME_PLATE_ONLY      敵方重要增益。
+-- HARMFUL|CROWD_CONTROL|INCLUDE_NAME_PLATE_ONLY  控場減益。
+-- HELPFUL|BIG_DEFENSIVE                          大型防禦技能。
+-- HELPFUL|EXTERNAL_DEFENSIVE                     外部減傷。
+-- HELPFUL|PLAYER|RAID_IN_COMBAT                  自己施放且應在團框顯示的 HoT／增益。
+--
+-- candidateFilters 是 filter string 之後的第二層 AND 篩選：
+-- includeSpellIDs/excludeSpellIDs       精確納入/排除 spellID。
+-- includeDispelTypes/excludeDispelTypes 精確納入/排除驅散類型。
+-- maxDuration                           依完整持續時間設定上限；非 nil 時永久光環也會被排除。
+-- processedAuraType                     依 ProcessAura 結果篩選，必須先使用 ProcessAura policy。
+-- isFromPlayerOrPlayerPet、isRoleAura、isPriorityAura、isStealable、canApplyAura、
+-- nameplateShowAll、nameplateShowPersonal、isBossAura、isBossOrRoleAura 皆可作為布林條件。
+-- 所有非 nil candidateFilters 同樣是 AND，不會自動形成 OR。
+--
+-- includeSpellIDs/excludeSpellIDs 只會套用於可協助單位的增益、不可協助單位的減益，以及 NeverSecret 光環；
+-- 其他光環會略過這兩個條件，因此不能依賴它們製作完整白名單，應優先使用上述原生分類。
+
 --===================================================--
 -----------------    [[ General ]]    -----------------
 --===================================================--
@@ -397,27 +447,42 @@ T.CreateFocusAuras = function(self)
 	return Auras
 end
 
--- 簡易焦點減益
-T.CreateSimpleFocusDebuffs = function(self)
-	local size = C.AuraSize
+-- 簡易焦點光環
+T.CreateSimpleFocusAuras = function(self)
+	local size = C.AuraSize - 4
 	local spacing = 5
-	local maxFrameCount = 4
+	local groupSpacing = spacing
+	local maxFrameCount = 2
+	local totalFrameCount = maxFrameCount * 2
+	local layoutLimit = size * totalFrameCount + spacing * (totalFrameCount - 1) + groupSpacing
 
-	local Debuffs = self:CreateAuras({
+	local Auras = self:CreateAuras({
 		layout = HORIZONTAL,
-		layoutLimit = size * maxFrameCount + spacing * (maxFrameCount - 1),
+		layoutLimit = layoutLimit,
 		initialAnchor = "BOTTOMLEFT",
 		growthX = "RIGHT",
 		growthY = "UP",
 	})
-	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	Debuffs:SetPoint("BOTTOM", self, "TOP", 3, 3)
-	Debuffs.PostCreateButton = PostCreateAuraButton
-	Debuffs.showDuration = true
-	Debuffs.disableCooldown = true
-	Debuffs.durationFormatter = UF_AURA_DURATION
+	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
+	Auras:SetPoint("BOTTOM", self, "TOP", 4, 4)
+	Auras.PostCreateButton = PostCreateAuraButton
+	Auras.showDuration = true
+	Auras.disableCooldown = true
+	Auras.durationFormatter = UF_AURA_DURATION
 
-	Debuffs:AddGroup("HARMFUL", {
+	Auras:AddGroup("HELPFUL|IMPORTANT|INCLUDE_NAME_PLATE_ONLY", {
+		maxFrameCount = maxFrameCount,
+		size = size,
+		showCount = true,
+		tooltipAnchor = "ANCHOR_TOPRIGHT",
+		layout = {
+			elementSpacing = spacing,
+			lineSpacing = spacing,
+			groupSpacing = groupSpacing,
+		},
+	})
+
+	Auras:AddGroup("HARMFUL|CROWD_CONTROL|INCLUDE_NAME_PLATE_ONLY", {
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -426,11 +491,12 @@ T.CreateSimpleFocusDebuffs = function(self)
 		layout = {
 			elementSpacing = spacing,
 			lineSpacing = spacing,
+			groupSpacing = groupSpacing,
 		},
 	})
 
-	self.Debuffs = Debuffs
-	return Debuffs
+	self.Auras = Auras
+	return Auras
 end
 
 -- 寵物橫式減益
@@ -670,7 +736,7 @@ end
 
 -- 簡易焦點目標光環
 T.CreateSimpleFoTAuras = function(self)
-	local size = C.AuraSize
+	local size = C.AuraSize - 6
 	local spacing = 5
 	local maxFrameCount = 2
 	local layoutLimit = size * maxFrameCount + spacing * (maxFrameCount - 1)
@@ -683,7 +749,7 @@ T.CreateSimpleFoTAuras = function(self)
 		growthY = "UP",
 	})
 	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
-	Auras:SetPoint("RIGHT", self, "LEFT", -C.PPOffset, -C.PPOffset)
+	Auras:SetPoint("RIGHT", self, "LEFT", -C.PPOffset, -3)
 	Auras.PostCreateButton = PostCreateAuraButton
 	Auras.showDuration = true
 	Auras.disableCooldown = true
@@ -929,112 +995,3 @@ T.CreateNameplateAuras = function(self)
 	self.Auras = Auras
 	return Auras
 end
-
--- PlayerPlate 光環已由 Cooldown Manager 取代，保留以下實作供日後評估。
---[=[
---============================================================--
------------------    [[ PlayerPlate Aura ]]    -----------------
---============================================================--
-
--- 將玩家目前 Cooldown Manager 的 TrackedBuff 轉為 AuraContainer 可用的法術白名單
--- 公開 API 只有預設分類，玩家設定的清單要從 Cooldown Viewer 的 resolved list 取得
-
--- 建立法術清單
-local function BuildTrackedBuffSpellIDs()
-	-- 取得 Cooldown Manager 的設定與 TrackedBuff 顯示物件
-	local settings = CooldownViewerSettings
-	local viewer = BuffIconCooldownViewer
-	if not (settings and settings.GetDataProvider and viewer and viewer.GetCooldownIDs) then return end
-
-	-- 確認玩家布局已載入，且目前沒有等待套用的布局變更
-	local provider = settings:GetDataProvider()
-	if not (provider and provider.GetLayoutManager and provider:GetLayoutManager()) then return end
-	if provider.IsLayoutUpdateQueued and provider:IsLayoutUpdateQueued() then return end
-
-	-- 取得玩家目前 TrackedBuff 的 cooldownID 清單
-	local cooldownIDs = viewer:GetCooldownIDs()
-	if not cooldownIDs then return end
-
-	-- 建立清單
-	local spellIDs = {}
-	for _, cooldownID in ipairs(cooldownIDs) do
-		local info = C_CooldownViewer.GetCooldownViewerCooldownInfo(cooldownID)
-		if info then
-			if info.spellID then
-				spellIDs[info.spellID] = true
-			end
-			if info.overrideSpellID then
-				spellIDs[info.overrideSpellID] = true
-			end
-			if info.overrideTooltipSpellID then
-				spellIDs[info.overrideTooltipSpellID] = true
-			end
-			if info.linkedSpellIDs then
-				for _, spellID in ipairs(info.linkedSpellIDs) do
-					spellIDs[spellID] = true
-				end
-			end
-		end
-	end
-
-	return spellIDs
-end
-
--- 套用法術清單
-local playerPlateBuffs	-- Buffs 是 CreatePlayerPlateBuffs 內的 local，需要在外層保存 AuraContainer 的引用，供法術白名單更新
-local trackedBuffRefreshQueued
-local function QueuePlayerPlateTrackedBuffRefresh()
-	if not playerPlateBuffs or trackedBuffRefreshQueued then return end
-	trackedBuffRefreshQueued = true
-	C_Timer.After(1, function()
-		trackedBuffRefreshQueued = false
-
-		local spellIDs = BuildTrackedBuffSpellIDs()
-		if not spellIDs then return end
-
-		playerPlateBuffs:SetAuraGroupCandidateFilters(playerPlateBuffs.TrackedBuffGroupKey, {
-			includeSpellIDs = spellIDs,
-		})
-	end)
-end
-
--- 玩家名條增益
-T.CreatePlayerPlateBuffs = function(self)
-	local size = C.NPAuraSize + 6
-	local spacing = 5
-
-	local Buffs = self:CreateAuras({
-		layout = HORIZONTAL,
-		layoutLimit = size * C.NPMaxAura + spacing * (C.NPMaxAura - 1),
-		initialAnchor = "BOTTOMLEFT",
-		growthX = "RIGHT",
-		growthY = "UP",
-	})
-	Buffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	Buffs.PostCreateButton = PostCreateAuraButton
-	Buffs.showDuration = true
-	Buffs.disableCooldown = true
-	Buffs.durationFormatter = RAID_AURA_DURATION
-
-	Buffs.TrackedBuffGroupKey = Buffs:AddGroup("HELPFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY", {
-		maxFrameCount = C.NPMaxAura,
-		size = size,
-		showCount = true,
-		disableMouse = true,
-		candidateFilters = {
-			includeSpellIDs = {},	-- 留白，等法術清單載入
-		},
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-		},
-	})
-
-	playerPlateBuffs = Buffs
-	EventRegistry:RegisterCallback("CooldownViewerSettings.OnDataChanged", QueuePlayerPlateTrackedBuffRefresh)
-	EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", QueuePlayerPlateTrackedBuffRefresh)
-
-	self.Buffs = Buffs
-	return Buffs
-end
---]=]
