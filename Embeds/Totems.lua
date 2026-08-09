@@ -1,4 +1,4 @@
-local addon, ns = ...
+local _, ns = ...
 local C, F, G, T = unpack(ns)
 
 -- https://github.com/FireSiku/LUI/blob/master/modules/unitframes/layout/layout.lua
@@ -8,6 +8,7 @@ local _G, CreateFrame, hooksecurefunc = _G, CreateFrame, hooksecurefunc
 local C_DurationUtil_CreateDurationTextBinding = C_DurationUtil.CreateDurationTextBinding
 local C_StringUtil_CreateNumericRuleFormatter = C_StringUtil.CreateNumericRuleFormatter
 local GetTotemDuration = GetTotemDuration
+local sort = table.sort
 local wipe = wipe
 
 local MAX_TOTEMS = _G.MAX_TOTEMS or 4
@@ -362,6 +363,11 @@ local function UpdateNormalTotemBar(element, activeButtons)
 	element:SetShown(#activeButtons > 0)
 end
 
+-- 使用暴雪公開的圖騰顯示順位
+local function SortTotemButtons(buttonA, buttonB)
+	return buttonA.layoutIndex < buttonB.layoutIndex
+end
+
 -- hook 原生的狀態更新，Ruri 只同步外觀
 function T.UpdateTotemBar()
 	local element = _G.Ruri_TotemBar
@@ -383,6 +389,7 @@ function T.UpdateTotemBar()
 			activeButtons[#activeButtons + 1] = button
 		end
 	end
+	sort(activeButtons, SortTotemButtons)
 
 	LayoutTotemBar(element, compactLimit)
 
