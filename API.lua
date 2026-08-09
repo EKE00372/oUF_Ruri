@@ -1,27 +1,18 @@
-local addon, ns = ... 
+local _, ns = ...
 local unpack = unpack
-local C, F, G, T = unpack(ns)
+local F, G = ns[2], ns[3]
 
-local tonumber, select, type = tonumber, select, type
-local strmatch, floor, format = strmatch, math.floor, format
+local select, type = select, type
+local floor, format = math.floor, format
 local CreateFrame, CreateAbbreviateConfig, AbbreviateNumbers = CreateFrame, CreateAbbreviateConfig, AbbreviateNumbers
-local SetCVar = C_CVar.SetCVar
-local C_Timer_After = C_Timer.After
-local C_SpecializationInfo_GetSpecialization = C_SpecializationInfo.GetSpecialization
-local C_SpecializationInfo_GetSpecializationInfo = C_SpecializationInfo.GetSpecializationInfo
-local C_ClassTalents_GetActiveConfigID = C_ClassTalents.GetActiveConfigID
 
 --======================================================--
 -----------------    [[ Functions ]]    ------------------
 --======================================================--
 
 --[[
-local SecretValueTestMode = true
-SetCVar("secretChallengeModeRestrictionsForced", 1)
-SetCVar("secretCombatRestrictionsForced", 1)
-SetCVar("secretEncounterRestrictionsForced", 1)
-SetCVar("secretMapRestrictionsForced", 1)
-SetCVar("secretPvPMatchRestrictionsForced", 1)
+/run for _,s in ipairs({"Chat","ChallengeMode","Encounter","Map","PvPMatch","Combat"})do C_CVar.SetCVar("addon"..s.."RestrictionsForced","1")end
+
 ]]--
 
 -- [[ 多重條件匹配 ]] --
@@ -37,67 +28,26 @@ F.IsAny = function(check, ...)
 	return false
 end
 
--- [[ 獲取NpcID]] --
+-- [[ 單位框架提示 ]] --
 
-F.GetNPCID = function(guid)
-	local id = tonumber(strmatch((guid or ""), "%-(%d-)%-%x-$"))
-	return id
-end
+-- oUF 14 以 __unit 保存目前單位；暴雪 UnitFrame_OnEnter 仍讀取舊的 self.unit。
+F.UnitFrameOnEnter = function(self)
+	local unit = self.__unit
+	if not unit then
+		self.UpdateTooltip = nil
+		return
+	end
 
-
--- [[ 獲取專精ID ]] --
-
--- 初始化
-local SpecBoolean = 1
-
--- 提供調用函數
-function F.SpecCheck()
-	return SpecBoolean
-end
-
--- 檢查專精返回需要的偏移量
-local function SpecUpdate()
-	local specIndex = C_SpecializationInfo_GetSpecialization()
-	local specID = specIndex and C_SpecializationInfo_GetSpecializationInfo(specIndex) or 0
-
-	-- 第一層：坦克資源
-	-- 實際啟用條件集中在 Libs/oUF_TankResource.lua
-	local hasTankResource = F.GetRuriOption("TankResource") and T.PlayerHasTankResource and T.PlayerHasTankResource()
-
-	-- 第二層：職業資源：ClassPower/Runes/Essence/Stagger/AdditionalPower 共用
-	-- 死騎/盜賊/術士/喚能/聖騎
-	-- 鳥貓/秘法/暗牧/元薩/酒僧/風僧 https://warcraft.wiki.gg/wiki/SpecializationID
-	local hasClassResource =
-		F.IsAny(G.myClass, "DEATHKNIGHT", "ROGUE", "WARLOCK", "EVOKER", "PALADIN") or
-		F.IsAny(specID, 102, 103, 62, 258, 262, 268, 269)
-
-	if hasTankResource and hasClassResource then
-		SpecBoolean = 3
-	elseif hasTankResource or hasClassResource then
-		SpecBoolean = 2
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	if GameTooltip:SetUnit(unit, self.hideStatusOnTooltip) then
+		GameTooltip_AddBlankLineToTooltip(GameTooltip)
+		GameTooltip_AddInstructionLine(GameTooltip, UNIT_POPUP_RIGHT_CLICK)
+		GameTooltip:Show()
+		self.UpdateTooltip = F.UnitFrameOnEnter
 	else
-		-- 無額外資源層
-		SpecBoolean = 1
+		self.UpdateTooltip = nil
 	end
 end
-
--- PEW和切專精時獲取當前值
-local frame = CreateFrame("Frame")
-	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-	frame:RegisterEvent("ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
-	frame:RegisterEvent("PLAYER_TALENT_UPDATE")
-	frame:RegisterEvent("SPELLS_CHANGED")
-	frame:RegisterEvent("TRAIT_CONFIG_UPDATED")
-	frame:SetScript("OnEvent", function(self, event, ...)
-		local arg1 = ...
-
-		if event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 ~= "player" then return end
-		if event == "TRAIT_CONFIG_UPDATED" and C_ClassTalents_GetActiveConfigID() ~= arg1 then return end
-
-		SpecUpdate()
-		C_Timer_After(1, SpecUpdate)
-	end)
 
 --===================================================--
 -----------------    [[ Format ]]    ------------------
@@ -105,18 +55,22 @@ local frame = CreateFrame("Frame")
 
 -- [[ 數值 ]] --
 
+-- 斷點，單位，有效數截斷除數，小數點縮放除數、是否使用全域縮寫
+-- 1234 (1e3) 除以 100 (1e2) 並捨去小數得到 12，再除以 10 (1e1) 得到 1.2k
 local NumberAbbrConfig = {
-    config = CreateAbbreviateConfig({
-        { breakpoint = 1e9, abbreviation = "b", significandDivisor = 1e5, fractionDivisor = 1e4, abbreviationIsGlobal = false },
-        { breakpoint = 1e6, abbreviation = "m", significandDivisor = 1e4, fractionDivisor = 1e2, abbreviationIsGlobal = false },
-        { breakpoint = 1e5, abbreviation = "k", significandDivisor = 1e3, fractionDivisor = 1,   abbreviationIsGlobal = false },
-        { breakpoint = 1e3, abbreviation = "k", significandDivisor = 1e2, fractionDivisor = 1e1, abbreviationIsGlobal = false },
-    })
+	config = CreateAbbreviateConfig({
+		{ breakpoint = 1e9, abbreviation = "b", significandDivisor = 1e5, fractionDivisor = 1e4, abbreviationIsGlobal = false },
+		{ breakpoint = 1e6, abbreviation = "m", significandDivisor = 1e4, fractionDivisor = 1e2, abbreviationIsGlobal = false },
+		{ breakpoint = 1e5, abbreviation = "k", significandDivisor = 1e3, fractionDivisor = 1,   abbreviationIsGlobal = false },
+		{ breakpoint = 1e3, abbreviation = "k", significandDivisor = 1e2, fractionDivisor = 1e1, abbreviationIsGlobal = false },
+	})
 }
+
 -- 直接交給允許 secret number 的原生 formatter
 F.NumberAbbrValue = function(value)
 	return AbbreviateNumbers(value, NumberAbbrConfig)
 end
+
 -- [[ 顏色 ]] --
 
 F.Hex = function(r, g, b)
@@ -178,22 +132,9 @@ F.CreateText = function(parent, layer, font, fontsize, fontflag, justify)
 	return text
 end
 
--- [[ 框體模板 ]] --
-
--- 格式：父級框體，大小
-F.CreateBackdrop = function(parent, size)
-	parent:SetBackdrop({
-		bgFile = "Interface\\Buttons\\WHITE8x8",		-- 背景
-		edgeFile = G.media.glow,						-- 陰影邊框
-		edgeSize = size,								-- 邊框大小
-		tile = false, tilesize = size,
-		insets = {left = size, right = size, top = size, bottom = size}	-- 正值內縮，負值外擴
-	})
-end
-
 -- [[ 背景與邊框 ]] --
 
--- 格式：父級框體，錨點，大小，紅，綠，藍，透明度
+-- 格式：父級框體，錨點，大小，紅，綠，藍，背景透明度，邊框透明度
 F.CreateBD = function(parent, anchor, size, r, g, b, a1, a2)
 	local bd = CreateFrame("Frame", nil, parent, "BackdropTemplate")
 	local framelvl = parent:GetFrameLevel()
@@ -241,23 +182,14 @@ end
 F.CreateStatusbar = function(parent, name, layer, height, width, r, g, b, alpha)
 	local bar = CreateFrame("StatusBar", name, parent)
 	
-	if height then
-		bar:SetHeight(height)
-	end
-	
-	if width then
-		bar:SetWidth(width)
-	end
+	if height then bar:SetHeight(height) end
+	if width then bar:SetWidth(width) end
 	
 	bar:SetStatusBarTexture(G.media.blank, layer)
-	
-	-- fix bar texture
 	bar:GetStatusBarTexture():SetHorizTile(false)
 	bar:GetStatusBarTexture():SetVertTile(false)
 	
-	if r then
-		bar:SetStatusBarColor(r, g, b, alpha)
-	end
+	if r then bar:SetStatusBarColor(r, g, b, alpha) end
 	
 	return bar
 end
