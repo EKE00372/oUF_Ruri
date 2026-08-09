@@ -1,260 +1,235 @@
-local addon, ns = ...
-local C, F, G, T = unpack(ns)
-local oUF = ns.oUF or oUF
+local _, ns = ...
+local F, G = ns[2], ns[3]
 
 local function CrosshairsEnabled()
-	return F.GetRuriOption("Nameplates") and F.GetRuriOption("Crosshairs")
+	return F.GetRuriOption("Crosshairs")
 end
 
-local alpha = 0.7 -- Overall alpha
-local Speed = 10 -- Higher number moves crosshair faster
-local lineAlpha = 0.7 -- Set to 0 to hide lines but keep the circle
+local function CreateCrosshairs()
 
-local _, addon = ...
+	local overallAlpha = 0.7
+	local lineAlpha = 0.7 -- Set to 0 to hide lines but keep the circle
 
-local f = CreateFrame('frame', "Crosshairs", WorldFrame)
---LibStub('LibNameplateRegistry-1.0'):Embed(f)
-f:SetFrameLevel(0)
-f:SetFrameStrata('BACKGROUND')
-f:SetPoint('CENTER')
-f:SetSize(64, 64)
---f:SetAlpha(0.5)
+	local f = CreateFrame('Frame', nil, WorldFrame)
+	f:SetFrameStrata('HIGH')
+	f:SetFrameLevel(0)
+	f:SetPoint('CENTER')
+	f:SetSize(64, 64)
 
-local uiScale = 1
-local screen_size = {GetPhysicalScreenSize()}
-if screen_size and screen_size[2] then
-	uiScale = 768 / screen_size[2]
-end
-local lineWidth = uiScale * 2
-
-local circle = WorldFrame:CreateTexture(nil, 'BACKGROUND')
-circle:SetTexture(G.media.circle)
-circle:SetAllPoints(f)
-circle:SetAlpha(alpha)
---circle:SetPoint('CENTER')
---circle:SetSize(86, 86)
-
-local left = WorldFrame:CreateTexture(nil, 'BACKGROUND')
-left:SetColorTexture(1, 1, 1, alpha)
-left:SetPoint('RIGHT', f, 'LEFT', 8, 0)
-left:SetSize(2000, lineWidth)
-
-local right = WorldFrame:CreateTexture(nil, 'BACKGROUND')
-right:SetColorTexture(1, 1, 1, alpha)
-right:SetPoint('LEFT', f, 'RIGHT', -8, 0)
-right:SetSize(2000, lineWidth)
-
-local top = WorldFrame:CreateTexture(nil, 'BACKGROUND')
-top:SetColorTexture(1, 1, 1, alpha)
-top:SetPoint('BOTTOM', f, 'TOP', 0, -8)
-top:SetSize(lineWidth, 2000)
-
-local bottom = WorldFrame:CreateTexture(nil, 'BACKGROUND')
-bottom:SetColorTexture(1, 1, 1, alpha)
-bottom:SetPoint('TOP', f, 'BOTTOM', 0, 8)
-bottom:SetSize(lineWidth, 2000)
-
----[[
-circle:SetBlendMode('ADD')
-left:SetBlendMode('ADD')
-right:SetBlendMode('ADD')
-top:SetBlendMode('ADD')
-bottom:SetBlendMode('ADD')
---]]
-
-local tx = WorldFrame:CreateTexture(nil, 'BACKGROUND')
-tx:SetTexture(G.media.arrows)
-tx:SetAllPoints(f)
---tx:SetPoint('CENTER')
---tx:SetSize(86, 86)
---tx:SetAlpha(0.5)
-
-local function HideEverything()
-	circle:Hide()
-	left:Hide()
-	right:Hide()
-	top:Hide()
-	bottom:Hide()
-	tx:Hide()
-end
-
-local function ShowEverything()
-	circle:Show()
-	left:Show()
-	right:Show()
-	top:Show()
-	bottom:Show()
-	tx:Show()
-end
-
-f:HookScript('OnHide', HideEverything)
-f:HookScript('OnShow', ShowEverything)
-f:Hide()
-
-local ag = tx:CreateAnimationGroup()
-local rotation = ag:CreateAnimation('Rotation')
-rotation:SetDegrees(-360)
-rotation:SetDuration(5)
-ag:SetLooping('REPEAT')
-ag:Play()
-
-local group = tx:CreateAnimationGroup()
-group:SetToFinalAlpha(true)
-local alpha = group:CreateAnimation('Alpha')
-alpha:SetFromAlpha(0)
-alpha:SetToAlpha(1)
---alpha:SetChange(-1)
---alpha:SetOrder(1)
-alpha:SetDuration(0.5)
-
---local alpha2 = group:CreateAnimation('Alpha')
---alpha2:SetChange(1)
---alpha2:SetDuration(0.5)
---alpha2:SetOrder(2)
---alpha2:SetSmoothing('OUT')
-
-local scale1 = group:CreateAnimation('Scale')
---scale1:SetOrder(2)
-scale1:SetScale(2, 2)
-scale1:SetDuration(0)
-
-local scale = group:CreateAnimation('Scale')
---scale:SetOrder(2)
-scale:SetScale(0.5, 0.5)
-scale:SetDuration(0.5)
---scale:SetSmoothing('IN')
-
-local fadeOut = f:CreateAnimationGroup()
-fadeOut:SetToFinalAlpha(true)
-local alpha = fadeOut:CreateAnimation('Alpha')
---alpha:SetChange(-1)
-alpha:SetFromAlpha(1)
-alpha:SetToAlpha(0)
-alpha:SetDuration(0.2)
-fadeOut:SetScript('OnFinished', function(self) f:Hide() end)
-
-
-local fadeIn = f:CreateAnimationGroup()
-fadeIn:SetToFinalAlpha(true)
-local alpha1 = fadeIn:CreateAnimation('Alpha')
-alpha1:SetOrder(1)
---alpha1:SetChange(-1)
-alpha1:SetFromAlpha(0)
-alpha1:SetToAlpha(1)
-alpha1:SetDuration(0.2)
-
---local alpha = fadeIn:CreateAnimation('Alpha')
---alpha:SetChange(1)
---alpha:SetOrder(2)
---alpha:SetDuration(0.2)
-fadeOut:SetScript('OnFinished', function(self) f:Hide() end)
-
-local function SetColor(r, g, b)
-	circle:SetVertexColor(r, g, b)
-	left:SetVertexColor(r, g, b)
-	right:SetVertexColor(r, g, b)
-	top:SetVertexColor(r, g, b)
-	bottom:SetVertexColor(r, g, b)
-	tx:SetVertexColor(r, g, b)
-end
-
--- Adjust line alpha based on combat status
-local function SetLineAlpha(alpha)
-	left:SetAlpha(alpha)
-	right:SetAlpha(alpha)
-	top:SetAlpha(alpha)
-	bottom:SetAlpha(alpha)	
-end
-
--- Initial state
-SetLineAlpha(lineAlpha)
-
--- fade in if our crosshairs weren't visible
-local Moving = false
-local function FocusPlate(plate)
-    --f:SetPoint('CENTER', plate)
-	fadeOut:Stop()
-    f:ClearAllPoints()
-    f:SetPoint('CENTER', plate)
-	if not f:IsShown() then
-		fadeIn:Play()
+	local uiScale = 1
+	local screen_size = {GetPhysicalScreenSize()}
+	if screen_size and screen_size[2] then
+		uiScale = 768 / screen_size[2]
 	end
-	
-	f:Show()
-	group:Play()
-	
-	local r, g, b = 1, 1, 1
-	--if UnitIsTapped('target') and not UnitIsTappedByPlayer('target') and not UnitIsTappedByAllThreatList('target') then
-	if UnitIsTapDenied('target') then
-		--SetColor(0.5, 0.5, 0.5)
-		r, g, b = 0.5, 0.5, 0.5
-	elseif UnitIsPlayer('target') then
-		local _, class = UnitClass('target')
-		if class and RAID_CLASS_COLORS[class] then
-			local colors = RAID_CLASS_COLORS[class]
-			r, g, b = colors.r, colors.g, colors.b
-		else
-			r, g, b = 0.274, 0.705, 0.392 --70/255,  180/255, 100/255
+	local lineWidth = uiScale * 2
+
+	local circle = f:CreateTexture(nil, 'BACKGROUND')
+	circle:SetTexture(G.media.circle)
+	circle:SetAllPoints(f)
+	circle:SetAlpha(overallAlpha)
+
+	local left = f:CreateTexture(nil, 'BACKGROUND')
+	left:SetColorTexture(1, 1, 1, overallAlpha)
+	left:SetPoint('RIGHT', f, 'LEFT', 8, 0)
+	left:SetSize(2000, lineWidth)
+
+	local right = f:CreateTexture(nil, 'BACKGROUND')
+	right:SetColorTexture(1, 1, 1, overallAlpha)
+	right:SetPoint('LEFT', f, 'RIGHT', -8, 0)
+	right:SetSize(2000, lineWidth)
+
+	local top = f:CreateTexture(nil, 'BACKGROUND')
+	top:SetColorTexture(1, 1, 1, overallAlpha)
+	top:SetPoint('BOTTOM', f, 'TOP', 0, -8)
+	top:SetSize(lineWidth, 2000)
+
+	local bottom = f:CreateTexture(nil, 'BACKGROUND')
+	bottom:SetColorTexture(1, 1, 1, overallAlpha)
+	bottom:SetPoint('TOP', f, 'BOTTOM', 0, 8)
+	bottom:SetSize(lineWidth, 2000)
+
+	---[[
+	circle:SetBlendMode('ADD')
+	left:SetBlendMode('ADD')
+	right:SetBlendMode('ADD')
+	top:SetBlendMode('ADD')
+	bottom:SetBlendMode('ADD')
+	--]]
+
+	local tx = f:CreateTexture(nil, 'BACKGROUND')
+	tx:SetTexture(G.media.arrows)
+	tx:SetAllPoints(f)
+
+	local rotationGroup
+
+	local function HideEverything()
+		circle:Hide()
+		left:Hide()
+		right:Hide()
+		top:Hide()
+		bottom:Hide()
+		tx:Hide()
+		if rotationGroup then rotationGroup:Stop() end
+	end
+
+	local function ShowEverything()
+		circle:Show()
+		left:Show()
+		right:Show()
+		top:Show()
+		bottom:Show()
+		tx:Show()
+		if rotationGroup and not rotationGroup:IsPlaying() then
+			rotationGroup:Play()
 		end
-	elseif UnitIsOtherPlayersPet('target') then
-		r, g, b = 0.6, 0.6, 0.6
-	else
-		r, g, b = UnitSelectionColor('target')
-	end
-	SetColor(r, g, b)
-	
-	
-	--Moving = GetTime()
-end
-
-function f:PLAYER_TARGET_CHANGED()
-	if not CrosshairsEnabled() then
-		fadeOut:Play()
-		return
 	end
 
-	local nameplate = C_NamePlate.GetNamePlateForUnit('target') --f:GetPlateByGUID(targetGUID)
-	if nameplate then
-		FocusPlate(nameplate)
-		--TargetLock:Show()
-	else
-		fadeOut:Play()
+	f:HookScript('OnHide', HideEverything)
+	f:HookScript('OnShow', ShowEverything)
+	f:Hide()
+
+	rotationGroup = tx:CreateAnimationGroup()
+	local rotation = rotationGroup:CreateAnimation('Rotation')
+	rotation:SetDegrees(-360)
+	rotation:SetDuration(5)
+	rotationGroup:SetLooping('REPEAT')
+
+	local group = tx:CreateAnimationGroup()
+	group:SetToFinalAlpha(true)
+	local pulseAlpha = group:CreateAnimation('Alpha')
+	pulseAlpha:SetFromAlpha(0)
+	pulseAlpha:SetToAlpha(1)
+	pulseAlpha:SetDuration(0.5)
+
+	local scale1 = group:CreateAnimation('Scale')
+	scale1:SetScale(2, 2)
+	scale1:SetDuration(0)
+
+	local scale = group:CreateAnimation('Scale')
+	scale:SetScale(0.5, 0.5)
+	scale:SetDuration(0.5)
+
+	local fadeOut = f:CreateAnimationGroup()
+	fadeOut:SetToFinalAlpha(true)
+	local fadeOutAlpha = fadeOut:CreateAnimation('Alpha')
+	fadeOutAlpha:SetFromAlpha(1)
+	fadeOutAlpha:SetToAlpha(0)
+	fadeOutAlpha:SetDuration(0.2)
+	fadeOut:SetScript('OnFinished', function() f:Hide() end)
+
+	local fadeIn = f:CreateAnimationGroup()
+	fadeIn:SetToFinalAlpha(true)
+	local fadeInAlpha = fadeIn:CreateAnimation('Alpha')
+	fadeInAlpha:SetOrder(1)
+	fadeInAlpha:SetFromAlpha(0)
+	fadeInAlpha:SetToAlpha(1)
+	fadeInAlpha:SetDuration(0.2)
+
+	local function SetColor(r, g, b)
+		circle:SetVertexColor(r, g, b)
+		left:SetVertexColor(r, g, b)
+		right:SetVertexColor(r, g, b)
+		top:SetVertexColor(r, g, b)
+		bottom:SetVertexColor(r, g, b)
+		tx:SetVertexColor(r, g, b)
 	end
-end
-f:RegisterEvent('PLAYER_TARGET_CHANGED')
 
-function f:PLAYER_ENTERING_WORLD()
-	-- PLAYER_TARGET_CHANGED doesn't fire when you lose your target from zoning
-	self:PLAYER_TARGET_CHANGED()
-end
-f:RegisterEvent('PLAYER_ENTERING_WORLD')
-
-local xFactor, yFactor = 1, 1 -- pixel perfect stuff, just try and prevent it from screwing up our lines
-function ScaleCoords(xPixel, yPixel, trueScale)
-	local x, y  = xPixel / xFactor, yPixel / yFactor
-	x, y = x - x % 1, y - y % 1 -- floor
-	return trueScale and (xPixel * xFactor) or (x * xFactor), trueScale and (xPixel * xFactor) or (y * yFactor)
-end
-
-function f:NAME_PLATE_UNIT_ADDED(unit)
-	if not CrosshairsEnabled() then return end
-
-	local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
-	if nameplate and UnitIsUnit('target', unit) then
-		FocusPlate(nameplate)
-		--TargetLock:Show()
+	-- Adjust line alpha based on combat status
+	local function SetLineAlpha(alpha)
+		left:SetAlpha(alpha)
+		right:SetAlpha(alpha)
+		top:SetAlpha(alpha)
+		bottom:SetAlpha(alpha)
 	end
-end
-f:RegisterEvent('NAME_PLATE_UNIT_ADDED')
 
-function f:NAME_PLATE_UNIT_REMOVED(unit)
-	if not CrosshairsEnabled() then return end
+	-- Initial state
+	SetLineAlpha(lineAlpha)
 
-	local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
-	if UnitIsUnit('target', unit) then
-		fadeOut:Play()
+	local function FocusPlate(plate)
+		fadeOut:Stop()
+		f:ClearAllPoints()
+		f:SetPoint('CENTER', plate)
+		if not f:IsShown() then
+			fadeIn:Play()
+		end
+
+		f:Show()
+		group:Play()
+
+		local r, g, b = 1, 1, 1
+		--if UnitIsTapped('target') and not UnitIsTappedByPlayer('target') and not UnitIsTappedByAllThreatList('target') then
+		if UnitIsTapDenied('target') then
+			--SetColor(0.5, 0.5, 0.5)
+			r, g, b = 0.5, 0.5, 0.5
+		elseif UnitIsPlayer('target') then
+			local _, class = UnitClass('target')
+			local colors = C_ClassColor.GetClassColor(class)
+			if colors then
+				r, g, b = colors.r, colors.g, colors.b
+			else
+				r, g, b = 0.274, 0.705, 0.392 --70/255,  180/255, 100/255
+			end
+		elseif UnitIsOtherPlayersPet('target') then
+			r, g, b = 0.6, 0.6, 0.6
+		else
+			r, g, b = UnitSelectionColor('target')
+		end
+		SetColor(r, g, b)
 	end
-end
-f:RegisterEvent('NAME_PLATE_UNIT_REMOVED')
 
-f:SetScript('OnEvent', function(self, event, ...) return self[event] and self[event](self, ...) end)
+	function f:PLAYER_TARGET_CHANGED()
+		if not CrosshairsEnabled() then
+			fadeOut:Play()
+			return
+		end
+
+		local nameplate = C_NamePlate.GetNamePlateForUnit('target')
+		if nameplate then
+			FocusPlate(nameplate)
+			--TargetLock:Show()
+		else
+			fadeOut:Play()
+		end
+	end
+	f:RegisterEvent('PLAYER_TARGET_CHANGED')
+
+	function f:PLAYER_ENTERING_WORLD()
+		-- PLAYER_TARGET_CHANGED doesn't fire when you lose your target from zoning
+		self:PLAYER_TARGET_CHANGED()
+	end
+	f:RegisterEvent('PLAYER_ENTERING_WORLD')
+
+	function f:NAME_PLATE_UNIT_ADDED(unit)
+		if not CrosshairsEnabled() then return end
+
+		local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
+		if nameplate and nameplate == C_NamePlate.GetNamePlateForUnit('target') then
+			FocusPlate(nameplate)
+			--TargetLock:Show()
+		end
+	end
+	f:RegisterEvent('NAME_PLATE_UNIT_ADDED')
+
+	function f:NAME_PLATE_UNIT_REMOVED(unit)
+		if not CrosshairsEnabled() then return end
+
+		local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
+		local targetPlate = C_NamePlate.GetNamePlateForUnit('target')
+		if not targetPlate or targetPlate == nameplate then
+			fadeOut:Play()
+		end
+	end
+	f:RegisterEvent('NAME_PLATE_UNIT_REMOVED')
+
+	f:SetScript('OnEvent', function(self, event, ...) return self[event] and self[event](self, ...) end)
+end
+
+local loader = CreateFrame('Frame')
+loader:RegisterEvent('PLAYER_LOGIN')
+loader:SetScript('OnEvent', function(self, event)
+	self:UnregisterEvent(event)
+	self:SetScript('OnEvent', nil)
+	if CrosshairsEnabled() then
+		CreateCrosshairs()
+	end
+end)
