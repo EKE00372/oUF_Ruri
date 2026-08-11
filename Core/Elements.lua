@@ -698,6 +698,9 @@ T.CreateClassPower = function(self, unit)
 		self.Essence.color = {0.02, 0.9, 0.9}
 		self.Essence.updateInterval = .1
 		self.Essence.MaxChangeUpdate = UpdateClassPowerBars
+		if self.mystyle ~= "BPP" then
+			self.Essence.PostVisibility = PostResourceVisibility
+		end
 	else
 		self.ClassPower = ClassPower
 		if self.mystyle ~= "BPP" then
