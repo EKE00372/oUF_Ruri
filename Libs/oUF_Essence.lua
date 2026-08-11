@@ -12,6 +12,7 @@ Try layout as same as classpower/rune.
 .color
 .updateInterval - number, seconds between Charging_OnUpdate ticks (default 0.05)
 .PostUpdate(self, cur, max) - callback after every refresh, If you want more custom
+.PostVisibility(self, isVisible) - callback after vehicle visibility changes
 
 ## Sub-Widget Options
 
@@ -38,7 +39,10 @@ Try layout as same as classpower/rune.
 local _, ns  = ...
 local oUF    = ns.oUF or oUF
 local UnitPower, UnitPowerMax, UnitPartialPower = UnitPower, UnitPowerMax, UnitPartialPower
+local UnitHasVehicleUI = UnitHasVehicleUI
 local PTYPE  = Enum.PowerType.Essence
+local STATE = {}
+local EssenceEnable, EssenceDisable
 
 local function Charging_OnUpdate(bar, elapsed)
     local interval = bar.updateInterval or 0.05
@@ -51,11 +55,13 @@ local function Charging_OnUpdate(bar, elapsed)
 end
 
 local function Update(self, _, unit, ptype)
-    if self.__unit ~= unit or (ptype and ptype ~= 'ESSENCE') then return end
-
     local element = self.Essence
-    local cur     = UnitPower(unit, PTYPE) or 0
-    local max     = UnitPowerMax(unit, PTYPE) or 0
+    local state = STATE[element]
+    if not state or not state.enabled then return end
+    if unit ~= 'player' or self.__unit ~= unit or (ptype and ptype ~= 'ESSENCE') then return end
+
+    local cur     = UnitPower('player', PTYPE) or 0
+    local max     = UnitPowerMax('player', PTYPE) or 0
     local created = #element
 
     -- 龍能基礎 5 顆，天賦可提高到 6 顆；API 未就緒時退回已建立數量。
@@ -107,7 +113,69 @@ local function Path(self, ...)
     return (self.Essence.Override or Update)(self, ...)
 end
 
--- ------------------------------------------------------------------- --
+local function Visibility(self, event)
+    local element = self.Essence
+    local state = STATE[element]
+    if not state then return end
+
+    -- Essence 只顯示玩家自身資源；進入載具時依 oUF 職業資源慣例停用。
+    local shouldEnable = self.__unit == 'player' and not UnitHasVehicleUI('player')
+    if shouldEnable ~= state.enabled then
+        if shouldEnable then
+            EssenceEnable(self)
+        else
+            EssenceDisable(self)
+        end
+
+        if element.PostVisibility then
+            element:PostVisibility(shouldEnable)
+        end
+    elseif shouldEnable then
+        Path(self, event, 'player', 'ESSENCE')
+    end
+end
+
+local function VisibilityPath(self, ...)
+    return (self.Essence.OverrideVisibility or Visibility)(self, ...)
+end
+
+local function ForceUpdate(element)
+    return VisibilityPath(element.__owner, 'ForceUpdate', element.__owner.__unit)
+end
+
+do
+    function EssenceEnable(self)
+        local element = self.Essence
+        local state = STATE[element]
+        if not state then return end
+
+        self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
+        self:RegisterEvent('UNIT_MAXPOWER', Path)
+        state.enabled = true
+
+        Path(self, 'EssenceEnable', 'player', 'ESSENCE')
+    end
+
+    function EssenceDisable(self)
+        local element = self.Essence
+        local state = STATE[element]
+        if not state then return end
+
+        self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
+        self:UnregisterEvent('UNIT_MAXPOWER', Path)
+
+        for i = 1, #element do
+            local bar = element[i]
+            bar:SetScript('OnUpdate', nil)
+            bar.t = nil
+            bar:Hide()
+        end
+
+        element.__max = nil
+        state.enabled = false
+    end
+end
+
 local function Enable(self, unit)
     local element = self.Essence
     if not element or unit ~= 'player' then return end
@@ -134,31 +202,18 @@ local function Enable(self, unit)
         end
     end
 
-    self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
-    self:RegisterEvent('UNIT_MAXPOWER',       Path)
-
-    element.__owner     = self
-    element.ForceUpdate = function()
-        return Path(self, 'ForceUpdate', self.__unit, 'ESSENCE')
-    end
+    element.__owner = self
+    element.ForceUpdate = ForceUpdate
+    STATE[element] = {}
     return true
 end
 
 local function Disable(self)
     local element = self.Essence
     if element then
-        self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
-        self:UnregisterEvent('UNIT_MAXPOWER',       Path)
-
-        for i = 1, #element do
-            local bar = element[i]
-            bar:SetScript('OnUpdate', nil)
-            bar.t = nil
-            bar:Hide()
-        end
-
-        element.__max = nil
+        EssenceDisable(self)
+        STATE[element] = nil
     end
 end
 
-oUF:AddElement('Essence', Path, Enable, Disable)
+oUF:AddElement('Essence', VisibilityPath, Enable, Disable)
