@@ -130,9 +130,14 @@ local function CreateInfoTooltip(parent, text)
 	icon:SetHighlightTexture(G.media.info)
 
 	icon:SetScript("OnEnter", function(self)
+		local tooltip = L[text] or text
+		if type(tooltip) == "function" then
+			tooltip = tooltip()
+		end
+
 		GameTooltip:ClearLines()
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 0, 0)
-		GameTooltip:AddLine(L[text] or text, 1, 1, 1, true)
+		GameTooltip:AddLine(tooltip, 1, 1, 1, true)
 		GameTooltip:Show()
 	end)
 	icon:SetScript("OnLeave", function()

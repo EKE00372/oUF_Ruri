@@ -2,6 +2,15 @@ local _, ns = ...
 local L = ns[5]
 
 local GetLocale = GetLocale
+local GetBindingKey, GetBindingText = GetBindingKey, GetBindingText
+
+-- 綁定需在 tooltip 顯示時讀取；插件載入階段可能尚未建立使用者按鍵設定。
+local function CreateBindingTooltip(text, action)
+	return function()
+		local key = GetBindingKey(action)
+		return text:format(GetBindingText(key))
+	end
+end
 
 --===================================================--
 -----------------    [[ Locales ]]    -----------------
@@ -62,7 +71,7 @@ if GetLocale() == "zhTW" then
 	L.CVars = "調整 CVar"
 	L.CVarsTip = "調整一些名條的 CVar。\n\n可以在 Embeds\\CVars.lua 查看改動的 CVar 清單。"
 	L.FriendlyNameSize = "調整友方名字"
-	L.FriendlyNameSizeTip = "啟用友方名字模式，隱藏血量條並使用描邊與較大字型。\n\n這項功能受暴雪限制，啟用後會更改原生名條外觀。"
+	L.FriendlyNameSizeTip = CreateBindingTooltip("啟用友方名字模式，進入副本會自動開啟友方名條，隱藏血量條並使用描邊與較大字型。\n\n你可以按 %s 切換友方名條顯隱。\n\n這項功能受暴雪限制，啟用後會更改原生名條外觀。", "FRIENDNAMEPLATES")
 	L.PlayerPlate = "玩家個人資源"
 	L.PlayerPlateTip = "顯示血量、能量與職業資源的簡易資源條。\n\n啟用後會停用暴雪原生的玩家個人資源條。"
 
@@ -126,7 +135,7 @@ elseif GetLocale() == "zhCN" then
 	L.CVars = "调整 CVar"
 	L.CVarsTip = "调整一些姓名板的 CVar。\n\n可以在 Embeds\\CVars.lua 中查看改动的 CVar 列表。"
 	L.FriendlyNameSize = "调整友方名字"
-	L.FriendlyNameSizeTip = "启用友方名字模式，隐藏血量条并使用描边和较大字体。\n\n此功能受暴雪限制，启用后会更改原生姓名板外观。"
+	L.FriendlyNameSizeTip = CreateBindingTooltip("启用友方名字模式，进入副本会自动开启友方姓名板，隐藏血量条并使用描边和较大字体。\n\n你可以按 %s 切换友方姓名板的显示与隐藏。\n\n此功能受暴雪限制，启用后会更改原生姓名板外观。", "FRIENDNAMEPLATES")
 	L.PlayerPlate = "玩家个人资源"
 	L.PlayerPlateTip = "显示血量、能量与职业资源的简易资源条。启用后会停用暴雪原生的玩家个人资源条。"
 
@@ -190,7 +199,7 @@ else
 	L.CVars = "Adjust CVars"
 	L.CVarsTip = "Adjust some nameplate CVars.\n\nSee Embeds\\CVars.lua for the list of changed CVars."
 	L.FriendlyNameSize = "Adjust Friendly Names"
-	L.FriendlyNameSizeTip = "Enable friendly player name-only mode, which hides health bars and uses larger outlined text.\n\nBecause of Blizzard restrictions, enabling this changes the appearance of Blizzard nameplates."
+	L.FriendlyNameSizeTip = CreateBindingTooltip("Enable friendly player name-only mode. Friendly nameplates are enabled automatically when entering an instance; health bars are hidden and names use larger outlined text.\n\nPress %s to toggle friendly nameplates.\n\nBecause of Blizzard restrictions, enabling this changes the appearance of Blizzard nameplates.", "FRIENDNAMEPLATES")
 	L.PlayerPlate = "Player Plate"
 	L.PlayerPlateTip = "Show a simple resource bar for health, power, and class resources. Enabling it disables Blizzard's default Personal Resource Display."
 
