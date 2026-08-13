@@ -121,7 +121,7 @@ local MediaFolder = G.MediaFolder
 					options = {
 						{ type = "toggle", key = "Crosshairs", label = "Crosshairs", default = false },
 						{ type = "toggle", key = "FriendlyNameSize", label = "FriendlyNameSize", default = true, tooltip = "FriendlyNameSizeTip", requiresAny = { "Nameplates" } },
-						{ type = "toggle", key = "CVars", label = "CVars", default = true, tooltip = "CVarsTip" },
+						{ type = "toggle", key = "CVars", label = "CVars", default = true, tooltip = "CVarsTip", requiresAny = { "Nameplates" } },
 						{ type = "toggle", key = "PlayerPlate", label = "PlayerPlate", default = false, tooltip = "PlayerPlateTip", requiresAny = { "UnitFrames" } },
 					},
 				},

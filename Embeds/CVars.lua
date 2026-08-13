@@ -14,7 +14,7 @@ do
 		SetCVar("nameplateShowAll", 1)			-- Default 0；總是顯示名條
 		-- SetCVar("nameplateShowSelf", 0)		-- * Default 0；顯示個人資源
 		-- SetCVar("nameplateShowCastBars", 1)	-- * Default 1；顯示施法條
-		-- SetCVar("showSpenderFeedback", 0)		-- Default 1；資源溢出閃光
+		-- SetCVar("showSpenderFeedback", 0)	-- Default 1；資源溢出閃光
 
 		-- 非簡易名條的名字是否顯示，與 UnitName* 系列 CVar 聯動
 		-- 例：如果 UnitNameFriendlyPetName 為 0 則敵方寵物名條也不顯示名字，除非是當前目標
@@ -145,11 +145,24 @@ do
 		SetNameplateFont(SystemFont_NamePlate_Outlined)
 	end
 
+	-- 進出副本後切換友方玩家名條；只在狀態改變時寫入，避免多餘的 CVAR_UPDATE
+	local function UpdateFriendlyPlayerNameplates()
+		local inInstance = IsInInstance()
+		if GetCVarBool("nameplateShowFriendlyPlayers") ~= inInstance then
+			SetCVar("nameplateShowFriendlyPlayers", inInstance and 1 or 0)
+		end
+	end
+
 	local loader = CreateFrame("Frame")
 	loader:RegisterEvent("VARIABLES_LOADED")	-- 早於 PLAYER_LOGIN，之後 OUF 才能接管名條尺寸
-	loader:SetScript("OnEvent", function()
+	loader:RegisterEvent("PLAYER_ENTERING_WORLD")
+	loader:SetScript("OnEvent", function(_, event)
 		if F.GetRuriOption("FriendlyNameSize") and F.GetRuriOption("Nameplates") then
-			ApplyFriendlyNameSize()
+			if event == "VARIABLES_LOADED" then
+				ApplyFriendlyNameSize()
+			elseif event == "PLAYER_ENTERING_WORLD" then
+				UpdateFriendlyPlayerNameplates()
+			end
 		end
 	end)
 end
