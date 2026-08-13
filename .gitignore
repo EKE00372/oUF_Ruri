@@ -3,3 +3,7 @@ AGENTS.md
 CODE_REVIEW.md
 .agents/code_reviews/
 .agents/code_reviews/*.md
+.agents/references/
+.agents/releases/
+.agents/releases/*.md
+.agents/legacy-module-memory-*.zip
