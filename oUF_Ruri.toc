@@ -23,6 +23,7 @@ Embeds\CVars.lua
 Embeds\Crosshairs.lua
 Embeds\CompactRaid.lua
 Embeds\Totems.lua
+#Embeds\Auras.lua
 
 Tags.lua
 Core\Castbar.lua
