@@ -24,10 +24,11 @@ if GetLocale() == "zhTW" then
 	L.RaidFrames = "團隊框架"
 	L.PartyFrames = "隊伍框架"
 	L.Nameplates = "名條"
+	L.Credits = "鳴謝：\nDawn, HopeASD, ls-, p3lim, Paopao001, Peterdox, Qulight, Ray, Rhythm, Rubgrsch, Siweia, zork，排名不分先後。"
 
 	-- Overview
 	L.UnitFramesDesc = "包含玩家、寵物、目標、目標的目標、專注目標、專注目標的目標、競技場、首領。"
-	L.RaidFramesDesc = "簡單的團隊框架，只顯示團隊，不顯示隊友寵物、主坦克和主助攻的單獨框架。"
+	L.RaidFramesDesc = "簡單的團隊框架，只顯示團隊成員，不顯示隊友寵物、主坦克和主助攻的單獨框架。"
 	L.PartyFramesDesc = "簡單的隊伍框架，不顯示隊友寵物。"
 	L.NameplatesDesc = "簡單的名條。"
 
@@ -90,6 +91,7 @@ elseif GetLocale() == "zhCN" then
 	L.RaidFrames = "团队框架"
 	L.PartyFrames = "队伍框架"
 	L.Nameplates = "姓名板"
+	L.Credits = "鸣谢：\nDawn, HopeASD, ls-, p3lim, Paopao001, Peterdox, Qulight, Ray, Rhythm, Rubgrsch, Siweia, zork，排名不分先后。"
 
 	-- Overview
 	L.UnitFramesDesc = "包含玩家、宠物、目标、目标的目标、焦点目标、焦点目标的目标、竞技场、首领。"
@@ -156,6 +158,7 @@ else
 	L.RaidFrames = "Raid Frames"
 	L.PartyFrames = "Party Frames"
 	L.Nameplates = "Nameplates"
+	L.Credits = "Credits (in no particular order): \nDawn, HopeASD, ls-, p3lim, Paopao001, Peterdox, Qulight, Ray, Rhythm, Rubgrsch, Siweia, zork."
 
 	-- Overview
 	L.UnitFramesDesc = "Includes Player, Pet, Target, Target of target, Focus, Focus target, Arena, and Boss frames."
