@@ -61,7 +61,7 @@ local MediaFolder = G.MediaFolder
 			options = {
 				{ type = "toggle", key = "UnitFrames", label = "UnitFrames", desc = "UnitFramesDesc", default = true },
 				{ type = "toggle", key = "PartyFrames", label = "PartyFrames", desc = "PartyFramesDesc", default = false },
-				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = false },
+				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = false, wip = true },
 				{ type = "toggle", key = "Nameplates", label = "Nameplates", desc = "NameplatesDesc", default = false },
 			},
 		},

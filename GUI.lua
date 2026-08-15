@@ -16,6 +16,7 @@ local BREATH_IN_DURATION, BREATH_OUT_DURATION = 5, 7
 local BREATH_MAIN_SIZE, BREATH_TAB_SIZE = 12, 10
 
 local MAIN_WIDTH, MAIN_HEIGHT = 480, 340
+local PAGE_HORIZONTAL_INSET, PAGE_TOP_INSET = 26, 32
 local COLUMN_WIDTH, COLUMN_GAP = 205, 18
 local SECTION_HEIGHT, SECTION_GAP = 24, 8
 local OPTION_HEIGHT, OPTION_GAP = 26, 2
@@ -260,6 +261,7 @@ local function CreateOverviewOption(parent, option, index, yBase, group, section
 	end
 
 	SetupOptionRow(row, check, label, desc, option, group, section)
+	return desc or label
 end
 
 -- 一般選項：兩欄選項並支援 [i] tooltip
@@ -292,11 +294,12 @@ end
 -- Create category page / 創建設定頁面
 local function CreatePage(parent, group)
 	local page = CreateFrame("Frame", nil, parent)
-	page:SetPoint("TOPLEFT", 26, -34)
-	page:SetPoint("BOTTOMRIGHT", -26, 54)
+	page:SetPoint("TOPLEFT", PAGE_HORIZONTAL_INSET, -PAGE_TOP_INSET)
+	page:SetPoint("BOTTOMRIGHT", -PAGE_HORIZONTAL_INSET, 54)
 	page:Hide()
 
-	local yOffset = -4
+	local yOffset = 0
+	local lastOverviewOptionText
 
 	local function AddSection(section)
 		local optionIndex = 0
@@ -318,7 +321,7 @@ local function CreatePage(parent, group)
 			if option.type == "toggle" then
 				optionIndex = optionIndex + 1
 				if hasDescription then
-					CreateOverviewOption(page, option, optionIndex, yOffset, group, section)
+					lastOverviewOptionText = CreateOverviewOption(page, option, optionIndex, yOffset, group, section)
 				else
 					CreateCheckOption(page, option, optionIndex, yOffset, group, section)
 				end
@@ -342,6 +345,14 @@ local function CreatePage(parent, group)
 		end
 	else
 		AddSection({ options = group.options })
+	end
+
+	if group.name == "Overview" then
+		local credits = CreateText(page, L.Credits, G.NameFS - 2, "LEFT")
+		credits:SetPoint("TOPRIGHT", lastOverviewOptionText, "BOTTOMRIGHT", 0, -SECTION_GAP)
+		credits:SetSize(COLUMN_WIDTH * 2 + COLUMN_GAP - 4, (G.NameFS - 2) * 3)
+		credits:SetWordWrap(true)
+		credits:SetTextColor(.72, .86, .86, 1)
 	end
 
 	return page
