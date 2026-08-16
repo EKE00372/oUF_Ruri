@@ -55,6 +55,19 @@ local ROUND_DOWN = Enum.NumericRuleFormatRounding.Down
 --
 -- includeSpellIDs/excludeSpellIDs 只會套用於可協助單位的增益、不可協助單位的減益，以及 NeverSecret 光環；
 -- 其他光環會略過這兩個條件，因此不能依賴它們製作完整白名單，應優先使用上述原生分類。
+--
+-- AddSlot sortMethod 決定多個候選中由哪一個取得唯一 slot；AddGroup 使用相同選項排列全部候選：
+-- Default            玩家本人施放優先，再依 isPriorityAura、canApplyAura、auraInstanceID 排序。
+-- BigDefensive       非玩家本人施放優先，再依較晚的 expirationTime、auraInstanceID 排序。
+-- UnitFrameDebuff    依 ProcessAura 產生的 debuffType 排序，再套用 Default；應搭配 ProcessAura policy。
+-- ImportantOnly      C_Spell.IsSpellImportant() 為 true 者優先，再依 auraInstanceID；只排序，不負責過濾。
+-- Expiration         玩家本人施放、isPriorityAura、canApplyAura 優先，再依較早到期、auraInstanceID 排序。
+-- ExpirationOnly     只依較早到期、auraInstanceID 排序；永久光環排在有時限光環之後。
+-- Name               玩家本人施放、isPriorityAura、canApplyAura 優先，再依名稱、auraInstanceID 排序。
+-- NameOnly           只依名稱、auraInstanceID 排序。
+-- AuraInstanceIDOnly 只依 auraInstanceID 排序。
+-- sortDirection 可選 Normal 或 Reverse；Reverse 會反轉整套排序。
+-- oUF AddSlot 預設為 Default；AddGroup 預設為 ExpirationOnly。
 
 --===================================================--
 -----------------    [[ General ]]    -----------------
@@ -625,7 +638,7 @@ T.CreateVToTAuras = function(self)
 
 	local Auras = self:CreateAuras({
 		layout = VERTICAL,
-		layoutLimit = size * maxFrameCount + spacing * (maxFrameCount - 1),
+		layoutLimit = C.TOTWidth,
 		initialAnchor = "TOP",
 		growthX = "RIGHT",
 		growthY = "DOWN",
