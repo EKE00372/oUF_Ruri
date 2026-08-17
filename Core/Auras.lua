@@ -130,16 +130,20 @@ RAID_AURA_DURATION:SetBreakpoints({
 local function PostCreateAuraButton(element, button, options)
 	button.Icon:SetTexCoord(.08, .92, .08, .92)
 
-	-- 背景向按鈕外擴 1px；外置容器的錨點需補回這 1px，才能與狀態條維持相同可視間距。
+	-- 外擴 1px 邊框；外置容器的錨點需補回這 1px 偏移
 	button.bg = F.CreateBD(button, button, 1, .2, .2, .2, 1, 1)
 	button.shadow = F.CreateSD(button, button.bg, 3)
 
-	if options.showDebuffTypeShadow then
+	local showBuffTypeShadow = options.showBuffTypeShadow == true
+	local showDebuffTypeShadow = options.showDebuffTypeShadow == true
+	if showBuffTypeShadow or showDebuffTypeShadow then
 		button.bg:SetBackdropColor(0, 0, 0, 1)
 		button.bg:SetBackdropBorderColor(0, 0, 0, 1)
 
 		local dispelOptions = {
-			showWithoutDispelType = true,	-- 無類型減益也顯示
+			showWhenHarmful = showDebuffTypeShadow,
+			showWhenHelpful = showBuffTypeShadow,
+			showWithoutDispelType = true,	-- 無驅散類型的光環也顯示
 			style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,	-- 保留自定義材質，不被原生邊框材質取代
 			customDispelColorMap = element.__owner.colors.dispel,	-- 使用 ouf 的減益類型顏色表
 		}
@@ -206,9 +210,9 @@ end
 
 oUF:AddElement("AuraPolarity", UpdateAuraPolarity, EnableAuraPolarity, DisableAuraPolarity)
 
---==================================================--
------------------    [[ Create ]]    -----------------
---==================================================--
+--======================================================--
+-----------------    [[ Unitframes ]]    -----------------
+--======================================================--
 
 -- 玩家橫式減益
 T.CreatePlayerDebuffs = function(self)
@@ -803,8 +807,58 @@ T.CreateSimpleFoTAuras = function(self)
 	return Auras
 end
 
+local NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT = 2
+
+local NAMEPLATE_NPC_BUFF_GROUPS = {
+	{ -- NPC 首領與職責增益
+		filter = "HELPFUL",
+		candidateFilters = {
+			isBossOrRoleAura = true,
+		},
+		maxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT,
+		npcOnly = true,
+	},
+	{ -- NPC 可偷取的非重要增益
+		filter = "HELPFUL|!IMPORTANT",
+		candidateFilters = {
+			isStealable = true,
+			isBossOrRoleAura = false,
+		},
+		maxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT,
+		npcOnly = true,
+	},
+	{ -- NPC 其餘重要增益
+		filter = "HELPFUL|IMPORTANT",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+		},
+		maxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT,
+		npcOnly = true,
+	},
+}
+
+local BOSS_NAMEPLATE_DEBUFF_GROUPS = {
+	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
+		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY",
+		candidateFilters = {
+			nameplateShowPersonal = true,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 由暴雪標記為所有人可見的其餘名條減益
+		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY",
+		candidateFilters = {
+			nameplateShowAll = true,
+			nameplateShowPersonal = false,
+		},
+		maxFrameCount = 4,
+	},
+}
+
 -- 首領光環
 T.CreateBossAuras = function(self)
+	local spacing = 5
+
 	local Debuffs = self:CreateAuras({
 		layout = HORIZONTAL,
 		layoutLimit = C.BWidth,
@@ -819,16 +873,21 @@ T.CreateBossAuras = function(self)
 	Debuffs.disableCooldown = true
 	Debuffs.durationFormatter = UF_AURA_DURATION
 
-	Debuffs:AddGroup("HARMFUL|PLAYER", {
-		maxFrameCount = 3,
-		size = C.AuraSize,
-		showCount = true,
-		showDebuffTypeShadow = true,
-		layout = {
-			elementSpacing = 5,
-			lineSpacing = 5,
-		},
-	})
+	for layoutIndex, group in ipairs(BOSS_NAMEPLATE_DEBUFF_GROUPS) do
+		Debuffs:AddGroup(group.filter, {
+			candidateFilters = group.candidateFilters,
+			maxFrameCount = 3,
+			sortMethod = AuraContainerSortMethod.Default,
+			size = C.AuraSize,
+			showCount = true,
+			showDebuffTypeShadow = true,
+			layout = {
+				elementSpacing = spacing,
+				lineSpacing = spacing,
+				layoutIndex = layoutIndex,
+			},
+		})
+	end
 
 	local Buffs = self:CreateAuras({
 		layout = HORIZONTAL,
@@ -844,23 +903,58 @@ T.CreateBossAuras = function(self)
 	Buffs.disableCooldown = true
 	Buffs.durationFormatter = UF_AURA_DURATION
 
-	Buffs:AddGroup("HELPFUL", {
-		maxFrameCount = 2,
-		size = C.AuraSize,
-		showCount = true,
-		layout = {
-			elementSpacing = 5,
-			lineSpacing = 5,
-		},
-	})
+	for layoutIndex, group in ipairs(NAMEPLATE_NPC_BUFF_GROUPS) do
+		Buffs:AddGroup(group.filter, {
+			candidateFilters = group.candidateFilters,
+			maxFrameCount = group.maxFrameCount,
+			sortMethod = AuraContainerSortMethod.Default,
+			size = C.AuraSize,
+			showCount = true,
+			layout = {
+				elementSpacing = spacing,
+				lineSpacing = spacing,
+				layoutIndex = layoutIndex,
+			},
+		})
+	end
 
 	self.Debuffs = Debuffs
 	self.Buffs = Buffs
 	return Debuffs, Buffs
 end
 
+local ARENA_DEBUFF_GROUPS = {
+	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
+		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
+		candidateFilters = {
+			nameplateShowPersonal = true,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 由暴雪標記為所有人可見的其餘名條減益
+		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
+		candidateFilters = {
+			nameplateShowAll = true,
+			nameplateShowPersonal = false,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 控場減益
+		filter = "HARMFUL|CROWD_CONTROL",
+		maxFrameCount = 2,
+	},
+}
+
+local ARENA_BUFF_FILTERS = {
+	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
+	"HELPFUL|EXTERNAL_DEFENSIVE",
+	"HELPFUL|RAID_PLAYER_DISPELLABLE|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
+}
+
 -- 競技場光環
 T.CreateArenaAuras = function(self)
+	local spacing = 5
+
 	local Debuffs = self:CreateAuras({
 		layout = HORIZONTAL,
 		layoutLimit = C.BWidth,
@@ -875,16 +969,21 @@ T.CreateArenaAuras = function(self)
 	Debuffs.disableCooldown = true
 	Debuffs.durationFormatter = UF_AURA_DURATION
 
-	Debuffs:AddGroup("HARMFUL", {
-		maxFrameCount = 4,
-		size = C.AuraSize,
-		showCount = true,
-		showDebuffTypeShadow = true,
-		layout = {
-			elementSpacing = 5,
-			lineSpacing = 5,
-		},
-	})
+	for layoutIndex, group in ipairs(ARENA_DEBUFF_GROUPS) do
+		Debuffs:AddGroup(group.filter, {
+			candidateFilters = group.candidateFilters,
+			maxFrameCount = 4,
+			sortMethod = AuraContainerSortMethod.Default,
+			size = C.AuraSize,
+			showCount = true,
+			showDebuffTypeShadow = true,
+			layout = {
+				elementSpacing = spacing,
+				lineSpacing = spacing,
+				layoutIndex = layoutIndex,
+			},
+		})
+	end
 
 	local Buffs = self:CreateAuras({
 		layout = HORIZONTAL,
@@ -900,20 +999,61 @@ T.CreateArenaAuras = function(self)
 	Buffs.disableCooldown = true
 	Buffs.durationFormatter = UF_AURA_DURATION
 
-	Buffs:AddGroup("HELPFUL", {
-		maxFrameCount = 1,
-		size = C.AuraSize,
-		showCount = true,
-		layout = {
-			elementSpacing = 5,
-			lineSpacing = 5,
-		},
-	})
+	for layoutIndex, filter in ipairs(ARENA_BUFF_FILTERS) do
+		Buffs:AddGroup(filter, {
+			maxFrameCount = 1,
+			sortMethod = AuraContainerSortMethod.Default,
+			size = C.AuraSize,
+			showCount = true,
+			layout = {
+				elementSpacing = spacing,
+				lineSpacing = spacing,
+				layoutIndex = layoutIndex,
+			},
+		})
+	end
 
 	self.Debuffs = Debuffs
 	self.Buffs = Buffs
 	return Debuffs, Buffs
 end
+
+--======================================================--
+-----------------    [[ Raidframes ]]    -----------------
+--======================================================--
+
+local RAID_DEBUFF_GROUPS = {
+	{ -- 首領與職責，最優先分類
+		filter = "HARMFUL",
+		candidateFilters = {
+			isBossOrRoleAura = true,
+			isFromPlayerOrPlayerPet = false,
+		},
+	},
+	{ -- 其餘高優先級
+		filter = "HARMFUL",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+			isPriorityAura = true,
+			isFromPlayerOrPlayerPet = false,
+		},
+	},
+	{ -- 可驅散，不判斷是否能驅散
+		filter = "HARMFUL|DISPELLABLE",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+			isPriorityAura = false,
+		},
+	},
+	{ -- 其他普通減益
+		filter = "HARMFUL|!DISPELLABLE",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+			isPriorityAura = false,
+			isFromPlayerOrPlayerPet = false,
+		},
+	},
+}
 
 -- 團隊與小隊減益
 T.CreateRaidDebuffs = function(self)
@@ -926,9 +1066,6 @@ T.CreateRaidDebuffs = function(self)
 		growthX = "RIGHT",
 		growthY = "UP",
 	})
-	Debuffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura, {
-		ignoreBuffs = true,
-	})
 	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
 	Debuffs:SetPoint("BOTTOMLEFT", self, 4, 6)
 	Debuffs.PostCreateButton = PostCreateAuraButton
@@ -936,34 +1073,88 @@ T.CreateRaidDebuffs = function(self)
 	Debuffs.disableCooldown = true
 	Debuffs.durationFormatter = RAID_AURA_DURATION
 
-	Debuffs:AddGroup("HARMFUL", {
-		maxFrameCount = 4,
-		sortMethod = AuraContainerSortMethod.UnitFrameDebuff,
-		size = C.RaidAuraSize,
-		showCount = true,
-		showDebuffTypeShadow = true,
-		disableMouse = true,
-		tooltipAnchor = "ANCHOR_TOPLEFT",
-		candidateFilters = {
-			processedAuraType = AuraUtil.AuraUpdateChangedType.Debuff,
-		},
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-		},
-	})
+	for layoutIndex, group in ipairs(RAID_DEBUFF_GROUPS) do
+		Debuffs:AddGroup(group.filter, {
+			candidateFilters = group.candidateFilters,
+			maxFrameCount = 4,
+			sortMethod = AuraContainerSortMethod.Default,
+			size = C.RaidAuraSize,
+			showCount = true,
+			showDebuffTypeShadow = true,
+			disableMouse = true,
+			tooltipAnchor = "ANCHOR_TOPLEFT",
+			layout = {
+				elementSpacing = spacing,
+				lineSpacing = spacing,
+				layoutIndex = layoutIndex,
+			},
+		})
+	end
 
 	self.Debuffs = Debuffs
 	return Debuffs
 end
+
+local RAID_BUFF_FILTERS = {
+	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
+	"HELPFUL|EXTERNAL_DEFENSIVE",
+}
+
+-- 團隊與小隊增益
+T.CreateRaidBuffs = function(self)
+	local spacing = 4
+	local maxFrameCount = 3
+
+	local Buffs = self:CreateAuras({
+		layout = HORIZONTAL,
+		layoutLimit = C.PartyBuffSize * maxFrameCount + spacing * (maxFrameCount - 1),
+		initialAnchor = "BOTTOMRIGHT",
+		growthX = "LEFT",
+		growthY = "UP",
+	})
+	Buffs:SetFrameLevel(self:GetFrameLevel() + 4)
+	Buffs:SetPoint("BOTTOMRIGHT", self, -4, 6)
+	Buffs.PostCreateButton = PostCreateAuraButton
+	Buffs.showDuration = true
+	Buffs.disableCooldown = true
+	Buffs.durationFormatter = RAID_AURA_DURATION
+
+	for layoutIndex, filter in ipairs(RAID_BUFF_FILTERS) do
+		Buffs:AddGroup(filter, {
+			maxFrameCount = maxFrameCount,
+			sortMethod = AuraContainerSortMethod.Default,
+			size = C.PartyBuffSize,
+			showCount = true,
+			disableMouse = true,
+			layout = {
+				elementSpacing = spacing,
+				lineSpacing = spacing,
+				layoutIndex = layoutIndex,
+			},
+		})
+	end
+
+	self.Buffs = Buffs
+	return Buffs
+end
+
+--======================================================--
+-----------------    [[ Nameplates ]]    -----------------
+--======================================================--
+
+local NAMEPLATE_AURA_GROUPS = {
+	NAMEPLATE_NPC_BUFF_GROUPS[1],
+	NAMEPLATE_NPC_BUFF_GROUPS[2],
+	NAMEPLATE_NPC_BUFF_GROUPS[3],
+	BOSS_NAMEPLATE_DEBUFF_GROUPS[1],
+	BOSS_NAMEPLATE_DEBUFF_GROUPS[2],
+}
 
 -- 名條光環
 T.CreateNameplateAuras = function(self)
 	local size = C.NPAuraSize
 	local spacing = 5
 	local layoutLimit = size * C.NPMaxAura + spacing * (C.NPMaxAura - 1)
-	local helpfulMax = math.min(2, C.NPMaxAura)
-	local harmfulMax = math.max(C.NPMaxAura - helpfulMax, 0)
 
 	local Auras = self:CreateAuras({
 		layout = HORIZONTAL,
@@ -978,33 +1169,31 @@ T.CreateNameplateAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = RAID_AURA_DURATION
 
-	Auras:AddGroup("HELPFUL|DISPELLABLE|INCLUDE_NAME_PLATE_ONLY", {
-		maxFrameCount = helpfulMax,
-		size = size,
-		showCount = true,
-		disableMouse = true,
-		tooltipAnchor = "ANCHOR_TOPLEFT",
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-			groupSpacing = spacing,
-		},
-	})
+	local npcBuffGroups = {}
+	for layoutIndex, group in ipairs(NAMEPLATE_AURA_GROUPS) do
+		local groupKey = Auras:AddGroup(group.filter, {
+			candidateFilters = group.candidateFilters,
+			maxFrameCount = group.maxFrameCount,
+			sortMethod = AuraContainerSortMethod.Default,
+			size = size,
+			showCount = true,
+			showBuffTypeShadow = true,
+			showDebuffTypeShadow = true,
+			disableMouse = true,
+			layout = {
+				elementSpacing = spacing,
+				lineSpacing = spacing,
+				layoutIndex = layoutIndex,
+			},
+		})
 
-	Auras:AddGroup("HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY", {
-		maxFrameCount = harmfulMax,
-		size = size,
-		showCount = true,
-		showDebuffTypeShadow = true,
-		disableMouse = true,
-		tooltipAnchor = "ANCHOR_TOPLEFT",
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-			groupSpacing = spacing,
-		},
-	})
+		if group.npcOnly then
+			npcBuffGroups[#npcBuffGroups + 1] = groupKey
+		end
+	end
 
+	Auras.npcBuffGroups = npcBuffGroups
+	Auras.npcBuffMaxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT
 	self.Auras = Auras
 	return Auras
 end
