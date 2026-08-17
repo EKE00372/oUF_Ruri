@@ -926,9 +926,6 @@ T.CreateRaidDebuffs = function(self)
 		growthX = "RIGHT",
 		growthY = "UP",
 	})
-	Debuffs:SetAuraProcessingPolicy(CustomAuraContainerAuraProcessingPolicy.ProcessAura, {
-		ignoreBuffs = true,
-	})
 	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
 	Debuffs:SetPoint("BOTTOMLEFT", self, 4, 6)
 	Debuffs.PostCreateButton = PostCreateAuraButton
@@ -936,17 +933,14 @@ T.CreateRaidDebuffs = function(self)
 	Debuffs.disableCooldown = true
 	Debuffs.durationFormatter = RAID_AURA_DURATION
 
-	Debuffs:AddGroup("HARMFUL", {
+	Debuffs:AddGroup("HARMFUL|RAID_IN_COMBAT", {
 		maxFrameCount = 4,
-		sortMethod = AuraContainerSortMethod.UnitFrameDebuff,
+		sortMethod = Default,
 		size = C.RaidAuraSize,
 		showCount = true,
 		showDebuffTypeShadow = true,
 		disableMouse = true,
 		tooltipAnchor = "ANCHOR_TOPLEFT",
-		candidateFilters = {
-			processedAuraType = AuraUtil.AuraUpdateChangedType.Debuff,
-		},
 		layout = {
 			elementSpacing = spacing,
 			lineSpacing = spacing,
