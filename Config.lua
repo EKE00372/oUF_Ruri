@@ -23,7 +23,7 @@ local MediaFolder = G.MediaFolder
 	
 	G.NPNameFS = 12									-- Nameplate font size / 名條的字型
 	G.NPFont = MediaFolder.."Infinity Gears.ttf"	-- Number style nameplate health text font / 數字模式名條的血量字型
-	G.NPFS = 24										-- Number style nameplate health text font size / 數字模式名條的血量字型大小
+	G.NPFS = 28										-- Number style nameplate health text font size / 數字模式名條的血量字型大小
 
 ------------------------
 -- UnitFrame settings --
@@ -85,7 +85,7 @@ local MediaFolder = G.MediaFolder
 	C.NPHeight = 10			-- Nameplate frame height / 名條高度
 	
 	-- Auras / 光環
-	C.NPMaxAura = 5			-- How many aura show / 顯示光環數量
+	C.NPMaxAura = 6			-- Auras per row / 每行顯示光環數量
 	C.NPAuraSize = 20		-- Nameplate aura icon size / 名條光環圖示大小
 
 	-- [[ Player plate ]] --
