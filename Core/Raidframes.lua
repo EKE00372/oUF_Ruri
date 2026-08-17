@@ -207,6 +207,8 @@ local function CreateParty(self, unit)
 	self.DeadSkull:SetPoint("CENTER", -10, 0)
 	-- 減益
 	T.CreateRaidDebuffs(self)
+	-- 增益
+	T.CreateRaidBuffs(self)
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
 	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
@@ -228,6 +230,8 @@ local function CreateRaid(self, unit)
 	self.DeadSkull:SetPoint("CENTER", -5, 0)
 	-- 減益
 	T.CreateRaidDebuffs(self)
+	-- 增益
+	T.CreateRaidBuffs(self)
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
 	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
