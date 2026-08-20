@@ -33,6 +33,7 @@ local MediaFolder = G.MediaFolder
 		absorb = MediaFolder.."absorb.tga",
 		raidbar = MediaFolder.."Inner-Shadow.blp",
 		glow = MediaFolder.."glow.tga",
+		aurashadow = MediaFolder.."aurashadow.tga",
 		barhightlight = MediaFolder.."highlight.tga",
 
 		spark = MediaFolder.."spark.tga",	-- "Interface\\UnitPowerBarAlt\\Generic1Player_Pill_Flash"
