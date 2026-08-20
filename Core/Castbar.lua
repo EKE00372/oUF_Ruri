@@ -6,7 +6,7 @@ local EMBED_CAST_NORMAL = CreateColor(.6, .6, .6, .6)
 local EMBED_CAST_SHIELD = CreateColor(.6, 0, .6, .6)
 local EMBED_CAST_FAILED = CreateColor(.6, .2, .2, .6)
 local CAST_ICON_BORDER_NORMAL = CreateColor(.2, .2, .2, 1)
-local CAST_ICON_BORDER_SHIELD = CreateColor(0, 0, 0, 1)
+local CAST_ICON_BORDER_SHIELD = CreateColor(.9, .05, .05, 1)
 -- 獨立式顏色
 local CAST_NORMAL = CreateColor(unpack(C.CastNormal))
 local CAST_SHIELD = CreateColor(unpack(C.CastShield))
@@ -63,13 +63,9 @@ local function SetCastbarColor(element, notInterruptible)
 	else
 		-- 施法條變色
 		element:GetStatusBarTexture():SetVertexColorFromBoolean(notInterruptible, element.castShieldColor, element.castNormalColor)
-		-- 嵌入式施法條的法術圖示邊框與陰影邊色
-		if element.ShieldShadow then
-			-- 邊框：常規深灰，不可打斷純黑
+		-- 嵌入式施法條的法術圖示邊框：常規深灰，不可打斷紅色
+		if element.IconBorder then
 			element.IconBorder:SetVertexColorFromBoolean(notInterruptible, CAST_ICON_BORDER_SHIELD, CAST_ICON_BORDER_NORMAL)
-			-- 陰影：常規黑色，不可打斷紅色
-			element.Shadow:SetAlphaFromBoolean(notInterruptible, 0, 1)
-			element.ShieldShadow:SetAlphaFromBoolean(notInterruptible, 1, 0)
 		end
 	end
 end
@@ -131,23 +127,25 @@ T.CreateCastbar_Embed = function(self, unit)
 
 	-- 法術圖示的基底框架
 	local IconBG = CreateFrame("Frame", nil, Castbar)
-	IconBG:SetSize(C.PHeight + C.PPHeight * 2 - 1, C.PHeight + C.PPHeight * 2 - 1)
+	IconBG:SetSize(C.PHeight + C.PPHeight * 2, C.PHeight + C.PPHeight * 2)
 	Castbar.IconBG = IconBG
 	-- 1px 邊框
-	local IconBorder = IconBG:CreateTexture(nil, "ARTWORK")
+	local IconBorder = IconBG:CreateTexture(nil, "BACKGROUND", nil, -1)
 	IconBorder:SetPoint("TOPLEFT", IconBG, "TOPLEFT", -1, 1)
 	IconBorder:SetPoint("BOTTOMRIGHT", IconBG, "BOTTOMRIGHT", 1, -1)
-	IconBorder:SetTexture(G.media.blank)
+	IconBorder:SetColorTexture(1, 1, 1, 1)
 	IconBorder:SetVertexColor(CAST_ICON_BORDER_NORMAL:GetRGBA())
 	Castbar.IconBorder = IconBorder
 	-- 法術圖示
 	Castbar.Icon = IconBG:CreateTexture(nil, "OVERLAY", nil, 1)
 	Castbar.Icon:SetAllPoints()
 	Castbar.Icon:SetTexCoord(.08, .92, .08, .92)
-	-- 替法術圖示建立兩個陰影，設定顯示條件
-	Castbar.Shadow = F.CreateSD(IconBG, IconBorder, 4, 0, 0, 0)	-- 常規陰影
-	Castbar.ShieldShadow = F.CreateSD(IconBG, IconBorder, 4, .9, .05, .05)	-- 不可打斷陰影
-	Castbar.ShieldShadow:SetAlpha(0)
+	-- 固定黑色陰影
+	local shadow = IconBG:CreateTexture(nil, "BACKGROUND", nil, -2)
+	shadow:SetPoint("TOPLEFT", IconBG, -5, 5)
+	shadow:SetPoint("BOTTOMRIGHT", IconBG, 5, -5)
+	shadow:SetTexture(G.media.aurashadow)
+	shadow:SetVertexColor(0, 0, 0, 1)
 
 	-- 文本
 	Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, nil)
