@@ -190,7 +190,7 @@ local function CreateRingCastbar(self, ringBorderSize)
 
 	-- 尺寸繼承血量百分比文字大小
 	local ringSize = math.max(ringBorderSize - 2, 1)
-	local iconBorderSize = math.max(ringSize - 3 * 2, 1)	-- 施法環固定寬度
+	local iconBorderSize = math.max(ringSize - 4 * 2, 1)	-- 施法環固定寬度
 	local iconSize = math.max(iconBorderSize - 2, 1)
 
 	-- 建立施法條的基底框架
@@ -608,7 +608,7 @@ local function CreateNumberPlates(self, unit)
 	RaidIcon:SetPoint("RIGHT", self.Name, "LEFT", -2, 0)
 	self.RaidTargetIndicator = RaidIcon
 
-	CreateRingCastbar(self, healthTextHeight + 8)	-- 上下各超出百分比行框 1px，讓法術圖示填滿可用空間
+	CreateRingCastbar(self, healthTextHeight + 8)	-- 上下超出
 
 	if showNameplateAuras then
 		T.CreateNameplateAuras(self)
@@ -676,14 +676,22 @@ local function CreateBarPlates(self, unit)
 	end
 end
 
--- nameplate driver 新增框架時重置狀態並刷新所有高亮。
-local function UpdateNameplateIndicators(self)
+-- nameplate driver 新增框架時重置狀態、套用單位類型光環並刷新所有高亮。
+local function UpdateNameplateState(self, _, unit)
 	-- 名條重用時先清掉上一個單位留下的公開 cast layout state；其後 UAE 會重算 Health/Castbar。
 	if self.mystyle == "NNP" then
 		ClearRingCastState(self.Castbar)
 		self.Health:SetMinMaxValues(0, 1)
 		self.Health:SetValue(self.Health.LayoutFullValue)
 		self.HealthText:SetAlpha(0)
+	end
+
+	if showNameplateAuras then
+		local Auras = self.Auras
+		local maxFrameCount = UnitIsPlayer(unit) and 0 or Auras.npcBuffMaxFrameCount
+		for _, groupKey in ipairs(Auras.npcBuffGroups) do
+			Auras:SetAuraGroupMaxFrameCount(groupKey, maxFrameCount)
+		end
 	end
 
 	if indicatorController then
@@ -810,7 +818,7 @@ oUF:Factory(function(self)
 	else
 		driver:SetSize(C.NPWidth, C.NPHeight * 4)
 	end
-	driver:SetAddedCallback(UpdateNameplateIndicators)
+	driver:SetAddedCallback(UpdateNameplateState)
 	driver:SetRemovedCallback(ResetNameplateIndicators)
 
 	if indicatorController then
