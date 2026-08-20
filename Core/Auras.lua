@@ -130,26 +130,33 @@ RAID_AURA_DURATION:SetBreakpoints({
 local function PostCreateAuraButton(element, button, options)
 	button.Icon:SetTexCoord(.08, .92, .08, .92)
 
-	-- 外擴 1px 邊框；外置容器的錨點需補回這 1px 偏移
-	button.bg = F.CreateBD(button, button, 1, .2, .2, .2, 1, 1)
-	button.shadow = F.CreateSD(button, button.bg, 3)
+	-- 1px 邊框
+	local border = button:CreateTexture(nil, "BACKGROUND", nil, -1)
+	border:SetPoint("TOPLEFT", button, -1, 1)
+	border:SetPoint("BOTTOMRIGHT", button, 1, -1)
+	border:SetColorTexture(1, 1, 1, 1)
+	border:SetVertexColor(.2, .2, .2, 1)
 
-	local showBuffTypeShadow = options.showBuffTypeShadow == true
-	local showDebuffTypeShadow = options.showDebuffTypeShadow == true
-	if showBuffTypeShadow or showDebuffTypeShadow then
-		button.bg:SetBackdropColor(0, 0, 0, 1)
-		button.bg:SetBackdropBorderColor(0, 0, 0, 1)
+	-- 陰影
+	local shadow = button:CreateTexture(nil, "BACKGROUND", nil, -2)
+	shadow:SetPoint("TOPLEFT", button, -4, 4)
+	shadow:SetPoint("BOTTOMRIGHT", button, 4, -4)
+	shadow:SetTexture(G.media.aurashadow)
+	shadow:SetVertexColor(0, 0, 0, 1)
+
+	local showBuffTypeBorder = options.showBuffTypeBorder == true
+	local showDebuffTypeBorder = options.showDebuffTypeBorder == true
+	if showBuffTypeBorder or showDebuffTypeBorder then
+		border:SetVertexColor(1, 1, 1, 1)
 
 		local dispelOptions = {
-			showWhenHarmful = showDebuffTypeShadow,
-			showWhenHelpful = showBuffTypeShadow,
+			showWhenHarmful = showDebuffTypeBorder,
+			showWhenHelpful = showBuffTypeBorder,
 			showWithoutDispelType = true,	-- 無驅散類型的光環也顯示
 			style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,	-- 保留自定義材質，不被原生邊框材質取代
 			customDispelColorMap = element.__owner.colors.dispel,	-- 使用 ouf 的減益類型顏色表
 		}
-		for _, texture in next, {button.shadow:GetRegions()} do
-			button:AddDispelTypeTexture(texture, dispelOptions)
-		end
+		button:AddDispelTypeTexture(border, dispelOptions)
 	end
 
 	if button.Count then
@@ -233,7 +240,7 @@ T.CreatePlayerDebuffs = function(self)
 		maxFrameCount = 6,
 		size = C.AuraSize + 4,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		layout = {
 			elementSpacing = 5,
 			lineSpacing = 5,
@@ -265,7 +272,7 @@ T.CreateVPlayerDebuffs = function(self)
 		maxFrameCount = 6,
 		size = C.AuraSize + 4,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		layout = {
 			elementSpacing = 5,
 			lineSpacing = 5,
@@ -317,7 +324,7 @@ T.CreateTargetAuras = function(self)
 		maxFrameCount = harmfulMax,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_TOPLEFT",
 		layout = {
 			elementSpacing = spacing,
@@ -380,7 +387,7 @@ T.CreateVTargetAuras = function(self)
 		maxFrameCount = harmfulMax,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_BOTTOMLEFT",
 		layout = {
 			elementSpacing = spacing,
@@ -442,7 +449,7 @@ T.CreateFocusAuras = function(self)
 		maxFrameCount = harmfulMax,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_TOPLEFT",
 		layout = {
 			elementSpacing = spacing,
@@ -503,7 +510,7 @@ T.CreateSimpleFocusAuras = function(self)
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_TOPRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -536,7 +543,7 @@ T.CreatePetDebuffs = function(self)
 		maxFrameCount = 2,
 		size = C.AuraSize,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		layout = {
 			elementSpacing = 5,
 			lineSpacing = 5,
@@ -567,7 +574,7 @@ T.CreateVPetDebuffs = function(self)
 		maxFrameCount = 2,
 		size = C.AuraSize,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_TOPLEFT",
 		layout = {
 			elementSpacing = 5,
@@ -613,7 +620,7 @@ T.CreateToTAuras = function(self)
 		maxFrameCount = 0,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_BOTTOMRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -668,7 +675,7 @@ T.CreateVToTAuras = function(self)
 		maxFrameCount = 0,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_TOPRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -730,7 +737,7 @@ T.CreateFoTAuras = function(self)
 		maxFrameCount = 0,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_BOTTOMRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -786,7 +793,7 @@ T.CreateSimpleFoTAuras = function(self)
 		maxFrameCount = 0,
 		size = size,
 		showCount = true,
-		showDebuffTypeShadow = true,
+		showDebuffTypeBorder = true,
 		tooltipAnchor = "ANCHOR_TOPRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -880,7 +887,7 @@ T.CreateBossAuras = function(self)
 			sortMethod = AuraContainerSortMethod.Default,
 			size = C.AuraSize,
 			showCount = true,
-			showDebuffTypeShadow = true,
+			showDebuffTypeBorder = true,
 			layout = {
 				elementSpacing = spacing,
 				lineSpacing = spacing,
@@ -976,7 +983,7 @@ T.CreateArenaAuras = function(self)
 			sortMethod = AuraContainerSortMethod.Default,
 			size = C.AuraSize,
 			showCount = true,
-			showDebuffTypeShadow = true,
+			showDebuffTypeBorder = true,
 			layout = {
 				elementSpacing = spacing,
 				lineSpacing = spacing,
@@ -1080,7 +1087,7 @@ T.CreateRaidDebuffs = function(self)
 			sortMethod = AuraContainerSortMethod.Default,
 			size = C.RaidAuraSize,
 			showCount = true,
-			showDebuffTypeShadow = true,
+			showDebuffTypeBorder = true,
 			disableMouse = true,
 			tooltipAnchor = "ANCHOR_TOPLEFT",
 			layout = {
@@ -1177,8 +1184,8 @@ T.CreateNameplateAuras = function(self)
 			sortMethod = AuraContainerSortMethod.Default,
 			size = size,
 			showCount = true,
-			showBuffTypeShadow = true,
-			showDebuffTypeShadow = true,
+			showBuffTypeBorder = true,
+			showDebuffTypeBorder = true,
 			disableMouse = true,
 			layout = {
 				elementSpacing = spacing,
