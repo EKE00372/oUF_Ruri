@@ -147,7 +147,16 @@ local function PostCreateAuraButton(element, button, options)
 	local showBuffTypeBorder = options.showBuffTypeBorder == true
 	local showDebuffTypeBorder = options.showDebuffTypeBorder == true
 	if showBuffTypeBorder or showDebuffTypeBorder then
-		border:SetVertexColor(1, 1, 1, 1)
+		local dispelBorder = border
+		if options.preserveDefaultBorder == true then
+			-- 動態敵友 Group 在顯示增益時仍需要普通灰框。
+			dispelBorder = button:CreateTexture(nil, "BACKGROUND", nil, 0)
+			dispelBorder:SetPoint("TOPLEFT", button, -1, 1)
+			dispelBorder:SetPoint("BOTTOMRIGHT", button, 1, -1)
+			dispelBorder:SetColorTexture(1, 1, 1, 1)
+		else
+			border:SetVertexColor(1, 1, 1, 1)
+		end
 
 		local dispelOptions = {
 			showWhenHarmful = showDebuffTypeBorder,
@@ -156,7 +165,7 @@ local function PostCreateAuraButton(element, button, options)
 			style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,	-- 保留自定義材質，不被原生邊框材質取代
 			customDispelColorMap = element.__owner.colors.dispel,	-- 使用 ouf 的減益類型顏色表
 		}
-		button:AddDispelTypeTexture(border, dispelOptions)
+		button:AddDispelTypeTexture(dispelBorder, dispelOptions)
 	end
 
 	if button.Count then
@@ -177,7 +186,7 @@ end
 -----------------    [[ Polarity ]]    -----------------
 --====================================================--
 
--- 依敵我關係切換兩組光環的顯示上限
+-- 依敵我關係切換單組 filter，或調整雙組顯示上限
 local function UpdateAuraPolarity(self, _, unit)
 	if unit and unit ~= self.__unit then return end
 
@@ -188,7 +197,17 @@ local function UpdateAuraPolarity(self, _, unit)
 	local hostile = (UnitCanAttack("player", self.__unit) and true) or false
 	if relation.isHostile == hostile then return end
 
+	-- 切換過濾條件
 	relation.isHostile = hostile
+	if relation.filterGroup then
+		relation.container:SetAuraGroupFilterString(
+			relation.filterGroup,
+			hostile and "HELPFUL" or "HARMFUL"
+		)
+		return
+	end
+
+	-- 切換顯示數量
 	relation.container:SetAuraGroupMaxFrameCount(	-- 增益光環
 		relation.helpfulGroup,
 		hostile and relation.hostileHelpfulMax or relation.friendlyHelpfulMax
@@ -606,21 +625,12 @@ T.CreateToTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local helpfulGroup = Auras:AddGroup("HELPFUL", {
-		maxFrameCount = 0,
-		size = size,
-		showCount = true,
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-		},
-	})
-
-	local harmfulGroup = Auras:AddGroup("HARMFUL", {
-		maxFrameCount = 0,
+	local filterGroup = Auras:AddGroup("HARMFUL", {
+		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
 		showDebuffTypeBorder = true,
+		preserveDefaultBorder = true,
 		tooltipAnchor = "ANCHOR_BOTTOMRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -631,12 +641,7 @@ T.CreateToTAuras = function(self)
 	self.Auras = Auras
 	self.AuraPolarity = {
 		container = Auras,
-		helpfulGroup = helpfulGroup,
-		harmfulGroup = harmfulGroup,
-		friendlyHelpfulMax = 0,
-		friendlyHarmfulMax = maxFrameCount,
-		hostileHelpfulMax = maxFrameCount,
-		hostileHarmfulMax = 0,
+		filterGroup = filterGroup,
 	}
 	return Auras
 end
@@ -661,21 +666,12 @@ T.CreateVToTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local helpfulGroup = Auras:AddGroup("HELPFUL", {
-		maxFrameCount = 0,
-		size = size,
-		showCount = true,
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-		},
-	})
-
-	local harmfulGroup = Auras:AddGroup("HARMFUL", {
-		maxFrameCount = 0,
+	local filterGroup = Auras:AddGroup("HARMFUL", {
+		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
 		showDebuffTypeBorder = true,
+		preserveDefaultBorder = true,
 		tooltipAnchor = "ANCHOR_TOPRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -686,12 +682,7 @@ T.CreateVToTAuras = function(self)
 	self.Auras = Auras
 	self.AuraPolarity = {
 		container = Auras,
-		helpfulGroup = helpfulGroup,
-		harmfulGroup = harmfulGroup,
-		friendlyHelpfulMax = 0,
-		friendlyHarmfulMax = maxFrameCount,
-		hostileHelpfulMax = maxFrameCount,
-		hostileHarmfulMax = 0,
+		filterGroup = filterGroup,
 	}
 	return Auras
 end
@@ -723,21 +714,12 @@ T.CreateFoTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local helpfulGroup = Auras:AddGroup("HELPFUL", {
-		maxFrameCount = 0,
-		size = size,
-		showCount = true,
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-		},
-	})
-
-	local harmfulGroup = Auras:AddGroup("HARMFUL", {
-		maxFrameCount = 0,
+	local filterGroup = Auras:AddGroup("HARMFUL", {
+		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
 		showDebuffTypeBorder = true,
+		preserveDefaultBorder = true,
 		tooltipAnchor = "ANCHOR_BOTTOMRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -748,12 +730,7 @@ T.CreateFoTAuras = function(self)
 	self.Auras = Auras
 	self.AuraPolarity = {
 		container = Auras,
-		helpfulGroup = helpfulGroup,
-		harmfulGroup = harmfulGroup,
-		friendlyHelpfulMax = 0,
-		friendlyHarmfulMax = maxFrameCount,
-		hostileHelpfulMax = maxFrameCount,
-		hostileHarmfulMax = 0,
+		filterGroup = filterGroup,
 	}
 	return Auras
 end
@@ -779,21 +756,12 @@ T.CreateSimpleFoTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local helpfulGroup = Auras:AddGroup("HELPFUL", {
-		maxFrameCount = 0,
-		size = size,
-		showCount = true,
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-		},
-	})
-
-	local harmfulGroup = Auras:AddGroup("HARMFUL", {
-		maxFrameCount = 0,
+	local filterGroup = Auras:AddGroup("HARMFUL", {
+		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
 		showDebuffTypeBorder = true,
+		preserveDefaultBorder = true,
 		tooltipAnchor = "ANCHOR_TOPRIGHT",
 		layout = {
 			elementSpacing = spacing,
@@ -804,12 +772,7 @@ T.CreateSimpleFoTAuras = function(self)
 	self.Auras = Auras
 	self.AuraPolarity = {
 		container = Auras,
-		helpfulGroup = helpfulGroup,
-		harmfulGroup = harmfulGroup,
-		friendlyHelpfulMax = 0,
-		friendlyHarmfulMax = maxFrameCount,
-		hostileHelpfulMax = maxFrameCount,
-		hostileHarmfulMax = 0,
+		filterGroup = filterGroup,
 	}
 	return Auras
 end
@@ -936,7 +899,6 @@ local ARENA_DEBUFF_GROUPS = {
 		candidateFilters = {
 			nameplateShowPersonal = true,
 		},
-		maxFrameCount = 4,
 	},
 	{ -- 由暴雪標記為所有人可見的其餘名條減益
 		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
@@ -944,11 +906,9 @@ local ARENA_DEBUFF_GROUPS = {
 			nameplateShowAll = true,
 			nameplateShowPersonal = false,
 		},
-		maxFrameCount = 4,
 	},
 	{ -- 控場減益
 		filter = "HARMFUL|CROWD_CONTROL",
-		maxFrameCount = 2,
 	},
 }
 
@@ -1045,19 +1005,11 @@ local RAID_DEBUFF_GROUPS = {
 			isFromPlayerOrPlayerPet = false,
 		},
 	},
-	{ -- 可驅散，不判斷是否能驅散
-		filter = "HARMFUL|DISPELLABLE",
+	{ -- 其餘普通減益，包含所有可驅散類型
+		filter = "HARMFUL",
 		candidateFilters = {
 			isBossOrRoleAura = false,
 			isPriorityAura = false,
-		},
-	},
-	{ -- 其他普通減益
-		filter = "HARMFUL|!DISPELLABLE",
-		candidateFilters = {
-			isBossOrRoleAura = false,
-			isPriorityAura = false,
-			isFromPlayerOrPlayerPet = false,
 		},
 	},
 }
