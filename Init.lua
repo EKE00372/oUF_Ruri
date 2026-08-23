@@ -100,9 +100,30 @@ local MediaFolder = G.MediaFolder
 		},
 		{
 			name = "GroupFrames",
-			options = {
-				{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip", requiresAny = { "PartyFrames", "RaidFrames" } },
-				{ type = "toggle", key = "HideCompactRaidManager", label = "HideCompactRaidManager", default = true, tooltip = "HideCompactRaidManagerTip" },
+			sections = {
+				{
+					name = "PartyFrames",
+					requiresAny = { "PartyFrames" },
+					options = {
+						{ type = "toggle", key = "PartyBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
+						{ type = "toggle", key = "PartyDebuffs", label = "ShowDebuffAuras", default = true },
+					},
+				},
+				{
+					name = "RaidFrames",
+					requiresAny = { "RaidFrames" },
+					options = {
+						{ type = "toggle", key = "RaidBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
+						{ type = "toggle", key = "RaidDebuffs", label = "ShowDebuffAuras", default = true },
+					},
+				},
+				{
+					name = "Extensions",
+					options = {
+						{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip", requiresAny = { "PartyFrames", "RaidFrames" } },
+						{ type = "toggle", key = "HideCompactRaidManager", label = "HideCompactRaidManager", default = true, tooltip = "HideCompactRaidManagerTip" },
+					},
+				},
 			},
 		},
 		{

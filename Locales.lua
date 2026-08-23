@@ -23,14 +23,14 @@ if GetLocale() == "zhTW" then
 	L.UnitFrames = "單位框架"
 	L.GroupFrames = "組隊框架"
 	L.RaidFrames = "團隊框架"
-	L.PartyFrames = "隊伍框架"
+	L.PartyFrames = "小隊框架"
 	L.Nameplates = "名條"
 	L.Credits = "鳴謝：\nDawn, HopeASD, ls-, p3lim, Paopao001, Peterdox, Qulight, Ray, Rhythm, Rubgrsch, Siweia, zork，排名不分先後。"
 
 	-- Overview
 	L.UnitFramesDesc = "包含玩家、寵物、目標、目標的目標、專注目標、專注目標的目標、競技場、首領。"
 	L.RaidFramesDesc = "簡單的團隊框架，只顯示團隊成員，不顯示隊友寵物、主坦克和主助攻的單獨框架。"
-	L.PartyFramesDesc = "簡單的隊伍框架，不顯示隊友寵物。"
+	L.PartyFramesDesc = "簡單的小隊框架，不顯示隊友寵物。"
 	L.NameplatesDesc = "簡單的名條。"
 
 	-- subTitle
@@ -62,7 +62,10 @@ if GetLocale() == "zhTW" then
 	-- Raidframes
 	L.HideBlizzardRaidFrames = "隱藏原生組隊框架"
 	L.HideCompactRaidManager = "淡出團隊管理介面"
+	L.ShowBuffAuras = "顯示增益光環"
+	L.ShowDebuffAuras = "顯示減益光環"
 
+	L.ShowBuffAurasTip = "只顯示防禦法術。"
 	L.HideBlizzardRaidFramesTip = "只隱藏已啟用的 Ruri 組隊框架所取代的原生框架，不隱藏畫面左上角的團隊管理介面。"
 	L.HideCompactRaidManagerTip = "淡出畫面左上角的團隊管理介面，滑鼠指向時顯示。"
 
@@ -91,14 +94,14 @@ elseif GetLocale() == "zhCN" then
 	L.UnitFrames = "单位框架"
 	L.GroupFrames = "组队框架"
 	L.RaidFrames = "团队框架"
-	L.PartyFrames = "队伍框架"
+	L.PartyFrames = "小队框架"
 	L.Nameplates = "姓名板"
 	L.Credits = "鸣谢：\nDawn, HopeASD, ls-, p3lim, Paopao001, Peterdox, Qulight, Ray, Rhythm, Rubgrsch, Siweia, zork，排名不分先后。"
 
 	-- Overview
 	L.UnitFramesDesc = "包含玩家、宠物、目标、目标的目标、焦点目标、焦点目标的目标、竞技场、首领。"
 	L.RaidFramesDesc = "简单的团队框架，只显示团队，不显示队友宠物、主坦克和主助攻的独立框架。"
-	L.PartyFramesDesc = "简单的队伍框架，不显示队友宠物。"
+	L.PartyFramesDesc = "简单的小队框架，不显示队友宠物。"
 	L.NameplatesDesc = "简单的姓名板。"
 
 	-- subTitle
@@ -130,7 +133,10 @@ elseif GetLocale() == "zhCN" then
 	-- Raidframes
 	L.HideBlizzardRaidFrames = "隐藏原生组队框架"
 	L.HideCompactRaidManager = "淡出团队管理界面"
+	L.ShowBuffAuras = "显示增益光环"
+	L.ShowDebuffAuras = "显示减益光环"
 
+	L.ShowBuffAurasTip = "只显示防御法术。"
 	L.HideBlizzardRaidFramesTip = "只隐藏已启用的 Ruri 组队框架所取代的原生框架，不隐藏画面左上角的团队管理界面。"
 	L.HideCompactRaidManagerTip = "淡出画面左上角的团队管理界面，鼠标指向时显示。"
 
@@ -198,7 +204,10 @@ else
 	-- Raidframes
 	L.HideBlizzardRaidFrames = "Hide Blizzard Group Frames"
 	L.HideCompactRaidManager = "Fade RaidManager"
+	L.ShowBuffAuras = "Show Buff Auras"
+	L.ShowDebuffAuras = "Show Debuff Auras"
 
+	L.ShowBuffAurasTip = "Only defensive spells are shown."
 	L.HideBlizzardRaidFramesTip = "Hide Blizzard group frames only when the corresponding Ruri group frames are enabled. The raid manager in the upper-left corner remains available."
 	L.HideCompactRaidManagerTip = "Fade the raid manager in the upper-left corner. It is shown on mouseover."
 
