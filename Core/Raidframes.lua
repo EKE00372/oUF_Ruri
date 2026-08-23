@@ -205,10 +205,9 @@ local function CreateParty(self, unit)
 	-- 死亡背景
 	self.DeadSkull:SetWidth(C.PartyWidth - 4)
 	self.DeadSkull:SetPoint("CENTER", -10, 0)
-	-- 減益
-	T.CreateRaidDebuffs(self)
-	-- 增益
-	T.CreateRaidBuffs(self)
+	-- 光環
+	if F.GetRuriOption("PartyDebuffs") then T.CreateRaidDebuffs(self) end
+	if F.GetRuriOption("PartyBuffs") then T.CreateRaidBuffs(self) end
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
 	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
@@ -228,10 +227,9 @@ local function CreateRaid(self, unit)
 	-- 死亡背景
 	self.DeadSkull:SetWidth(C.RWidth - 4)
 	self.DeadSkull:SetPoint("CENTER", -5, 0)
-	-- 減益
-	T.CreateRaidDebuffs(self)
-	-- 增益
-	T.CreateRaidBuffs(self)
+	-- 光環
+	if F.GetRuriOption("RaidDebuffs") then T.CreateRaidDebuffs(self) end
+	if F.GetRuriOption("RaidBuffs") then T.CreateRaidBuffs(self) end
 	-- 圖示和標記
 	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
 	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
