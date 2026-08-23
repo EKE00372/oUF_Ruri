@@ -21,6 +21,7 @@ if GetLocale() == "zhTW" then
 	-- Tab
 	L.Overview = "總覽"
 	L.UnitFrames = "單位框架"
+	L.GroupFrames = "組隊框架"
 	L.RaidFrames = "團隊框架"
 	L.PartyFrames = "隊伍框架"
 	L.Nameplates = "名條"
@@ -59,10 +60,10 @@ if GetLocale() == "zhTW" then
 	L.StandaloneCastbarTip = "玩家、目標和非簡易模式專注目標的獨立施法條。"
 
 	-- Raidframes
-	L.HideBlizzardRaidFrames = "隱藏原生團隊框架"
+	L.HideBlizzardRaidFrames = "隱藏原生組隊框架"
 	L.HideCompactRaidManager = "淡出團隊管理介面"
 
-	L.HideBlizzardRaidFramesTip = "隱藏原生團隊框架，不隱藏畫面左上角的團隊管理介面。"
+	L.HideBlizzardRaidFramesTip = "只隱藏已啟用的 Ruri 組隊框架所取代的原生框架，不隱藏畫面左上角的團隊管理介面。"
 	L.HideCompactRaidManagerTip = "淡出畫面左上角的團隊管理介面，滑鼠指向時顯示。"
 
 	-- Nameplates
@@ -88,6 +89,7 @@ elseif GetLocale() == "zhCN" then
 	-- Tab
 	L.Overview = "总览"
 	L.UnitFrames = "单位框架"
+	L.GroupFrames = "组队框架"
 	L.RaidFrames = "团队框架"
 	L.PartyFrames = "队伍框架"
 	L.Nameplates = "姓名板"
@@ -126,10 +128,10 @@ elseif GetLocale() == "zhCN" then
 	L.StandaloneCastbarTip = "玩家、目标和非简易模式焦点目标的独立施法条。"
 
 	-- Raidframes
-	L.HideBlizzardRaidFrames = "隐藏原生团队框架"
+	L.HideBlizzardRaidFrames = "隐藏原生组队框架"
 	L.HideCompactRaidManager = "淡出团队管理界面"
 
-	L.HideBlizzardRaidFramesTip = "隐藏原生团队框架，不隐藏画面左上角的团队管理界面。"
+	L.HideBlizzardRaidFramesTip = "只隐藏已启用的 Ruri 组队框架所取代的原生框架，不隐藏画面左上角的团队管理界面。"
 	L.HideCompactRaidManagerTip = "淡出画面左上角的团队管理界面，鼠标指向时显示。"
 
 	-- Nameplates
@@ -155,6 +157,7 @@ else
 	-- Tab
 	L.Overview = "Overview"
 	L.UnitFrames = "Unit Frames"
+	L.GroupFrames = "Group Frame"
 	L.RaidFrames = "Raid Frames"
 	L.PartyFrames = "Party Frames"
 	L.Nameplates = "Nameplates"
@@ -193,10 +196,10 @@ else
 	L.StandaloneCastbarTip = "Standalone castbars for:\n\nPlayer, Target, and non-simple-mode Focus target."
 
 	-- Raidframes
-	L.HideBlizzardRaidFrames = "Hide Blizzard RaidFrames"
+	L.HideBlizzardRaidFrames = "Hide Blizzard Group Frames"
 	L.HideCompactRaidManager = "Fade RaidManager"
 
-	L.HideBlizzardRaidFramesTip = "Hide the default Blizzard raid frames without hiding the raid manager in the upper-left corner."
+	L.HideBlizzardRaidFramesTip = "Hide Blizzard group frames only when the corresponding Ruri group frames are enabled. The raid manager in the upper-left corner remains available."
 	L.HideCompactRaidManagerTip = "Fade the raid manager in the upper-left corner. It is shown on mouseover."
 
 	-- Nameplates
