@@ -55,8 +55,8 @@ do
 
 		-- 名條堆疊：0=無 1=敵方 2=友方
 		SetCVar("nameplateStackingTypes", "\002A")		-- Default "\002" (0)
-		SetCVar("nameplateOverlapH", .6)				-- * Default 0.8；水平堆疊間距
-		SetCVar("nameplateOverlapV", .8)				-- * Default 1.1；垂直堆疊間距
+		SetCVar("nameplateOverlapH", .7)				-- * Default 0.8；水平堆疊間距
+		SetCVar("nameplateOverlapV", .9)				-- * Default 1.1；垂直堆疊間距
 
 		-- Friendly player name-only mode / 友方名字模式
 		SetCVar("nameplateShowOnlyNameForFriendlyPlayerUnits", 1)		-- Default 0；名字模式
@@ -137,8 +137,8 @@ do
 		-- 戰鬥中不延後重試，直接跳過
 		if InCombatLockdown() then return end
 		-- 設定 nameplateSize
-		if GetCVarNumberOrDefault("nameplateSize") ~= Enum.NamePlateSize.ExtraLarge then
-			SetCVar("nameplateSize", Enum.NamePlateSize.ExtraLarge)	-- * ExtraLarge = 4
+		if GetCVarNumberOrDefault("nameplateSize") ~= Enum.NamePlateSize.Large then
+			SetCVar("nameplateSize", Enum.NamePlateSize.Large)	-- * Large = 3
 		end
 		-- 套用文字外觀
 		SetNameplateFont(SystemFont_NamePlate)
