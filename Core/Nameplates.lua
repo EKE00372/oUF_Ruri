@@ -9,7 +9,6 @@ local issecretvalue = issecretvalue
 local CAST_NORMAL = CreateColor(.9, .9, .9)
 local CAST_SHIELD = CreateColor(unpack(C.CastShield))
 local CAST_FAILED = CreateColor(.6, .2, .2)
-local NUMBER_NAMEPLATE_WIDTH = 100
 
 local function Noop() end	-- 關閉喚能師的聚能分段
 
@@ -559,7 +558,7 @@ local function CreateNumberPlates(self, unit)
 	self.RingCastActive = false
 
 	-- Health 保持啟用供 oUF calculator 更新；透明材質的移動端同時作為光環錨點。
-	local Health = F.CreateStatusbar(self, G.addon..unit.."_NumberHealth", "ARTWORK", 1, NUMBER_NAMEPLATE_WIDTH, 0, 0, 0, 0)
+	local Health = F.CreateStatusbar(self, G.addon..unit.."_NumberHealth", "ARTWORK", 1, C.NPWidth, 0, 0, 0, 0)
 	Health:SetPoint("BOTTOM", self, "BOTTOM")
 	Health:SetOrientation("VERTICAL")	-- 保持標準填充方向，texture TOP 才是光環的移動端
 	Health:SetMinMaxValues(0, 1)
@@ -810,7 +809,7 @@ oUF:Factory(function(self)
 	local driver = self:SpawnNamePlates("oUF_Nameplate")
 	if numberStyle then
 		-- native frame 作為固定名字列、百分比與圓環核心的點擊及堆疊範圍。
-		driver:SetSize(NUMBER_NAMEPLATE_WIDTH, 50)
+		driver:SetSize(C.NPWidth, 50)
 	else
 		driver:SetSize(C.NPWidth, C.NPHeight * 4)
 	end
