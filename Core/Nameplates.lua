@@ -687,11 +687,7 @@ local function UpdateNameplateState(self, _, unit)
 	end
 
 	if showNameplateAuras then
-		local Auras = self.Auras
-		local maxFrameCount = UnitIsPlayer(unit) and 0 or Auras.npcBuffMaxFrameCount
-		for _, groupKey in ipairs(Auras.npcBuffGroups) do
-			Auras:SetAuraGroupMaxFrameCount(groupKey, maxFrameCount)
-		end
+		T.UpdateNameplateAuraFilter(self.Auras, UnitIsPlayer(unit))
 	end
 
 	if indicatorController then
