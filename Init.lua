@@ -99,7 +99,7 @@ local MediaFolder = G.MediaFolder
 			},
 		},
 		{
-			name = "RaidFrames",
+			name = "GroupFrames",
 			options = {
 				{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip", requiresAny = { "PartyFrames", "RaidFrames" } },
 				{ type = "toggle", key = "HideCompactRaidManager", label = "HideCompactRaidManager", default = true, tooltip = "HideCompactRaidManagerTip" },
