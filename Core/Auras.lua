@@ -69,10 +69,142 @@ local ROUND_DOWN = Enum.NumericRuleFormatRounding.Down
 -- sortDirection 可選 Normal 或 Reverse；Reverse 會反轉整套排序。
 -- oUF AddSlot 預設為 Default；AddGroup 預設為 ExpirationOnly。
 
---===================================================--
------------------    [[ General ]]    -----------------
---===================================================--
+--=================================================--
+-----------------    [[ Rules ]]    -----------------
+--=================================================--
 
+-- 光環過濾規則
+local PRIORITY_BUFF_RULES = {
+	bossOrRole = { -- 首領與職責增益
+		filter = "HELPFUL",
+		candidateFilters = {
+			isBossOrRoleAura = true,
+		},
+		maxFrameCount = 2,
+	},
+	stealable = { -- 可偷取的非重要增益
+		filter = "HELPFUL|!IMPORTANT",
+		candidateFilters = {
+			isStealable = true,
+			isBossOrRoleAura = false,
+		},
+		maxFrameCount = 2,
+	},
+	dispellable = { -- 可驅散的非重要增益
+		filter = "HELPFUL|DISPELLABLE|!IMPORTANT",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+		},
+		maxFrameCount = 2,
+	},
+	important = { -- 其餘重要增益
+		filter = "HELPFUL|IMPORTANT",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+		},
+		maxFrameCount = 2,
+	},
+}
+
+local BOSS_BUFF_GROUPS = {
+	PRIORITY_BUFF_RULES.bossOrRole,
+	PRIORITY_BUFF_RULES.dispellable,
+	PRIORITY_BUFF_RULES.important,
+}
+
+local BOSS_DEBUFF_GROUPS = {
+	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
+		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY",
+		candidateFilters = {
+			nameplateShowPersonal = true,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 由暴雪標記為所有人可見的其餘名條減益
+		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY",
+		candidateFilters = {
+			nameplateShowAll = true,
+			nameplateShowPersonal = false,
+		},
+		maxFrameCount = 4,
+	},
+}
+
+local ARENA_BUFF_FILTERS = {
+	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",	-- 減傷
+	"HELPFUL|EXTERNAL_DEFENSIVE",	-- 外部減傷
+	"HELPFUL|RAID_PLAYER_DISPELLABLE|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",	-- 可驅散
+}
+
+local ARENA_DEBUFF_GROUPS = {
+	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
+		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
+		candidateFilters = {
+			nameplateShowPersonal = true,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 由暴雪標記為所有人可見的其餘名條減益
+		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
+		candidateFilters = {
+			nameplateShowAll = true,
+			nameplateShowPersonal = false,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 控場減益
+		filter = "HARMFUL|CROWD_CONTROL",
+		maxFrameCount = 2,
+	},
+}
+
+local RAID_BUFF_FILTERS = {
+	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
+	"HELPFUL|EXTERNAL_DEFENSIVE",
+}
+
+local RAID_DEBUFF_GROUPS = {
+	{ -- 首領與職責，最優先分類
+		filter = "HARMFUL",
+		candidateFilters = {
+			isBossOrRoleAura = true,
+			isFromPlayerOrPlayerPet = false,
+		},
+	},
+	{ -- 其餘高優先級
+		filter = "HARMFUL",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+			isPriorityAura = true,
+			isFromPlayerOrPlayerPet = false,
+		},
+	},
+	{ -- 其餘普通減益，包含所有可驅散類型
+		filter = "HARMFUL",
+		candidateFilters = {
+			isBossOrRoleAura = false,
+			isPriorityAura = false,
+		},
+	},
+}
+
+-- 名條建立時先用 NPC 規則；玩家只替換第二組
+local NAMEPLATE_BUFF_GROUPS = {
+	PRIORITY_BUFF_RULES.bossOrRole,
+	PRIORITY_BUFF_RULES.dispellable,
+	PRIORITY_BUFF_RULES.important,
+}
+
+local NAMEPLATE_AURA_GROUPS = {
+	NAMEPLATE_BUFF_GROUPS[1],
+	NAMEPLATE_BUFF_GROUPS[2],
+	NAMEPLATE_BUFF_GROUPS[3],
+	ARENA_DEBUFF_GROUPS[1],
+	ARENA_DEBUFF_GROUPS[2],
+	ARENA_DEBUFF_GROUPS[3],
+}
+
+-- 光環時間格式
 local UF_AURA_DURATION = C_StringUtil.CreateNumericRuleFormatter()
 UF_AURA_DURATION:SetBreakpoints({
 	{-- 秒
@@ -125,6 +257,10 @@ RAID_AURA_DURATION:SetBreakpoints({
 		format = "",
 	},
 })
+
+--===================================================--
+-----------------    [[ General ]]    -----------------
+--===================================================--
 
 -- 設定光環外觀
 local function PostCreateAuraButton(element, button, options)
@@ -777,54 +913,6 @@ T.CreateSimpleFoTAuras = function(self)
 	return Auras
 end
 
-local NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT = 2
-
-local NAMEPLATE_NPC_BUFF_GROUPS = {
-	{ -- NPC 首領與職責增益
-		filter = "HELPFUL",
-		candidateFilters = {
-			isBossOrRoleAura = true,
-		},
-		maxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT,
-		npcOnly = true,
-	},
-	{ -- NPC 可偷取的非重要增益
-		filter = "HELPFUL|!IMPORTANT",
-		candidateFilters = {
-			isStealable = true,
-			isBossOrRoleAura = false,
-		},
-		maxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT,
-		npcOnly = true,
-	},
-	{ -- NPC 其餘重要增益
-		filter = "HELPFUL|IMPORTANT",
-		candidateFilters = {
-			isBossOrRoleAura = false,
-		},
-		maxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT,
-		npcOnly = true,
-	},
-}
-
-local BOSS_NAMEPLATE_DEBUFF_GROUPS = {
-	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
-		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY",
-		candidateFilters = {
-			nameplateShowPersonal = true,
-		},
-		maxFrameCount = 4,
-	},
-	{ -- 由暴雪標記為所有人可見的其餘名條減益
-		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY",
-		candidateFilters = {
-			nameplateShowAll = true,
-			nameplateShowPersonal = false,
-		},
-		maxFrameCount = 4,
-	},
-}
-
 -- 首領光環
 T.CreateBossAuras = function(self)
 	local spacing = 5
@@ -843,7 +931,7 @@ T.CreateBossAuras = function(self)
 	Debuffs.disableCooldown = true
 	Debuffs.durationFormatter = UF_AURA_DURATION
 
-	for layoutIndex, group in ipairs(BOSS_NAMEPLATE_DEBUFF_GROUPS) do
+	for layoutIndex, group in ipairs(BOSS_DEBUFF_GROUPS) do
 		Debuffs:AddGroup(group.filter, {
 			candidateFilters = group.candidateFilters,
 			maxFrameCount = 3,
@@ -873,7 +961,7 @@ T.CreateBossAuras = function(self)
 	Buffs.disableCooldown = true
 	Buffs.durationFormatter = UF_AURA_DURATION
 
-	for layoutIndex, group in ipairs(NAMEPLATE_NPC_BUFF_GROUPS) do
+	for layoutIndex, group in ipairs(BOSS_BUFF_GROUPS) do
 		Buffs:AddGroup(group.filter, {
 			candidateFilters = group.candidateFilters,
 			maxFrameCount = group.maxFrameCount,
@@ -892,31 +980,6 @@ T.CreateBossAuras = function(self)
 	self.Buffs = Buffs
 	return Debuffs, Buffs
 end
-
-local ARENA_DEBUFF_GROUPS = {
-	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
-		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
-		candidateFilters = {
-			nameplateShowPersonal = true,
-		},
-	},
-	{ -- 由暴雪標記為所有人可見的其餘名條減益
-		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
-		candidateFilters = {
-			nameplateShowAll = true,
-			nameplateShowPersonal = false,
-		},
-	},
-	{ -- 控場減益
-		filter = "HARMFUL|CROWD_CONTROL",
-	},
-}
-
-local ARENA_BUFF_FILTERS = {
-	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
-	"HELPFUL|EXTERNAL_DEFENSIVE",
-	"HELPFUL|RAID_PLAYER_DISPELLABLE|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
-}
 
 -- 競技場光環
 T.CreateArenaAuras = function(self)
@@ -939,7 +1002,7 @@ T.CreateArenaAuras = function(self)
 	for layoutIndex, group in ipairs(ARENA_DEBUFF_GROUPS) do
 		Debuffs:AddGroup(group.filter, {
 			candidateFilters = group.candidateFilters,
-			maxFrameCount = 4,
+			maxFrameCount = group.maxFrameCount,
 			sortMethod = AuraContainerSortMethod.Default,
 			size = C.AuraSize,
 			showCount = true,
@@ -989,31 +1052,6 @@ end
 -----------------    [[ Raidframes ]]    -----------------
 --======================================================--
 
-local RAID_DEBUFF_GROUPS = {
-	{ -- 首領與職責，最優先分類
-		filter = "HARMFUL",
-		candidateFilters = {
-			isBossOrRoleAura = true,
-			isFromPlayerOrPlayerPet = false,
-		},
-	},
-	{ -- 其餘高優先級
-		filter = "HARMFUL",
-		candidateFilters = {
-			isBossOrRoleAura = false,
-			isPriorityAura = true,
-			isFromPlayerOrPlayerPet = false,
-		},
-	},
-	{ -- 其餘普通減益，包含所有可驅散類型
-		filter = "HARMFUL",
-		candidateFilters = {
-			isBossOrRoleAura = false,
-			isPriorityAura = false,
-		},
-	},
-}
-
 -- 團隊與小隊減益
 T.CreateRaidDebuffs = function(self)
 	local spacing = 4
@@ -1053,11 +1091,6 @@ T.CreateRaidDebuffs = function(self)
 	self.Debuffs = Debuffs
 	return Debuffs
 end
-
-local RAID_BUFF_FILTERS = {
-	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
-	"HELPFUL|EXTERNAL_DEFENSIVE",
-}
 
 -- 團隊與小隊增益
 T.CreateRaidBuffs = function(self)
@@ -1101,13 +1134,15 @@ end
 -----------------    [[ Nameplates ]]    -----------------
 --======================================================--
 
-local NAMEPLATE_AURA_GROUPS = {
-	NAMEPLATE_NPC_BUFF_GROUPS[1],
-	NAMEPLATE_NPC_BUFF_GROUPS[2],
-	NAMEPLATE_NPC_BUFF_GROUPS[3],
-	BOSS_NAMEPLATE_DEBUFF_GROUPS[1],
-	BOSS_NAMEPLATE_DEBUFF_GROUPS[2],
-}
+-- 同一個 Group 在 NPC 使用可驅散條件，玩家則只顯示可偷取增益。
+T.UpdateNameplateAuraFilter = function(Auras, isPlayer)
+	if Auras.usesPlayerBuffFilter == isPlayer then return end
+
+	local group = isPlayer and PRIORITY_BUFF_RULES.stealable or PRIORITY_BUFF_RULES.dispellable
+	Auras:SetAuraGroupFilterString(Auras.unitTypeBuffGroup, group.filter)
+	Auras:SetAuraGroupCandidateFilters(Auras.unitTypeBuffGroup, group.candidateFilters)
+	Auras.usesPlayerBuffFilter = isPlayer
+end
 
 -- 名條光環
 T.CreateNameplateAuras = function(self)
@@ -1128,7 +1163,6 @@ T.CreateNameplateAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = RAID_AURA_DURATION
 
-	local npcBuffGroups = {}
 	for layoutIndex, group in ipairs(NAMEPLATE_AURA_GROUPS) do
 		local groupKey = Auras:AddGroup(group.filter, {
 			candidateFilters = group.candidateFilters,
@@ -1146,13 +1180,12 @@ T.CreateNameplateAuras = function(self)
 			},
 		})
 
-		if group.npcOnly then
-			npcBuffGroups[#npcBuffGroups + 1] = groupKey
+		if layoutIndex == 2 then
+			Auras.unitTypeBuffGroup = groupKey
 		end
 	end
 
-	Auras.npcBuffGroups = npcBuffGroups
-	Auras.npcBuffMaxFrameCount = NAMEPLATE_NPC_BUFF_MAX_FRAME_COUNT
+	Auras.usesPlayerBuffFilter = false
 	self.Auras = Auras
 	return Auras
 end
