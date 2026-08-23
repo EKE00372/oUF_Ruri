@@ -1,41 +1,22 @@
-local _, ns = ...
+local addon, ns = ...
 local F = ns[2]
 
-
 do
-	local hideNative = F.GetRuriOption("HideBlizzardRaidFrames")
-	local hideRaidFrames = hideNative and F.GetRuriOption("RaidFrames")
-	local hidePartyFrames = hideNative and F.GetRuriOption("PartyFrames")
+	local function Initialize(loader)
+		if not F.GetRuriOption("RaidFrames") then return end
 
-	if hideRaidFrames or hidePartyFrames then
-		-- 隱藏原生團隊框架，但保留團隊管理介面
-		local function HideRaidFrames()
-			if InCombatLockdown() then return end
-			-- Blizzard_CompactRaidFrames 載入後才有 CompactRaidFrameManager_SetSetting
-			if not CompactRaidFrameManager_SetSetting then return end
-
-			if GetCVar("raidOptionIsShown") ~= "0" then
-				SetCVar("raidOptionIsShown", "0")
-			end
-
-			CompactRaidFrameManager_SetSetting("IsShown", false)
-		end
-
-		-- 隱藏原生隊伍框架
-		local function HidePartyFrames()
-			if InCombatLockdown() then return end
-
-			if EditModeManagerFrame:UseRaidStylePartyFrames() then
-				if CompactPartyFrame then CompactPartyFrame:Hide() end
-			else
-				if PartyFrame then PartyFrame:Hide() end
-			end
-		end
-
-		-- 一次套用到隊伍與團隊
+		local hideRaidFrames = F.GetRuriOption("HideBlizzardRaidFrames")
+		local shownValue = hideRaidFrames and "0" or "1"
 		local function ApplyFrames()
-			if hideRaidFrames then HideRaidFrames() end
-			if hidePartyFrames then HidePartyFrames() end
+			-- Blizzard_CompactRaidFrames 載入後才有 CompactRaidFrameManager_SetSetting
+			if InCombatLockdown() or not CompactRaidFrameManager_SetSetting then return end
+			if GetCVar("raidOptionIsShown") ~= shownValue then
+				SetCVar("raidOptionIsShown", shownValue)
+			end
+			CompactRaidFrameManager_SetSetting("IsShown", shownValue)
+
+			loader:UnregisterAllEvents()
+			loader:SetScript("OnEvent", nil)
 		end
 
 		-- 延遲載入：在暴雪載入之後套用
@@ -50,20 +31,37 @@ do
 			end)
 		end
 
-		-- 監聽會更新框架的事件
-		local loader = CreateFrame("Frame")
+		-- 等待暴雪模組載入，並在戰鬥外完成初始化
+		local _, compactRaidFramesLoaded = C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames")
+		if not compactRaidFramesLoaded then
+			loader:RegisterEvent("ADDON_LOADED")
+		end
 		loader:RegisterEvent("PLAYER_ENTERING_WORLD")
-		loader:RegisterEvent("GROUP_ROSTER_UPDATE")
-		loader:RegisterEvent("UPDATE_ACTIVE_BATTLEFIELD")
 		loader:RegisterEvent("PLAYER_REGEN_ENABLED")
-		loader:SetScript("OnEvent", QueueApply)
+		loader:SetScript("OnEvent", function(self, event, name)
+			if event == "ADDON_LOADED" then
+				if name ~= "Blizzard_CompactRaidFrames" then return end
+				self:UnregisterEvent(event)
+			end
 
-		if EventRegistry then
-			EventRegistry:RegisterCallback("EditMode.Enter", QueueApply, loader)
+			QueueApply()
+		end)
+
+		if hideRaidFrames and EventRegistry then
 			EventRegistry:RegisterCallback("EditMode.Exit", QueueApply, loader)
-			EventRegistry:RegisterCallback("EditMode.SavedLayouts", QueueApply, loader)
 		end
 	end
+
+	-- SavedVariables 只保證在插件自身 ADDON_LOADED 時可用
+	local loader = CreateFrame("Frame")
+	loader:RegisterEvent("ADDON_LOADED")
+	loader:SetScript("OnEvent", function(self, event, name)
+		if name ~= addon then return end
+
+		self:UnregisterEvent(event)
+		self:SetScript("OnEvent", nil)
+		Initialize(self)
+	end)
 end
 
 -- 團隊管理介面滑鼠淡入淡出
