@@ -107,6 +107,7 @@ local MediaFolder = G.MediaFolder
 					options = {
 						{ type = "toggle", key = "PartyBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
 						{ type = "toggle", key = "PartyDebuffs", label = "ShowDebuffAuras", default = true },
+						{ type = "toggle", key = "PartyHealerManaOnly", label = "HealerManaOnly", default = false, tooltip = "HealerManaOnlyTip" },
 					},
 				},
 				{
@@ -115,6 +116,7 @@ local MediaFolder = G.MediaFolder
 					options = {
 						{ type = "toggle", key = "RaidBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
 						{ type = "toggle", key = "RaidDebuffs", label = "ShowDebuffAuras", default = true },
+						{ type = "toggle", key = "RaidHealerManaOnly", label = "HealerManaOnly", default = true, tooltip = "HealerManaOnlyTip" },
 					},
 				},
 				{

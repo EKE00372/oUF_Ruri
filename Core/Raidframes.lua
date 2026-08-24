@@ -13,9 +13,9 @@ local function ClassAuraFilter(self, unit, data)
 	end
 end
 ]]--
---====================================================--
------------------    [[ Function ]]    -----------------
---====================================================--
+--=================================================--
+-----------------    [[ Color ]]    -----------------
+--=================================================--
 
 -- 陰影變色：常態黑框，選中白框，仇恨高亮
 local function UpdateGroupBorder(self, event, unit)
@@ -32,6 +32,10 @@ local function UpdateGroupBorder(self, event, unit)
 	end
 end
 
+--================================================--
+-----------------    [[ Role ]]    -----------------
+--================================================--
+
 -- 職責圖示
 local groupRoleTextures = {
 	[Enum.LFGRole.Tank] = G.media.role_tank,
@@ -39,13 +43,55 @@ local groupRoleTextures = {
 	[Enum.LFGRole.Damage] = G.media.role_dps,
 }
 
+-- oUF 更新 Power 時會主動顯示 widget；職責未確認或等待停用時用此 callback 隱藏
+local function PostUpdateGroupPower(element)
+	element:SetShown(element.shouldEnable)
+end
+
 local function PostUpdateGroupRole(element, role)
+	-- 職責圖示
 	local texture = groupRoleTextures[role]
 	if texture then
 		element:SetTexture(texture)
 		element:SetTexCoord(0, 1, 0, 1)
 	end
+
+	-- 判斷是否顯示能量
+	local owner = element.__owner
+	local Power = owner.Power
+	if not Power.healerOnly then return end
+
+	local isHealer = (role == Enum.LFGRole.Healer)
+	local isEnabled = (owner:IsElementEnabled("Power") == true)
+	Power.shouldEnable = isHealer -- 取得職責，取代初始化的 false
+
+	-- 先判斷是否顯示 power
+	if isHealer then
+		Power.PostUpdate = nil -- 是治療者就停止 PostUpdate 檢查顯隱狀態
+	else
+		Power.PostUpdate = PostUpdateGroupPower	-- power 停用前保持隱藏
+	end
+	Power:SetShown(isHealer and isEnabled) -- 決定顯隱
+	-- 治療已啟用或等待排程時停止
+	if isEnabled == isHealer or Power.roleUpdatePending then return end
+
+	-- 再判斷是否停用 power
+	Power.roleUpdatePending = true -- 排程至 UpdateAllElements 之後，避免重複
+	C_Timer.After(0, function()
+		Power.roleUpdatePending = nil
+
+		if Power.shouldEnable then
+			owner:EnableElement("Power")
+			Power:ForceUpdate()
+		else
+			owner:DisableElement("Power")
+		end
+	end)
 end
+
+--====================================================--
+-----------------    [[ Function ]]    -----------------
+--====================================================--
 
 -- 12.1 fix: 非首領戰的跨地圖或位面單位可能令 filter 失效，錯誤地納入普通光環
 -- 為了避免這個情況，不在一起的隊友直接禁止光環顯示
@@ -62,15 +108,11 @@ local function PostUpdateGroupPhase(element, phaseReason)
 	end
 end
 
---===========================================================--
------------------    [[ Create Elements ]]    -----------------
---===========================================================--
-
 --=========================================================--
 -----------------    [[ Create Frames ]]    -----------------
 --=========================================================--
 
-local function CreateGroupShared(self, unit, width, height, powerHeight, frequentPowerUpdates)
+local function CreateGroupShared(self, unit, width, height, powerHeight, frequentPowerUpdates, healerOnly)
 
 	-- [[ 前置作業 ]] --
 	self:SetScript("OnEnter", F.UnitFrameOnEnter)	-- mouseover tooltip
@@ -96,6 +138,7 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
 	Health:SetStatusBarTexture(G.media.raidbar)
 	--Health:SetStatusBarColor(0, 0, 0, .4)	-- 材質本身就透明
 	-- 選項
+	Health.colorDisconnected = true
 	Health.colorClass = true
 	-- 背景
 	Health.bg = Health:CreateTexture(nil, "BACKGROUND")
@@ -130,6 +173,12 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
 	Power.frequentUpdates = frequentPowerUpdates
 	Power.colorPower = true
 	Power.colorDisconnected = true
+	-- 根據職責顯示能量
+	Power.healerOnly = healerOnly
+	if Power.healerOnly then
+		Power.shouldEnable = false	-- 初始化：先預設隱藏能量條
+		Power.PostUpdate = PostUpdateGroupPower	-- 更新 Power 顯示
+	end
 	-- 背景
 	Power.bg = Power:CreateTexture(nil, "BACKGROUND")
 	Power.bg:SetAllPoints()
@@ -192,7 +241,7 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
     Role:SetPoint("TOPLEFT", self.Health, 3, 6)
     Role:SetDesaturated(true)
     self.GroupRoleIndicator = Role
-	self.GroupRoleIndicator.PostUpdate = PostUpdateGroupRole
+	self.GroupRoleIndicator.PostUpdate = PostUpdateGroupRole	-- 利用 ouf 的職責更新來更新 power 啟用停用，節省資源
 	
 	-- [[ 文本/TAGS ]] --
 	
@@ -212,8 +261,8 @@ local function CreateParty(self, unit)
 	self.mystyle = "R"
 	self.Range = { insideAlpha = 1, outsideAlpha = .5, }
 
-	-- 小隊人數少，保留 UNIT_POWER_FREQUENT 的即時能量更新。
-	CreateGroupShared(self, unit, C.PartyWidth, C.PartyHeight, C.PartyPHeight, true)
+	-- 小隊用 UNIT_POWER_FREQUENT
+	CreateGroupShared(self, unit, C.PartyWidth, C.PartyHeight, C.PartyPHeight, true, F.GetRuriOption("PartyHealerManaOnly"))
 	-- 吸收盾
 	T.CreateHealthPrediction(self, true)
 	-- 文本
@@ -234,8 +283,8 @@ local function CreateRaid(self, unit)
 	self.mystyle = "R"
 	self.Range = { insideAlpha = 1, outsideAlpha = .4, }
 
-	-- 團隊改用 UNIT_POWER_UPDATE，降低多人框架的能量事件頻率。
-	CreateGroupShared(self, unit, C.RWidth, C.RHeight, C.RPHeight, false)
+	-- 團隊用 UNIT_POWER_UPDATE
+	CreateGroupShared(self, unit, C.RWidth, C.RHeight, C.RPHeight, false, F.GetRuriOption("RaidHealerManaOnly"))
 	-- 吸收盾
 	T.CreateHealthPrediction(self, true)
 	-- 文本
