@@ -47,6 +47,21 @@ local function PostUpdateGroupRole(element, role)
 	end
 end
 
+-- 12.1 fix: 非首領戰的跨地圖或位面單位可能令 filter 失效，錯誤地納入普通光環
+-- 為了避免這個情況，不在一起的隊友直接禁止光環顯示
+local function PostUpdateGroupPhase(element, phaseReason)
+	local owner = element.__owner
+	local enabled = C_InstanceEncounter.IsEncounterInProgress()
+		or (UnitIsVisible(owner.__unit) and not phaseReason)
+
+	if owner.Debuffs then
+		owner.Debuffs:SetEnabled(enabled)
+	end
+	if owner.Buffs then
+		owner.Buffs:SetEnabled(enabled)
+	end
+end
+
 --===========================================================--
 -----------------    [[ Create Elements ]]    -----------------
 --===========================================================--
@@ -159,6 +174,7 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
 	local phase = StringParent:CreateTexture(nil, "OVERLAY")
 	phase:SetSize(20, 20)
 	phase:SetPoint("CENTER", self.Health, 0, -3)
+	phase.PostUpdate = PostUpdateGroupPhase
 	self.PhaseIndicator = phase
 	-- 召喚
 	local Summon = StringParent:CreateTexture(nil, "OVERLAY")
@@ -236,10 +252,6 @@ local function CreateRaid(self, unit)
 	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, 3, 8)
 end
 
---===================================================--
---------------    [[ RegisterStyle ]]     -------------
---===================================================--
--- 註冊樣式
 --===================================================--
 -----------------    [[ Spawn ]]     ------------------
 --===================================================--
