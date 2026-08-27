@@ -158,9 +158,12 @@ local ARENA_DEBUFF_GROUPS = {
 	},
 }
 
-local RAID_BUFF_FILTERS = {
-	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
-	"HELPFUL|EXTERNAL_DEFENSIVE",
+local RAID_BUFF_GROUP = {
+	filter = "HELPFUL",
+	candidateFilters = {
+		includeSpellIDs = C.RaidWhiteList,
+	},
+	maxFrameCount = 4,
 }
 
 local RAID_DEBUFF_GROUPS = {
@@ -176,7 +179,7 @@ local RAID_DEBUFF_GROUPS = {
 		candidateFilters = {
 			isBossOrRoleAura = false,
 			isPriorityAura = true,
-			isFromPlayerOrPlayerPet = false,
+			--isFromPlayerOrPlayerPet = false,
 		},
 	},
 	{ -- 其餘普通減益，包含所有可驅散類型
@@ -184,6 +187,7 @@ local RAID_DEBUFF_GROUPS = {
 		candidateFilters = {
 			isBossOrRoleAura = false,
 			isPriorityAura = false,
+			excludeSpellIDs = C.RaidBlackList,
 		},
 	},
 }
@@ -1055,15 +1059,16 @@ end
 -- 團隊與小隊減益
 T.CreateRaidDebuffs = function(self)
 	local spacing = 4
+	local iconsPerLine = 3
 
 	local Debuffs = self:CreateAuras({
 		layout = HORIZONTAL,
-		layoutLimit = C.RaidAuraSize * 4 + spacing * 6,
+		layoutLimit = (C.RaidAuraSize + 2) * iconsPerLine + spacing * (iconsPerLine - 1),
 		initialAnchor = "BOTTOMLEFT",
 		growthX = "RIGHT",
 		growthY = "UP",
 	})
-	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
+	Debuffs:SetFrameLevel(self.StringParent:GetFrameLevel() + 1)
 	Debuffs:SetPoint("BOTTOMLEFT", self, 4, 6)
 	Debuffs.PostCreateButton = PostCreateAuraButton
 	Debuffs.showDuration = true
@@ -1095,36 +1100,34 @@ end
 -- 團隊與小隊增益
 T.CreateRaidBuffs = function(self)
 	local spacing = 4
-	local maxFrameCount = 3
+	local iconsPerLine = 2
 
 	local Buffs = self:CreateAuras({
 		layout = HORIZONTAL,
-		layoutLimit = C.PartyBuffSize * maxFrameCount + spacing * (maxFrameCount - 1),
+		layoutLimit = (C.RaidAuraSize + 2) * iconsPerLine + spacing * (iconsPerLine - 1),
 		initialAnchor = "BOTTOMRIGHT",
 		growthX = "LEFT",
 		growthY = "UP",
 	})
-	Buffs:SetFrameLevel(self:GetFrameLevel() + 4)
+	Buffs:SetFrameLevel(self.StringParent:GetFrameLevel() + 1)
 	Buffs:SetPoint("BOTTOMRIGHT", self, -4, 6)
 	Buffs.PostCreateButton = PostCreateAuraButton
 	Buffs.showDuration = true
 	Buffs.disableCooldown = true
 	Buffs.durationFormatter = RAID_AURA_DURATION
 
-	for layoutIndex, filter in ipairs(RAID_BUFF_FILTERS) do
-		Buffs:AddGroup(filter, {
-			maxFrameCount = maxFrameCount,
-			sortMethod = AuraContainerSortMethod.Default,
-			size = C.PartyBuffSize,
-			showCount = true,
-			disableMouse = true,
-			layout = {
-				elementSpacing = spacing,
-				lineSpacing = spacing,
-				layoutIndex = layoutIndex,
-			},
-		})
-	end
+	Buffs:AddGroup(RAID_BUFF_GROUP.filter, {
+		candidateFilters = RAID_BUFF_GROUP.candidateFilters,
+		maxFrameCount = RAID_BUFF_GROUP.maxFrameCount,
+		sortMethod = AuraContainerSortMethod.Default,
+		size = C.RaidAuraSize,
+		showCount = true,
+		disableMouse = true,
+		layout = {
+			elementSpacing = spacing,
+			lineSpacing = spacing,
+		},
+	})
 
 	self.Buffs = Buffs
 	return Buffs

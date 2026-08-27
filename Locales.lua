@@ -66,7 +66,7 @@ if GetLocale() == "zhTW" then
 	L.ShowDebuffAuras = "顯示減益光環"
 	L.HealerManaOnly = "只顯示治療者能量"
 
-	L.ShowBuffAurasTip = "只顯示防禦法術。"
+	L.ShowBuffAurasTip = "只顯示重要的防禦與輔助法術。"
 	L.HealerManaOnlyTip = "只顯示治療者的能量條。"
 	L.HideBlizzardRaidFramesTip = "只隱藏已啟用的 Ruri 組隊框架所取代的原生框架，不隱藏畫面左上角的團隊管理介面。"
 	L.HideCompactRaidManagerTip = "淡出畫面左上角的團隊管理介面，滑鼠指向時顯示。"
@@ -139,7 +139,7 @@ elseif GetLocale() == "zhCN" then
 	L.ShowDebuffAuras = "显示减益光环"
 	L.HealerManaOnly = "只显示治疗者能量"
 
-	L.ShowBuffAurasTip = "只显示防御法术。"
+	L.ShowBuffAurasTip = "只显示重要的防御与辅助法术。"
 	L.HealerManaOnlyTip = "只显示治疗者的能量条。"
 	L.HideBlizzardRaidFramesTip = "只隐藏已启用的 Ruri 组队框架所取代的原生框架，不隐藏画面左上角的团队管理界面。"
 	L.HideCompactRaidManagerTip = "淡出画面左上角的团队管理界面，鼠标指向时显示。"
@@ -212,7 +212,7 @@ else
 	L.ShowDebuffAuras = "Show Debuff Auras"
 	L.HealerManaOnly = "Healer Mana Only"
 
-	L.ShowBuffAurasTip = "Only defensive spells are shown."
+	L.ShowBuffAurasTip = "Only important defensive and utility spells are shown."
 	L.HealerManaOnlyTip = "Only show power bars for healers."
 	L.HideBlizzardRaidFramesTip = "Hide Blizzard group frames only when the corresponding Ruri group frames are enabled. The raid manager in the upper-left corner remains available."
 	L.HideCompactRaidManagerTip = "Fade the raid manager in the upper-left corner. It is shown on mouseover."
