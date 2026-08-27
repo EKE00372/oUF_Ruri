@@ -204,15 +204,18 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
 	-- 團隊標記
 	local RaidTarget = StringParent:CreateTexture(nil, "OVERLAY")
 	RaidTarget:SetSize(28, 28)
+	RaidTarget:SetPoint("TOPRIGHT", self.Health, -12, 12)
 	RaidTarget:SetTexture(G.media.raidicon)
 	self.RaidTargetIndicator = RaidTarget
 	-- 助手
 	local Assistant = StringParent:CreateTexture(nil, "OVERLAY")
 	Assistant:SetSize(14, 14)
+	Assistant:SetPoint("TOPLEFT", self.Health, 3, 10)
 	self.AssistantIndicator = Assistant
 	-- 領隊
 	local Leader = StringParent:CreateTexture(nil, "OVERLAY")
 	Leader:SetSize(14, 14)
+	Leader:SetPoint("TOPLEFT", self.Health, 3, 8)
 	self.LeaderIndicator = Leader
 	-- 團隊確認
 	local RDCheck = StringParent:CreateTexture(nil, "OVERLAY")
@@ -235,26 +238,27 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
     Res:SetSize(20, 20)
     Res:SetPoint("CENTER", self.Health, 0, -3)
     self.ResurrectIndicator = Res
-	-- 職責
-    local Role = StringParent:CreateTexture(nil, "OVERLAY")
-    Role:SetSize(16, 16)
-    Role:SetPoint("TOPLEFT", self.Health, 3, 6)
-    Role:SetDesaturated(true)
-    self.GroupRoleIndicator = Role
-	self.GroupRoleIndicator.PostUpdate = PostUpdateGroupRole	-- 利用 ouf 的職責更新來更新 power 啟用停用，節省資源
 	
 	-- [[ 文本/TAGS ]] --
 	
 	-- 名字與狀態
 	self.Name = F.CreateText(StringParent, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "RIGHT")
-	self.Name:SetPoint("TOPRIGHT", self.Health, -2, -3)
+	self.Name:SetPoint("TOPRIGHT", self.Health, -8, -3)
 	self.Name.frequentUpdates = 5
-	self:Tag(self.Name, "[namecolor][name][afkdnd]")
+	self:Tag(self.Name, "[afkdnd][namecolor][name]")
 	
 	-- 死亡背景
 	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, height, G.FontFlag, "CENTER")
 	self.DeadSkull:SetAlpha(.4)
 	self:Tag(self.DeadSkull, "[deadskull]")
+
+	-- 職責
+    local Role = StringParent:CreateTexture(nil, "OVERLAY")
+    Role:SetSize(28, 28)
+    Role:SetPoint("LEFT", self.Name, "RIGHT", -6, 1)
+    Role:SetDesaturated(true)
+    self.GroupRoleIndicator = Role
+	self.GroupRoleIndicator.PostUpdate = PostUpdateGroupRole	-- 利用 ouf 的職責更新來更新 power 啟用停用，節省資源
 end
 
 local function CreateParty(self, unit)
@@ -274,9 +278,6 @@ local function CreateParty(self, unit)
 	if F.GetRuriOption("PartyDebuffs") then T.CreateRaidDebuffs(self) end
 	if F.GetRuriOption("PartyBuffs") then T.CreateRaidBuffs(self) end
 	-- 圖示和標記
-	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
-	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
-	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, 3, 8)
 end
 
 local function CreateRaid(self, unit)
@@ -296,9 +297,6 @@ local function CreateRaid(self, unit)
 	if F.GetRuriOption("RaidDebuffs") then T.CreateRaidDebuffs(self) end
 	if F.GetRuriOption("RaidBuffs") then T.CreateRaidBuffs(self) end
 	-- 圖示和標記
-	self.RaidTargetIndicator:SetPoint("TOPRIGHT", self.Health, -12, 12)
-	self.AssistantIndicator:SetPoint("TOPRIGHT", self.Health, 3, 10)
-	self.LeaderIndicator:SetPoint("TOPRIGHT", self.Health, 3, 8)
 end
 
 --===================================================--
