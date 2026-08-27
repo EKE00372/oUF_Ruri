@@ -1,6 +1,5 @@
-﻿local addon, ns = ...
-local oUF = ns.oUF
-local C, F, G, T = unpack(ns)
+local _, ns = ...
+local C = ns[1]
 
 -- 抄他喵的
 -- https://github.com/siweia/NDui/blob/master/Interface/AddOns/NDui/Config/Nameplate.lua
@@ -164,167 +163,255 @@ C.PlayerBlackList = {
 --======================================================--
 
 C.RaidBlackList = {
-	[206151] = true,    -- 挑戰者的重擔
-	--[25163] = true,   -- 軟泥怪
-	[271544] = true,    -- 消蝕防護
-	[296847] = true,    -- 压迫光环
-	[338906] = true,    -- 典狱长之链
+	[57723] = true,   -- 精疲力竭 / Exhaustion
+	[57724] = true,   -- 精神亢奮 / Sated
+	[80354] = true,   -- 時光位移 / Temporal Displacement
+	[95809] = true,   -- 瘋狂 / Insanity
+	[160455] = true,  -- 疲倦 / Fatigued
+	[264689] = true,  -- 疲倦 / Fatigued
+	[390435] = true,  -- 精疲力竭 / Exhaustion
+	[26013] = true,   -- 逃亡者 / Deserter
+	[71041] = true,   -- 地城逃亡者 / Dungeon Deserter
+	[1313593] = true, -- 逃亡者 / Deserter
+	[206151] = true,  -- 挑戰者的重擔 / Challenger's Burden
+	[308312] = true,  -- 限時試煉練習 / Time Trial Practice
+	[1254550] = true, -- 秘法活化 / Arcane Empowerment
 }
 
-C.RaidBuffList = {
-    -- list taked from BuffOverlay
-	-- Death Knight
-    [48707]  = true, -- 反魔法護罩 / Anti-Magic Shell
-    [48792]  = true, -- 冰錮堅韌 / Icebound Fortitude
-    [49039]  = true, -- 巫妖之軀 / Lichborne
-    [55233]  = true, -- 血族之裔 / Vampiric Blood
-    [194679] = true, -- 符文轉化 / Rune Tap
-    [145629] = true, -- 反魔法力場 / Anti-Magic Zone
-    [81256]  = true, -- 符文武器幻舞 / Dancing Rune Weapon
-    --[410305] = true, -- PVP 血鑄護甲 / Bloodforged Armor
-    --[48265] = true, -- 死神逼近 / 
-    --[3714] = true, -- 冰霜之徑 / 
+C.RaidWhiteList = {
+
+    [58984] = true,      -- [輔助] 影遁 / Shadowmeld
+
+    -- Death Knight
+
+    [48707] = true,      -- [個人] 反魔法護罩 / Anti-Magic Shell
+    [444741] = true,     -- [個人] 反魔法護罩 / Anti-Magic Shell
+    [48792] = true,      -- [個人] 冰錮堅韌 / Icebound Fortitude
+    -- [49039] = true,   -- [個人] 巫妖之軀 / Lichborne
+    [55233] = true,      -- [個人] 血族之裔 / Vampiric Blood
+    -- [101568] = true,  -- [個人] 黑暗救贖 / Dark Succor
+    [145629] = true,     -- [團隊] 反魔法力場 / Anti-Magic Zone
+    [48265] = true,      -- [輔助] 死神逼近 / Death's Advance
+    [212552] = true,     -- [輔助] 闇境靈行 / Wraith Walk
+    [444347] = true,     -- [輔助] 死亡戰騎 / Death Charge
+    [3714] = true,       -- [輔助] 冰霜之徑 / Path of Frost
 
     -- Demon Hunter
-    [196555] = true, -- 虛空穿越 / Netherwalk
-    [209426] = true, -- 黑暗 / Darkness
-    --[206804] = true, -- PVP 從天而降 / Rain from Above
-    [187827] = true, -- 復仇惡魔化身 / Metamorphosis (Vengeance)
-    [212800] = true, -- 殘影 / Blur
-    [263648] = true, -- 靈魂屏障 / Soul Barrier
+
+    -- [442715] = true,  -- [個人] 刃禦 / Blade Ward
+    [212800] = true,     -- [個人] 殘影 / Blur
+    -- [1266616] = true, -- [個人] 惡魔靜默 / Demon Muzzle
+    -- [427912] = true,  -- [個人] 獻祭光環 / Immolation Aura
+    -- [258920] = true,  -- [個人] 獻祭光環 / Immolation Aura
+    [187827] = true,     -- [個人] 惡魔化身 / Metamorphosis
+    [207771] = true,     -- [個人] 熾炎烙印 / Fiery Brand
+    [209426] = true,     -- [團隊] 黑暗 / Darkness
 
     -- Druid
-    --[203554] = true, -- PVP 集中生長 / Focused Growth
-    --[362486] = true, -- PVP 保護自然 / Tranquility (Druid PVP)
-    [22842]  = true, -- 狂暴恢復 / Frenzied Regeneration
-    [102342] = true, -- 鐵樹皮術 / Ironbark
-    [22812]  = true, -- 樹皮術 / Barkskin
-    [61336]  = true, -- 求生本能 / Survival Instincts
-    [5215]   = true, -- 潛行 / Prowl
-    --[106898]  = true, -- 熊奔竄咆哮
-    --[77764]  = true, -- 貓奔竄咆哮
-    [1850]    = true, -- 突進
-    [252216]  = true, -- 虎豹突進
-    --[102560]  = true, -- 鳥化身
-    [102558]  = true, -- 熊化身
-    --[102543]  = true, -- 貓化身
-    [117679]  = true, -- 樹化身
-    --[157982]  = true, -- 寧靜
+
+    [22812] = true,      -- [個人] 樹皮術 / Barkskin
+    [22842] = true,      -- [個人] 狂暴恢復 / Frenzied Regeneration
+    -- [192081] = true,  -- [個人] 鋼鐵毛皮 / Ironfur
+    [61336] = true,      -- [個人] 求生本能 / Survival Instincts
+    [393903] = true,     -- [個人] 熊之活力 / Ursine Vigor
+    [1261872] = true,    -- [個人] 野性之心 / Heart of the Wild
+    [102558] = true,     -- [個人] 化身：厄索克守護者 / Incarnation: Guardian of Ursoc
+    [740] = true,        -- [團隊] 寧靜 / Tranquility
+    [117679] = true,     -- [團隊] 化身：生命之樹 / Incarnation: Tree of Life
+    [102342] = true,     -- [輔助] 鐵樹皮術 / Ironbark
+    [1850] = true,       -- [輔助] 突進 / Dash
+    [106898] = true,     -- [輔助] 奔竄咆哮 / Stampeding Roar
+    [77761] = true,      -- [輔助] 奔竄咆哮 / Stampeding Roar
+    [77764] = true,      -- [輔助] 奔竄咆哮 / Stampeding Roar
+    [252216] = true,     -- [輔助] 虎豹突進 / Tiger Dash
+    [5215] = true,       -- [輔助] 潛行 / Prowl
+    -- [340546] = true,  -- [輔助] 堅定追擊 / Tireless Pursuit
+    -- [400126] = true,  -- [輔助] 森林漫步 / Forestwalk
+    [29166] = true,      -- [輔助] 啟動 / Innervate
 
     -- Evoker
-    --[378441] = true, -- PVP 時間停止 / Time Stop
-    [363916] = true, -- 黑曜鱗片 / Obsidian Scales
-    [357170] = true, -- 時間擴張 / Time Dilation
-    --[383005] = true, -- PVP 時光迴圈 / Chrono Loop
-    [374348] = true, -- 再生烈焰 / Renewing Blaze
-    [370960] = true, -- 翡翠共融 / Emerald Communion
-    [363534] = true, -- 時光倒轉 / Rewind
-    [404381] = true, -- 抗拒命運 / Defy Fate
-    [375234] = true, -- 時間螺旋
-    [406732] = true, -- 時空悖論
-    [374227] = true, -- 輕風
+
+    [404381] = true,     -- [個人] 抗拒命運 / Defy Fate
+    [363916] = true,     -- [個人] 黑曜鱗片 / Obsidian Scales
+    [374349] = true,     -- [個人] 再生烈焰 / Renewing Blaze
+    -- [359816] = true,  -- [團隊] 夢境飛翔 / Dream Flight
+    [363534] = true,     -- [團隊] 時光倒轉 / Rewind
+    [374227] = true,     -- [團隊] 輕風 / Zephyr
+    [357170] = true,     -- [輔助] 時間擴張 / Time Dilation
+    -- [373267] = true,  -- [輔助] 生命守縛 / Lifebind
+    [358267] = true,     -- [輔助] 盤旋 / Hover
+    [358733] = true,     -- [輔助] 滑翔 / Glide
+    [370889] = true,     -- [輔助] 雙生守護者 / Twin Guardian
+    [375234] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375226] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375229] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375230] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375238] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375240] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375252] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375253] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375254] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375255] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375256] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375257] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [375258] = true,     -- [輔助] 時間螺旋 / Time Spiral
+    [406732] = true,     -- [輔助] 空間悖論 / Spatial Paradox
+    [406789] = true,     -- [輔助] 空間悖論 / Spatial Paradox
 
     -- Hunter
-    [186265] = true, -- 巨龜守護 / Aspect of the Turtle
-    [202748] = true, -- 求生戰術 / Survival Tactics
-    [53480]  = true, -- 犧牲咆哮 / Roar of Sacrifice
-    [264735] = true, -- 適者生存(帶寵) / Survival of the Fittest (Pet Ability)
-    [281195] = true, -- 適者生存(孤狼) / Survival of the Fittest (Lone Wolf)
-    [388035] = true, -- 熊之堅韌 / Fortitude of the Bear
-    [199483] = true, -- 偽裝 / Camouflage
+
+    [186265] = true,     -- [個人] 巨龜守護 / Aspect of the Turtle
+    [202748] = true,     -- [個人][PvP] 求生戰術 / Survival Tactics
+    [472708] = true,     -- [個人] 龜殼掩護 / Shell Cover
+    [264735] = true,     -- [個人] 適者生存 / Survival of the Fittest
+    [53480] = true,      -- [輔助] 犧牲咆哮 / Roar of Sacrifice
+    [186257] = true,     -- [輔助] 獵豹守護 / Aspect of the Cheetah
+    [186258] = true,     -- [輔助] 獵豹守護 / Aspect of the Cheetah
+    [118922] = true,     -- [輔助] 疾影術 / Posthaste
+    [5384] = true,       -- [輔助] 假死 / Feign Death
+    [199483] = true,     -- [輔助] 偽裝 / Camouflage
+    [1267208] = true,    -- [輔助] 把握良機 / Moment of Opportunity
+    [1224810] = true,    -- [輔助] 主人的呼喚 / Master's Call
+    [54216] = true,      -- [輔助] 主人的呼喚 / Master's Call
+    [62305] = true,      -- [輔助] 主人的呼喚 / Master's Call
 
     -- Mage
-    [45438]  = true, -- 寒冰屏障 / Ice Block
-    [41425]  = true, -- 體溫過低 / Hypothermia
-    [414658] = true, -- 冰脈鎮體 / Ice Cold
-    [66]     = true, -- 隱形術(前搖) / Invisibility
-    [32612]  = true, -- 隱形術(隱形) / Invisibility
-    [414664] = true, -- 群體隱形術 / Mass Invisibility
-    --[198111] = true, -- PVP 時光護盾 / Temporal Shield
-    [113862] = true, -- 強效隱形 / Greater Invisibility
-    [342246] = true, -- 時光倒轉 / Alter Time
+
+    [342246] = true,     -- [個人] 時光倒轉 / Alter Time
+    -- [235313] = true,  -- [個人] 熾炎屏障 / Blazing Barrier
+    -- [11426] = true,   -- [個人] 寒冰護體 / Ice Barrier
+    [45438] = true,      -- [個人] 寒冰屏障 / Ice Block
+    [414658] = true,     -- [個人] 冰脈鎮體 / Ice Cold
+    -- [235450] = true,  -- [個人] 稜彩屏障 / Prismatic Barrier
+    [449336] = true,     -- [個人] 愈挫愈勇 / Merely a Setback
+    [1309793] = true,    -- [個人] 增幅折射 / Amplified Refraction
+    [444754] = true,     -- [輔助] 滑溜拋法 / Slippery Slinging
+    [130] = true,        -- [輔助] 緩落術 / Slow Fall
+    [55342] = true,      -- [輔助] 鏡像 / Mirror Image
+    [108843] = true,     -- [輔助] 熾烈迅捷 / Blazing Speed
+    [66] = true,         -- [輔助] 隱形術（漸隱）/ Invisibility
+    [32612] = true,      -- [輔助] 隱形術（完全隱形）/ Invisibility
+    [110960] = true,     -- [輔助] 強效隱形 / Greater Invisibility
+    [382294] = true,     -- [輔助] 迅捷咒術 / Incantation of Swiftness
 
     -- Monk
-    --[353319] = true, -- PVP 和平編織者 / Peaceweaver
-    [125174] = true, -- 乾坤挪移 / Touch of Karma
-    --[202577] = true, -- PVP 迷霧護體 / Dome of Mist
-    [120954] = true, -- 酒石形絕釀 / Fortifying Brew (Brewmaster)
-    [115176] = true, -- 冥思禪功 / Zen Meditation
-    [116849] = true, -- 氣繭護體 / Life Cocoon
-    [122278] = true, -- 卸勁訣 / Dampen Harm
-    [122783] = true, -- 祛魔訣 / Diffuse Magic
-    [116841] = true, -- 猛虎出匣
+
+    [122783] = true,     -- [個人] 祛魔訣 / Diffuse Magic
+    [120954] = true,     -- [個人] 石形絕釀 / Fortifying Brew
+    [125174] = true,     -- [個人] 乾坤挪移 / Touch of Karma
+    [132578] = true,     -- [個人] 召喚玄牛怒兆 / Invoke Niuzao, the Black Ox
+    [322507] = true,     -- [個人] 天尊絕釀 / Celestial Brew
+    [1241059] = true,    -- [個人] 星界灌注 / Celestial Infusion
+    -- [432180] = true,  -- [個人] 風之舞 / Dance of the Wind
+    [116849] = true,     -- [輔助] 氣繭護體 / Life Cocoon
+    -- [119085] = true,  -- [輔助] 真氣飛龍穿 / Chi Torpedo
+    -- [443569] = true,  -- [輔助] 赤吉迅捷 / Chi-Ji's Swiftness
+    [116841] = true,     -- [輔助] 猛虎出閘 / Tiger's Lust
+    -- [394112] = true,  -- [輔助] 逃離現實 / Escape from Reality
+    -- [449609] = true,  -- [輔助] 身輕如燕 / Lighter Than Air
 
     -- Paladin
-    [204018] = true, -- 抗咒 / Blessing of Spellwarding
-    [642]    = true, -- 聖盾術 / Divine Shield
-    --[228050] = true, -- PVP 女王 / Divine Shield (Protection)
-    [1022]   = true, -- 保護 / Blessing of Protection
-    [25771]  = true, -- 自律 / Forbearance
-    [6940]   = true, -- 犧牲 / Blessing of Sacrifice
-    [199448] = true, -- 犧牲 / Blessing of Ultimate Sacrifice
-    [498]    = true, -- 聖佑術(神聖) / Divine Protection
-    [403876] = true, -- 聖佑術(懲戒) / Divine Protection
-    [31850]  = true, -- 忠誠防衛者 / Ardent Defender
-    [86659]  = true, -- 諸王 / Guardian of Ancient Kings
-    [205191] = true, -- 以眼還眼 / Eye for an Eye
-    [184662] = true, -- 復仇聖盾 / Shield of Vengeance
-    [31821]  = true, -- 精通光環 / Aura Mastery
-    [327193] = true, -- 榮耀時刻 / Moment of Glory
-    [1044]   =   true, -- 自由
+
+    [498] = true,        -- [個人] 聖佑術 / Divine Protection
+    [403876] = true,     -- [個人] 聖佑術 / Divine Protection
+    [642] = true,        -- [個人] 聖盾術 / Divine Shield
+    -- [184662] = true,  -- [個人] 復仇聖盾 / Shield of Vengeance
+    [31850] = true,      -- [個人] 忠誠防衛者 / Ardent Defender
+    [86659] = true,      -- [個人] 遠古諸王守護者 / Guardian of Ancient Kings
+    [212641] = true,     -- [個人] 遠古諸王守護者 / Guardian of Ancient Kings
+    [31821] = true,      -- [團隊] 精通光環 / Aura Mastery
+    [317929] = true,     -- [團隊] 精通光環 / Aura Mastery
+    [1022] = true,       -- [輔助] 保護祝福 / Blessing of Protection
+    [6940] = true,       -- [輔助] 犧牲祝福 / Blessing of Sacrifice
+    [204018] = true,     -- [輔助] 抗咒祝福 / Blessing of Spellwarding
+    [387804] = true,     -- [輔助] 保護迴響 / Echoing Protection
+    -- [276111] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [221886] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [221883] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [276112] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [254474] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [254472] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [254471] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [221885] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [254473] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [363608] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [294133] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [221887] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    -- [453804] = true,  -- [輔助] 神性戰馬 / Divine Steed
+    [1044] = true,       -- [輔助] 自由祝福 / Blessing of Freedom
 
     -- Priest
-    --[197268]  = true, -- PVP 希望曙光 / Ray of Hope
-    [47788]  = true, -- 守護聖靈 / Guardian Spirit
-    [27827]  = true, -- 救贖之靈(死) / Spirit of Redemption
-    [215769] = true, -- 救贖之靈(活) / Spirit of the Redeemer
-    [586]    = true, -- 漸隱術 / Fade
-    [47585]  = true, -- 影散 / Dispersion
-    [33206]  = true, -- 痛苦鎮壓 / Pain Suppression
-    [81782]  = true, -- 真言術壁 / Power Word: Barrier
-    [271466] = true, -- 光輝屏障 / Luminous Barrier
-    [19236]  = true, -- 絕望禱言 / Desperate Prayer
-    [64844]  = true, -- 神聖禮頌 / Divine Hymn
+
+    -- [114214] = true,  -- [個人] 天使之壁 / Angelic Bulwark
+    [19236] = true,      -- [個人] 絕望禱言 / Desperate Prayer
+    [47585] = true,      -- [個人] 影散 / Dispersion
+    [586] = true,        -- [個人] 漸隱術 / Fade
+    [45242] = true,      -- [個人] 意志專注 / Focused Will
+    [426401] = true,     -- [個人] 意志專注 / Focused Will
+    [193065] = true,     -- [個人] 保護之光 / Protective Light
+    [27827] = true,      -- [個人] 救贖之靈（死亡）/ Spirit of Redemption
+    [215769] = true,     -- [個人][PvP] 救贖之靈（主動）/ Spirit of Redemption
+    [64843] = true,      -- [團隊] 神聖禮頌 / Divine Hymn
+    [64844] = true,      -- [團隊] 神聖禮頌 / Divine Hymn
+    [81782] = true,      -- [團隊] 真言術：壁 / Power Word: Barrier
+    [47788] = true,      -- [輔助] 守護聖靈 / Guardian Spirit
+    [33206] = true,      -- [輔助] 痛苦鎮壓 / Pain Suppression
+    [10060] = true,      -- [輔助] 注入能量 / Power Infusion
+    [121557] = true,     -- [輔助] 天使之羽 / Angelic Feather
+    [65081] = true,      -- [輔助] 身心合一 / Body and Soul
+    [111759] = true,     -- [輔助] 漂浮術 / Levitate
 
     -- Rogue
-    [31224]  = true, -- 暗影披風 / Cloak of Shadows
-    [45182]  = true, -- 死亡謊言 / Cheating Death
-    [5277]   = true, -- 閃避 / Evasion
-    [1966]   = true, -- 佯攻 / Feint
-    [1784]   = true, -- 潛行 / Stealth
-    [11327]  = true, -- 消失 / Vanish
-    [114018] = true, -- 隱蔽護罩(自己) / Shroud of Concealment
-    [115834] = true, -- 隱蔽護罩(隊友) / Shroud of Concealment
+
+    [31224] = true,      -- [個人] 暗影披風 / Cloak of Shadows
+    [5277] = true,       -- [個人] 閃避 / Evasion
+    [1966] = true,       -- [個人] 佯攻 / Feint
+    -- [185311] = true,  -- [個人] 赤紅藥瓶 / Crimson Vial
+    [45182] = true,      -- [個人] 死亡謊言（觸發減傷）/ Cheating Death
+    [2983] = true,       -- [輔助] 疾跑 / Sprint
+    [1784] = true,       -- [輔助] 潛行 / Stealth
+    [36554] = true,      -- [輔助] 暗影閃現 / Shadowstep
+    [11327] = true,      -- [輔助] 消失 / Vanish
+    [114018] = true,     -- [輔助] 隱蔽護罩 / Shroud of Concealment
+    [115834] = true,     -- [輔助] 隱蔽護罩 / Shroud of Concealment
 
     -- Shaman
-    -- [409293]  = true, -- PVP 鑽地 / Burrow
-    [108271] = true, -- 星界轉移 / Astral Shift
-    [118337] = true, -- 硬化外皮 / Harden Skin
-    [201633] = true, -- 大地盾牆圖騰 / Earthen Wall Totem
-    [325174] = true, -- 靈魂連結圖騰 / Spirit Link Totem
-    [207498] = true, -- 先祖保護圖騰 / Ancestral Protection Totem
-    --[8178] = true, -- PVP 根基圖騰 / Grounding Totem
-    --[462844/114893] = true, -- 石之壁壘圖騰
+
+    [108271] = true,     -- [個人] 星界轉移 / Astral Shift
+    [260881] = true,     -- [個人] 幽靈狼 / Spirit Wolf
+    [325174] = true,     -- [團隊] 靈魂連結圖騰 / Spirit Link Totem
+    [192082] = true,     -- [輔助] 疾風突進 / Wind Rush
+    [79206] = true,      -- [輔助] 靈行者之賜 / Spiritwalker's Grace
+    [58875] = true,      -- [輔助] 幽魂步伐 / Spirit Walk
+    [2645] = true,       -- [輔助] 鬼魂之狼 / Ghost Wolf
 
     -- Warlock
-    [212295] = true, -- 虛空結界 / Nether Ward
-    [104773] = true, -- 心志堅定 / Unending Resolve
-    [108416] = true, -- 黑暗契約 / Dark Pact
+
+    [108416] = true,     -- [個人] 黑暗契約 / Dark Pact
+    [104773] = true,     -- [個人] 心志堅定 / Unending Resolve
+    [132413] = true,     -- [個人] 暗影壁壘 / Shadow Bulwark
+    [387636] = true,     -- [個人] 靈魂炙燃：治療石 / Soulburn: Healthstone
+    [389614] = true,     -- [個人] 深淵行者 / Abyss Walker
+    [212295] = true,     -- [個人][PvP] 虛空結界 / Nether Ward
+    [111400] = true,     -- [輔助] 燃燒狂奔 / Burning Rush
+    --[333889] = true,   -- [輔助] 惡魔支配 / Fel Domination
+    --[387626] = true,   -- [輔助] 靈魂炙燃 / Soulburn
+    [387633] = true,     -- [輔助] 靈魂炙燃：惡魔法陣 / Soulburn: Demonic Circle
 
     -- Warrior
-    [871]    = true, -- 盾牆 / Shield Wall
-    [118038] = true, -- 劍下亡魂 / Die by the Sword
-    [147833] = true, -- 阻擾 / Intervene
-    --[213915] = true, -- PVP 法術反彈 / Mass Spell Reflection
-    [23920]  = true, -- 法術反射 / Spell Reflection (Prot)
-    [184364] = true, -- 狂怒恢復 / Enraged Regeneration
-    [97463]  = true, -- 振奮咆哮 / Rallying Cry
-    [12975]  = true, -- 破釜沉舟 / Last Stand
-    --[190456] = true, -- 無視苦痛 / Ignore Pain
-    --[213871] = true, -- PVP 保鏢 / Bodyguard
-    --[424655] = true, -- PVP 安全守護 / Safeguard
 
+    [118038] = true,     -- [個人] 劍下亡魂 / Die by the Sword
+    [184364] = true,     -- [個人] 狂怒恢復 / Enraged Regeneration
+    [190456] = true,     -- [個人] 無視苦痛 / Ignore Pain
+    [1277297] = true,    -- [個人] 無視苦痛 / Ignore Pain
+    [147833] = true,     -- [個人] 阻擾 / Intervene
+    [23920] = true,      -- [個人] 法術反射（反射效果）/ Spell Reflection (Reflect)
+    --[385391] = true,     -- [個人] 法術反射（魔法減傷）/ Spell Reflection (Magic DR)
+    [871] = true,        -- [個人] 盾牆 / Shield Wall
+    -- [202147] = true,  -- [個人] 重新振作 / Second Wind
+    [12975] = true,      -- [個人] 破釜沉舟 / Last Stand
+    [97463] = true,      -- [團隊] 振奮咆哮 / Rallying Cry
+    [202164] = true,     -- [輔助] 昂首闊步 / Bounding Stride
+    [1244157] = true,    -- [輔助] 刺耳怒吼 / Piercing Howl
 
-    -- Misc
-    [58984]  = true,  -- 影遁 / Shadowmeld
 }

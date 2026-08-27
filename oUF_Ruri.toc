@@ -10,7 +10,7 @@
 Init.lua
 Config.lua
 Locales.lua
-#FilterList.lua
+FilterList.lua
 API.lua
 GUI.lua
 
