@@ -60,21 +60,20 @@ local MediaFolder = G.MediaFolder
 -- GroupFrame settings --
 ------------------------
 	
-	C.RWidth = 128				-- Raid frame width / 團隊寬度
-	C.RHeight = 44				-- Raid frame height / 團隊高度
+	C.RWidth = 124				-- Raid frame width / 團隊寬度
+	C.RHeight = 50				-- Raid frame height / 團隊高度
 	
 	C.RPHeight = 2				-- Raid frame power height / 團隊能量條高度
 	C.RSpace = 6				-- Raid frame space / 團隊間距
-	C.RaidAuraSize = 18			-- Raid aura icon size / 團隊光環圖示大小
+	C.RaidAuraSize = 18			-- Group frame aura icon size / 組隊框架光環圖示大小
 	--C.midAuraSize = 20				-- Middle big aura size
 	C.RangeAlpha = 0.4			-- Alpha for out of range units / 超距離淡出透明度
 	
-	C.PartyWidth = 156			-- Party frame width / 隊伍寬度
-	C.PartyHeight = 44			-- Party frame height / 隊伍高度
+	C.PartyWidth = 130			-- Party frame width / 隊伍寬度
+	C.PartyHeight = 50			-- Party frame height / 隊伍高度
 	
 	C.PartyPHeight = 2			-- Party frame power height / 隊伍能量條高度
 	C.PartySpace = 6			-- Party frame space / 隊伍間距
-	C.PartyBuffSize = 22		-- Party corner small aura size / 隊伍邊角光環大小
 	
 ------------------------
 -- Nameplate settings --
@@ -135,7 +134,7 @@ local MediaFolder = G.MediaFolder
 		Arena	= {"LEFT", 10, 80},
 		
 		-- [[ Groups / 團隊 ]] --
-		Party	= {"CENTER", UIParent, 530, 120},
+		Party	= {"CENTER", UIParent, 530, 140},
 		Raid	= {"CENTER", UIParent, 340, -160},
 		
 		-- [[ Player plate / 玩家個人資源 ]] --
