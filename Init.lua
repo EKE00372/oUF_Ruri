@@ -62,7 +62,7 @@ local MediaFolder = G.MediaFolder
 			options = {
 				{ type = "toggle", key = "UnitFrames", label = "UnitFrames", desc = "UnitFramesDesc", default = true },
 				{ type = "toggle", key = "PartyFrames", label = "PartyFrames", desc = "PartyFramesDesc", default = false },
-				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = false, wip = true },
+				{ type = "toggle", key = "RaidFrames", label = "RaidFrames", desc = "RaidFramesDesc", default = false},
 				{ type = "toggle", key = "Nameplates", label = "Nameplates", desc = "NameplatesDesc", default = false },
 			},
 		},
@@ -76,6 +76,7 @@ local MediaFolder = G.MediaFolder
 						{ type = "toggle", key = "vertPlayer", label = "VerticalPlayer", default = true },
 						{ type = "toggle", key = "vertTarget", label = "VerticalTarget", default = true },
 						{ type = "toggle", key = "SimpleFocus", label = "SimpleFocus", default = true, tooltip = "SimpleFocusTip" },
+						{ type = "toggle", key = "StandaloneCastbar", label = "StandaloneCastbar", default = false, tooltip = "StandaloneCastbarTip" },
 					},
 				},
 				{
@@ -92,7 +93,6 @@ local MediaFolder = G.MediaFolder
 						{ type = "toggle", key = "PlayerDebuffs", label = "PlayerDebuffs", default = true },
 						{ type = "toggle", key = "Totems", label = "Totems", default = false, tooltip = "TotemsTip" },
 						{ type = "toggle", key = "TankResource", label = "TankResource", default = false, tooltip = "TankResourceTip" },
-						{ type = "toggle", key = "StandaloneCastbar", label = "StandaloneCastbar", default = false, tooltip = "StandaloneCastbarTip" },
 						{ type = "toggle", key = "Fade", label = "Fade", default = true, tooltip = "FadeTip" },
 					},
 				},
@@ -107,6 +107,7 @@ local MediaFolder = G.MediaFolder
 					options = {
 						{ type = "toggle", key = "PartyBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
 						{ type = "toggle", key = "PartyDebuffs", label = "ShowDebuffAuras", default = true },
+						{ type = "toggle", key = "PartyShowPlayer", label = "ShowPlayer", default = true },
 						{ type = "toggle", key = "PartyHealerManaOnly", label = "HealerManaOnly", default = false, tooltip = "HealerManaOnlyTip" },
 					},
 				},
@@ -116,13 +117,14 @@ local MediaFolder = G.MediaFolder
 					options = {
 						{ type = "toggle", key = "RaidBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
 						{ type = "toggle", key = "RaidDebuffs", label = "ShowDebuffAuras", default = true },
+						{ type = "toggle", key = "RaidLayoutButton", label = "RaidLayoutButton", default = true, tooltip = "RaidLayoutButtonTip" },
 						{ type = "toggle", key = "RaidHealerManaOnly", label = "HealerManaOnly", default = true, tooltip = "HealerManaOnlyTip" },
 					},
 				},
 				{
 					name = "Extensions",
 					options = {
-						{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip", requiresAny = { "PartyFrames", "RaidFrames" } },
+						{ type = "toggle", key = "HideBlizzardRaidFrames", label = "HideBlizzardRaidFrames", default = true, tooltip = "HideBlizzardRaidFramesTip", requiresAny = { "RaidFrames" } },
 						{ type = "toggle", key = "HideCompactRaidManager", label = "HideCompactRaidManager", default = true, tooltip = "HideCompactRaidManagerTip" },
 					},
 				},
