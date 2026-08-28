@@ -30,23 +30,27 @@ end
 
 -- [[ 單位框架提示 ]] --
 
--- oUF 14 以 __unit 保存目前單位；暴雪 UnitFrame_OnEnter 仍讀取舊的 self.unit。
-F.UnitFrameOnEnter = function(self)
+F.UpdateUnitFrameTooltip = function(self, updateTooltip)
 	local unit = self.__unit
 	if not unit then
 		self.UpdateTooltip = nil
 		return
 	end
 
-	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	if GameTooltip:SetUnit(unit, self.hideStatusOnTooltip) then
 		GameTooltip_AddBlankLineToTooltip(GameTooltip)
 		GameTooltip_AddInstructionLine(GameTooltip, UNIT_POPUP_RIGHT_CLICK)
 		GameTooltip:Show()
-		self.UpdateTooltip = F.UnitFrameOnEnter
+		self.UpdateTooltip = updateTooltip
 	else
 		self.UpdateTooltip = nil
 	end
+end
+
+-- oUF 14 以 __unit 保存目前單位；暴雪 UnitFrame_OnEnter 仍讀取舊的 self.unit。
+F.UnitFrameOnEnter = function(self)
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	F.UpdateUnitFrameTooltip(self, F.UnitFrameOnEnter)
 end
 
 --===================================================--

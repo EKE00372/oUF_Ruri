@@ -60,20 +60,22 @@ local MediaFolder = G.MediaFolder
 -- GroupFrame settings --
 ------------------------
 	
-	C.RWidth = 124				-- Raid frame width / 團隊寬度
-	C.RHeight = 50				-- Raid frame height / 團隊高度
-	
-	C.RPHeight = 2				-- Raid frame power height / 團隊能量條高度
-	C.RSpace = 6				-- Raid frame space / 團隊間距
+	C.Raid = {
+		Width = 124,				-- Raid frame width / 團隊寬度
+		Height = 50,				-- Raid frame height / 團隊高度
+		PHeight = 2,				-- Raid frame power height / 團隊能量條高度
+		Space = 6,					-- Raid frame space / 團隊間距
+	}
+
+	C.Party = {
+		Width = 130,				-- Party frame width / 隊伍寬度
+		Height = 50,				-- Party frame height / 隊伍高度
+		PHeight = 2,				-- Party frame power height / 隊伍能量條高度
+		Space = 6,					-- Party frame space / 隊伍間距
+	}
+
 	C.RaidAuraSize = 18			-- Group frame aura icon size / 組隊框架光環圖示大小
 	--C.midAuraSize = 20				-- Middle big aura size
-	C.RangeAlpha = 0.4			-- Alpha for out of range units / 超距離淡出透明度
-	
-	C.PartyWidth = 130			-- Party frame width / 隊伍寬度
-	C.PartyHeight = 50			-- Party frame height / 隊伍高度
-	
-	C.PartyPHeight = 2			-- Party frame power height / 隊伍能量條高度
-	C.PartySpace = 6			-- Party frame space / 隊伍間距
 	
 ------------------------
 -- Nameplate settings --
@@ -134,8 +136,13 @@ local MediaFolder = G.MediaFolder
 		Arena	= {"LEFT", 10, 80},
 		
 		-- [[ Groups / 團隊 ]] --
-		Party	= {"CENTER", UIParent, 530, 140},
-		Raid	= {"CENTER", UIParent, 340, -160},
+
+		Party4	= {"CENTER", UIParent, 530, 115},
+		Party5	= {"CENTER", UIParent, 530, 140},
+
+		Raid54	= {"CENTER", UIParent, 337, -160},	-- 5x4 and 5x8 layouts / 5x4 與 5x8 布局
+		Raid55	= {"CENTER", UIParent, 303, -160},	-- 5x5 and single-row 5x6 / 5x5 與單排 5x6
+		Raid5633 = {"CENTER", UIParent, 530, 140},	-- 5x6 (3+3) / 5x6 雙排
 		
 		-- [[ Player plate / 玩家個人資源 ]] --
 		
@@ -160,9 +167,7 @@ local MediaFolder = G.MediaFolder
 	-- NDui by Siweia
 	-- unitframes
 	-- https://github.com/siweia/NDui/tree/master/Interface/AddOns/NDui/Modules/UFs
-	-- spell list
-	-- https://github.com/siweia/NDui/blob/master/Interface/AddOns/NDui/Config/Nameplate.lua
-	
+
 	-- AltzUI by Paopao
 	-- unitframes
 	-- https://github.com/Paojy/Altz-UI/tree/master/Interface/AddOns/AltzUI/mods/unitframes
