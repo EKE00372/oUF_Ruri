@@ -439,13 +439,12 @@ local function CreateFocusStyle(self, unit)
 	
 	-- 施法條
 	if F.GetRuriOption("StandaloneCastbar") then
+		T.CreateCastbar_Standalone(self, unit)
 		if F.GetRuriOption("vertTarget") then
-			T.CreateCastbar_Standalone(self, unit)
 			self.Castbar:SetWidth(C.PWidth-self.Castbar.IconBG:GetWidth()-C.PPOffset)
 			self.Castbar.IconBG:SetPoint(unpack(C.Position.VFocusCastbar))
 			self.Castbar:SetPoint("LEFT", self.Castbar.IconBG, "RIGHT", C.PPOffset, 0)
 		else
-			T.CreateCastbar_Standalone(self, unit)
 			self.Castbar:SetWidth(C.CastbarWidth)
 			self.Castbar.IconBG:SetPoint(unpack(C.Position.FocusCastbar))
 			self.Castbar:SetPoint("RIGHT", self.Castbar.IconBG, "LEFT", -C.PPOffset, 0)
@@ -500,7 +499,7 @@ local function CreateSFocusStyle(self, unit)
 	-- 文本
 	
 	-- 血量
-	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS*2+4, G.FontFlag, "LEFT")
+	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, C.PHeight*2, G.FontFlag, "LEFT")
 	self.HealthText:SetPoint("LEFT", 0, 0)
 	self:Tag(self.HealthText, "[perhp]")
 	
@@ -665,7 +664,7 @@ local function CreateSFoTStyle(self, unit)
 	-- 文本
 	
 	-- 血量
-	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "LEFT")
+	self.HealthText = F.CreateText(self, "OVERLAY", G.NPFont, C.PHeight, G.FontFlag, "LEFT")
 	self.HealthText:SetPoint("LEFT", 0, 0)
 	self:Tag(self.HealthText, ">> [perhp]")
 	
@@ -703,7 +702,7 @@ local function CreateBossStyle(self, unit)
 	self.Power.value:SetPoint("RIGHT", self.Power, 0, 5)
 	
 	-- 死亡背景
-	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PartyHeight, G.FontFlag, "CENTER")
+	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PHeight, G.FontFlag, "CENTER")
 	self.DeadSkull:SetWidth(self:GetWidth()-4)
 	self.DeadSkull:SetAlpha(.4)
 	self:Tag(self.DeadSkull, "[deadskull]")
@@ -749,7 +748,7 @@ local function CreateArenaStyle(self, unit)
 	self.Power.value:SetPoint("RIGHT", self.Power, 0, 5)
 
 	-- 死亡背景
-	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PartyHeight, G.FontFlag, "CENTER")
+	self.DeadSkull = F.CreateText(self.Health, "OVERLAY", G.Font, C.PHeight, G.FontFlag, "CENTER")
 	self.DeadSkull:SetWidth(self:GetWidth()-4)
 	self.DeadSkull:SetAlpha(.4)
 	self:Tag(self.DeadSkull, "[deadskull]")
