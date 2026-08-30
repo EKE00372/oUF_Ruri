@@ -275,7 +275,7 @@ local function PostCreateAuraButton(element, button, options)
 	border:SetPoint("TOPLEFT", button, -1, 1)
 	border:SetPoint("BOTTOMRIGHT", button, 1, -1)
 	border:SetColorTexture(1, 1, 1, 1)
-	border:SetVertexColor(.2, .2, .2, 1)
+	border:SetVertexColor(.1, .1, .1, 1)
 
 	-- 陰影
 	local shadow = button:CreateTexture(nil, "BACKGROUND", nil, -2)
