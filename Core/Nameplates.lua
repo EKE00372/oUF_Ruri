@@ -2,7 +2,7 @@ local _, ns = ...
 local oUF = ns.oUF
 local C, F, G, T = unpack(ns)
 
-local UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected = UnitIsTapDenied, UnitPlayerControlled, UnitIsConnected
+local UnitIsTapDenied, UnitPlayerControlled = UnitIsTapDenied, UnitPlayerControlled
 local UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction = UnitIsPlayer, UnitClass, UnitThreatSituation, UnitReaction
 local issecretvalue = issecretvalue
 
@@ -29,30 +29,34 @@ local function CreateNameplateMultiplierBG(element)
 	element.bg = bg
 end
 
--- 血量文字透明度：未滿血顯示，滿血隱藏；由原生 calculator 評估以避開 secret 數值比較。
+-- 血量文字透明度：未滿血顯示，滿血隱藏
 local HEALTH_TEXT_ALPHA_CURVE = C_CurveUtil.CreateCurve()
 HEALTH_TEXT_ALPHA_CURVE:SetType(Enum.LuaCurveType.Step)
 HEALTH_TEXT_ALPHA_CURVE:AddPoint(0, 1)
 HEALTH_TEXT_ALPHA_CURVE:AddPoint(1, 0)
 
--- 條形名條同步更新血條背景色，並以 secret-safe 曲線隱藏滿血百分比。
+-- 條形名條的血量百分比
+local function PostUpdateBarHealth(element)
+	element.value:SetAlpha(element.values:EvaluateCurrentHealthPercent(HEALTH_TEXT_ALPHA_CURVE))
+end
+
+-- 條形名條只在顏色變化時更新顏色
 local function PostUpdateBarHealthColor(element, unit, color)
 	local r, g, b = color:GetRGB()
 	element.bg:SetVertexColor(r, g, b, .3)
-	element.value:SetAlpha(element.values:EvaluateCurrentHealthPercent(HEALTH_TEXT_ALPHA_CURVE))
 end
 
 -- 染色
 local function UpdateNameplateHealthColor(self, event, unit)
 	if not unit or self.__unit ~= unit then return end
+	-- 純血量與吸收值變化不影響名條顏色
+	if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_ABSORB_AMOUNT_CHANGED" then return end
 
 	local element = self.Health
 	local color
 	local playerControlled = UnitPlayerControlled(unit)
 
-	if element.colorDisconnected and not UnitIsConnected(unit) then
-		color = self.colors.disconnected
-	elseif element.colorTapping and not playerControlled and UnitIsTapDenied(unit) then
+	if element.colorTapping and not playerControlled and UnitIsTapDenied(unit) then
 		color = self.colors.tapped
 	elseif element.colorThreat and not playerControlled
 		and not C_Secrets.ShouldUnitThreatStateBeSecret("player", unit) then
@@ -564,7 +568,6 @@ local function CreateNumberPlates(self, unit)
 	Health:SetMinMaxValues(0, 1)
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	Health:GetStatusBarTexture():SetAlpha(0)
-	Health.colorDisconnected = true
 	Health.colorTapping = true
 	Health.colorClass = true
 	Health.colorReaction = true
@@ -628,7 +631,6 @@ local function CreateBarPlates(self, unit)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 3)
 	-- 選項
-	Health.colorDisconnected = true
 	Health.colorTapping = true
 	Health.colorClass = true
 	Health.colorReaction = true
@@ -641,6 +643,7 @@ local function CreateBarPlates(self, unit)
 	-- 註冊到ouf
 	self.Health = Health
 	self.Health.UpdateColor = UpdateNameplateHealthColor
+	self.Health.PostUpdate = PostUpdateBarHealth
 	self.Health.PostUpdateColor = PostUpdateBarHealthColor
 	
 	-- 名字
