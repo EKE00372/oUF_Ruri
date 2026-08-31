@@ -74,8 +74,8 @@ if GetLocale() == "zhTW" then
 
 	L.ShowBuffAurasTip = "只顯示重要的防禦與輔助法術。"
 	L.RaidLayoutButtonTip = "在團隊框架上方顯示布局按鈕，手動切換顯示的小隊與布局。\n\n戰鬥中隱藏按鈕。\n\n按住|cff00ffffAlt + 右鍵|r可拖動團隊框架。\n\n你可以在布局面板中保存一組設定做為預設布局。\n\n若停用此選項，將自動切換布局；在傳奇團隊副本中，若前四隊滿編，隱藏五到八隊。"
-	L.SaveRaidLayoutTip = "左鍵保存目前的布局、小隊與位置。\n右鍵清除保存的設定。"
-	L.HealerManaOnlyTip = "只顯示治療者的能量條。"
+	L.SaveRaidLayoutTip = "|cff00ffff左鍵|r保存目前的布局、小隊與位置。\n\n|cff00ffff右鍵|r清除保存的設定。"
+	L.HealerManaOnlyTip = "只顯示治療者的能量條（即法力）。"
 	L.HideBlizzardRaidFramesTip = "隱藏暴雪原生團隊框架，不影響左側的團隊管理介面。"
 	L.HideCompactRaidManagerTip = "淡出左側的團隊管理介面，滑鼠指向時顯示。"
 
@@ -155,8 +155,8 @@ elseif GetLocale() == "zhCN" then
 
 	L.ShowBuffAurasTip = "只显示重要的防御与辅助法术。"
 	L.RaidLayoutButtonTip = "在团队框架上方显示布局按钮，手动切换显示的小队与布局。\n\n战斗中隐藏按钮。\n\n按住|cff00ffffAlt + 右键|r可拖动团队框架。\n\n你可以在布局面板中保存一组设置作为默认布局。\n\n若停用此选项，将自动切换布局；在史诗团队副本中，若前四队满编，隐藏第五至第八队。"
-	L.SaveRaidLayoutTip = "左键保存当前的布局、小队与位置。\n右键清除保存的设置。"
-	L.HealerManaOnlyTip = "只显示治疗者的能量条。"
+	L.SaveRaidLayoutTip = "|cff00ffff左键|r保存当前的布局、小队与位置。\n\n|cff00ffff右键|r清除保存的设置。"
+	L.HealerManaOnlyTip = "只显示治疗者的能量条（即法力）。"
 	L.HideBlizzardRaidFramesTip = "隐藏暴雪原生团队框架，不影响左侧的团队管理界面。"
 	L.HideCompactRaidManagerTip = "淡出左侧的团队管理界面，鼠标指向时显示。"
 
@@ -171,7 +171,7 @@ elseif GetLocale() == "zhCN" then
 	L.FriendlyNameSize = "调整友方名字"
 	L.FriendlyNameSizeTip = CreateBindingTooltip("进入副本时，自动开启友方姓名板，隐藏血量条并使用描边和较大字体。\n\n你可以按 %s 切换友方姓名板的显示与隐藏。\n\n此功能受暴雪限制，启用后会更改原生姓名板外观。", "FRIENDNAMEPLATES")
 	L.PlayerPlate = "玩家个人资源"
-	L.PlayerPlateTip = "显示血量、能量与职业资源的简易资源条。启用后会停用暴雪原生的玩家个人资源条。"
+	L.PlayerPlateTip = "显示血量、能量与职业资源的简易资源条。\n\n启用后会停用暴雪原生的玩家个人资源条。"
 
 	-- Other
 	L.ReloadUI = "重载 UI"
@@ -191,8 +191,8 @@ else
 
 	-- Overview
 	L.UnitFramesDesc = "Includes Player, Pet, Target, Target of target, Focus, Focus target, Arena, and Boss frames."
-	L.RaidFramesDesc = "Simple raid frames showing only raid members, without party-member pets, main tanks, or main assists."
-	L.PartyFramesDesc = "Simple party frames; party-member pets are not shown."
+	L.RaidFramesDesc = "Simple raidframes showing only raid members, no party-member pets, main tanks, or main assists."
+	L.PartyFramesDesc = "Simple partyframes, no party-member pets."
 	L.NameplatesDesc = "Simple nameplates."
 
 	-- subTitle
@@ -219,10 +219,10 @@ else
 	L.TotemsTip = "Show a simple player totem bar for non-|cff0070ddShaman|r classes.\n\n|cfff48cbaPaladin|r: Consecration\n|cffff7c0aDruid|r: Grove Guardians\n|cff00ff98Monk|r: Statue\n|cff8788eeWarlock|r: Wild Imps\n|cffc41e3aDeath Knight|r: Ghoul"
 	L.TankResourceTip = "Show two-charge tank skills as player resources.\n\n|cfff48cbaPaladin|r: Lightsmith\n|cffa330c9Demon Hunter|r: Demon Spikes\n|cffff7c0aDruid|r: Frenzied Regeneration\n|cff00ff98Monk|r: Purifying Brew\n|cffc69b6dWarrior|r: Shield Block"
 	L.FadeTip = "Fadeout player and pet frames while out of combat, not casting, and without a target."
-	L.StandaloneCastbarTip = "Standalone castbars for:\n\nPlayer, Target, and non-simple-mode Focus target."
+	L.StandaloneCastbarTip = "Standalone castbars for:\nPlayer,\nTarget,\nand non-simple-mode Focus target."
 
 	-- Raidframes
-	L.HideBlizzardRaidFrames = "Hide Blizzard RaidFrames"
+	L.HideBlizzardRaidFrames = "Hide Blizzard"
 	L.HideCompactRaidManager = "Fade RaidManager"
 	L.ShowPlayer = "Show Player"
 	L.ShowBuffAuras = "Show Buff Auras"
@@ -234,12 +234,12 @@ else
 	L.HalfHeight = "Half"
 	L.SaveRaidLayout = "Save"
 
-	L.ShowBuffAurasTip = "Only important defensive and utility spells are shown."
-	L.RaidLayoutButtonTip = "Show a layout button above the raid frames to manually switch visible groups and layouts.\n\nThe button is hidden in combat.\n\n|cff00ffffAlt + Right click|r to drag-move the raid frames.\n\nYou can save one setup as default layout.\n\nWhen disabled, layouts switch automatically: In a Mythic raid, if the first four groups are full, groups 5-8 are hidden."
-	L.SaveRaidLayoutTip = "Left-click to save the current layout, groups, and position.\nRight-click to clear the saved setup."
+	L.ShowBuffAurasTip = "Only important defensive and utility spells."
+	L.RaidLayoutButtonTip = "Show a layout button above raidframes to manually switch visible groups and layouts.\n\nThe button is hidden in combat.\n\n|cff00ffffAlt + Right-click|r button to drag-move raidframes.\n\nYou can save one setup as default layout.\n\nWhen disabled, layouts switch automatically:\nIn Mythic raid, groups 5-8 will be hidden if the first four groups are full."
+	L.SaveRaidLayoutTip = "|cff00ffffLeft-click|r: save the current layout, groups, and position.\n\n|cff00ffffRight-click|r: clear the saved setup."
 	L.HealerManaOnlyTip = "Only show power bars for healers."
 	L.HideBlizzardRaidFramesTip = "Hide Blizzard raidframes but keep raid manager at left side."
-	L.HideCompactRaidManagerTip = "Fadeout the raid manager at left side and shown on mouseover."
+	L.HideCompactRaidManagerTip = "Fadeout raid manager at left side and shown on mouseover."
 
 	-- Nameplates
 	L.NumberStyle = "Number Style"
@@ -250,9 +250,9 @@ else
 	L.CVars = "Adjust CVars"
 	L.CVarsTip = "Adjust some nameplate CVars.\n\nSee Embeds\\CVars.lua for the list of changed CVars."
 	L.FriendlyNameSize = "Adjust Friendly Names"
-	L.FriendlyNameSizeTip = CreateBindingTooltip("When entering an instance, friendly nameplates are enabled automatically; health bars are hidden and names use larger outlined text.\n\nPress %s to toggle friendly nameplates.\n\nBecause of Blizzard restrictions, enabling this changes the appearance of Blizzard nameplates.", "FRIENDNAMEPLATES")
+	L.FriendlyNameSizeTip = CreateBindingTooltip("Friendly nameplates will enabled automatically when you entering in instance; health bars are hidden and names use larger outlined text.\n\nPress %s to toggle friendly nameplates.\n\nBecause of Blizzard restrictions, enabling this changes the appearance of Blizzard nameplates.", "FRIENDNAMEPLATES")
 	L.PlayerPlate = "Player Plate"
-	L.PlayerPlateTip = "Show a simple resource bar for health, power, and class resources. Enabling it disables Blizzard's default Personal Resource Display."
+	L.PlayerPlateTip = "Show a simple resource bar for health, power, and class resources.\n\nEnabling it disables Blizzard's default Personal Resource Display."
 
 	-- Other
 	L.ReloadUI = "Reload UI"
