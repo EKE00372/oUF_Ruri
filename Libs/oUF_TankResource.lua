@@ -167,6 +167,9 @@ local function UpdateColor(self, event, unit)
 		end
 	end
 
+	if state.color == color then return end
+	state.color = color
+
 	for i = 1, #element do
 		SetBarColor(element[i], color)
 	end
@@ -209,18 +212,13 @@ local function UpdateRechargeBar(element, spell)
 	end
 end
 
-local USABLE_UPDATE_EVENTS = {
-	PLAYER_TARGET_CHANGED = true,
-	UNIT_POWER_FREQUENT = true,
-}
-
 local function Update(self, event, unit)
 	local element = self.TankResource
 	local state = STATE[element]
 	if not state or not state.enabled then return end
 
-	-- 這兩個事件只影響資源不足顏色，不需要重讀充能資料。
-	if USABLE_UPDATE_EVENTS[event] then
+	-- 法術可用狀態只影響資源不足顏色，不需要重讀充能資料。
+	if event == 'SPELL_UPDATE_USABLE' then
 		if unit and unit ~= self.__unit then return end
 		return ColorPath(self, event, self.__unit)
 	end
@@ -349,8 +347,7 @@ do
 		self:RegisterEvent('SPELL_UPDATE_CHARGES', SpellUpdatePath, true)
 
 		if element.costColor then
-			self:RegisterEvent('PLAYER_TARGET_CHANGED', Path, true)
-			self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
+			self:RegisterEvent('SPELL_UPDATE_USABLE', SpellUpdatePath, true)
 		end
 
 		state.enabled = true
@@ -366,8 +363,7 @@ do
 
 		self:UnregisterEvent('SPELL_UPDATE_COOLDOWN', SpellUpdatePath)
 		self:UnregisterEvent('SPELL_UPDATE_CHARGES', SpellUpdatePath)
-		self:UnregisterEvent('PLAYER_TARGET_CHANGED', Path)
-		self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
+		self:UnregisterEvent('SPELL_UPDATE_USABLE', SpellUpdatePath)
 
 		for i = 1, #element do
 			element[i]:Hide()
@@ -380,6 +376,7 @@ do
 
 		state.spell = nil
 		state.overrideSpellOptions = nil
+		state.color = nil
 	end
 end
 
