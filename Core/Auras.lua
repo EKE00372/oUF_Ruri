@@ -108,8 +108,8 @@ local PRIORITY_BUFF_RULES = {
 
 local BOSS_BUFF_GROUPS = {
 	PRIORITY_BUFF_RULES.bossOrRole,
-	PRIORITY_BUFF_RULES.dispellable,
 	PRIORITY_BUFF_RULES.important,
+	PRIORITY_BUFF_RULES.dispellable,
 }
 
 local BOSS_DEBUFF_GROUPS = {
@@ -187,6 +187,7 @@ local RAID_DEBUFF_GROUPS = {
 		candidateFilters = {
 			isBossOrRoleAura = false,
 			isPriorityAura = false,
+			isFromPlayerOrPlayerPet = false,
 			excludeSpellIDs = C.RaidBlackList,
 		},
 	},
@@ -195,8 +196,8 @@ local RAID_DEBUFF_GROUPS = {
 -- 名條建立時先用 NPC 規則；玩家只替換第二組
 local NAMEPLATE_BUFF_GROUPS = {
 	PRIORITY_BUFF_RULES.bossOrRole,
-	PRIORITY_BUFF_RULES.dispellable,
 	PRIORITY_BUFF_RULES.important,
+	PRIORITY_BUFF_RULES.dispellable,
 }
 
 local NAMEPLATE_AURA_GROUPS = {
@@ -326,7 +327,21 @@ end
 -----------------    [[ Polarity ]]    -----------------
 --====================================================--
 
--- 依敵我關係切換單組 filter，或調整雙組顯示上限
+local HOSTILE_FILTER = {
+	filter = "HELPFUL",
+	candidateFilters = {
+		isBossOrRoleAura = true,
+	},
+}
+
+local FRIENDLY_FILTER = {
+	filter = "HARMFUL",
+	candidateFilters = {
+		isPriorityAura = true,
+	},
+}
+
+-- 依敵我關係切換單組規則，或調整雙組顯示上限
 local function UpdateAuraPolarity(self, _, unit)
 	if unit and unit ~= self.__unit then return end
 
@@ -340,9 +355,14 @@ local function UpdateAuraPolarity(self, _, unit)
 	-- 切換過濾條件
 	relation.isHostile = hostile
 	if relation.filterGroup then
+		local rule = hostile and HOSTILE_FILTER or FRIENDLY_FILTER
 		relation.container:SetAuraGroupFilterString(
 			relation.filterGroup,
-			hostile and "HELPFUL" or "HARMFUL"
+			rule.filter
+		)
+		relation.container:SetAuraGroupCandidateFilters(
+			relation.filterGroup,
+			rule.candidateFilters
 		)
 		return
 	end
@@ -765,7 +785,8 @@ T.CreateToTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup("HARMFUL", {
+	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
+		candidateFilters = FRIENDLY_FILTER.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -806,7 +827,8 @@ T.CreateVToTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup("HARMFUL", {
+	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
+		candidateFilters = FRIENDLY_FILTER.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -854,7 +876,8 @@ T.CreateFoTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup("HARMFUL", {
+	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
+		candidateFilters = FRIENDLY_FILTER.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -896,7 +919,8 @@ T.CreateSimpleFoTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup("HARMFUL", {
+	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
+		candidateFilters = FRIENDLY_FILTER.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -1137,7 +1161,7 @@ end
 -----------------    [[ Nameplates ]]    -----------------
 --======================================================--
 
--- 同一個 Group 在 NPC 使用可驅散條件，玩家則只顯示可偷取增益。
+-- 增益光環條件切換：NPC 使用可驅散，玩家使用可偷取
 T.UpdateNameplateAuraFilter = function(Auras, isPlayer)
 	if Auras.usesPlayerBuffFilter == isPlayer then return end
 
