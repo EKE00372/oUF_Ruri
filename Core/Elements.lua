@@ -611,13 +611,21 @@ local function OnUpdateRunes(element, elapsed)
 	element.duration = duration
 	element:SetValue(duration)
 
-	if element.timer then
-		local remain = element.runeDuration - duration
-		if remain > 0 then
-			element.timer:SetText(F.FormatTime(remain))
-		else
-			element.timer:SetText(nil)
-		end
+	local timer = element.timer
+	if not timer then return end
+
+	local timerElapsed = element.timerElapsed + elapsed
+	if timerElapsed < .1 then
+		element.timerElapsed = timerElapsed
+		return
+	end
+
+	element.timerElapsed = 0
+	local remain = element.runeDuration - duration
+	if remain > 0 then
+		timer:SetText(F.FormatTime(remain))
+	else
+		timer:SetText(nil)
 	end
 end
 
@@ -632,11 +640,14 @@ local function PostUpdateRunes(element, runemap)
 			if runeReady then
 				--rune:SetAlpha(1)
 				rune:SetScript("OnUpdate", nil)
+				rune.timerElapsed = nil
 				if rune.timer then rune.timer:SetText(nil) end
 			elseif start then
 				--rune:SetAlpha(.6)
 				rune.runeDuration = duration
+				rune.timerElapsed = .5
 				rune:SetScript("OnUpdate", OnUpdateRunes)
+				OnUpdateRunes(rune, 0)
 			end
 		end
 		-- 背景
