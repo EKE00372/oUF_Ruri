@@ -3,20 +3,46 @@ local F = ns[2]
 
 do
 	local function Initialize(loader)
-		if not F.GetRuriOption("RaidFrames") then return end
+		if not F.GetRuriOption("RaidFrames") or not F.GetRuriOption("HideBlizzardRaidFrames") then return end
 
-		local hideRaidFrames = F.GetRuriOption("HideBlizzardRaidFrames")
-		local shownValue = hideRaidFrames and "0" or "1"
-		local function ApplyFrames()
-			-- Blizzard_CompactRaidFrames 載入後才有 CompactRaidFrameManager_SetSetting
-			if InCombatLockdown() or not CompactRaidFrameManager_SetSetting then return end
-			if GetCVar("raidOptionIsShown") ~= shownValue then
-				SetCVar("raidOptionIsShown", shownValue)
+		local hiddenParent = CreateFrame("Frame", nil, UIParent)
+		hiddenParent:Hide()
+		local hooked
+
+		-- 停用原生團框容器，但保留左側的團隊管理介面
+		local function DisableFrames()
+			local container = CompactRaidFrameContainer
+			if InCombatLockdown() or not container then return end
+
+			container:UnregisterAllEvents()
+			container:Hide()
+			container:SetParent(hiddenParent)
+
+			if not hooked then
+				hooked = true
+				container:HookScript("OnShow", function(self)
+					if InCombatLockdown() then
+						loader:RegisterEvent("PLAYER_REGEN_ENABLED")
+					else
+						self:Hide()
+					end
+				end)
+				hooksecurefunc(container, "SetParent", function(self, parent)
+					if parent == hiddenParent then return end
+					if InCombatLockdown() then
+						loader:RegisterEvent("PLAYER_REGEN_ENABLED")
+					else
+						self:SetParent(hiddenParent)
+					end
+				end)
 			end
-			CompactRaidFrameManager_SetSetting("IsShown", shownValue)
+
+			-- 團框已由隱藏父框架停用，保持 CVar 開啟以修復舊版本留下的持久隱藏
+			if not GetCVarBool("raidOptionIsShown") then
+				SetCVar("raidOptionIsShown", "1")
+			end
 
 			loader:UnregisterAllEvents()
-			loader:SetScript("OnEvent", nil)
 		end
 
 		-- 延遲載入：在暴雪載入之後套用
@@ -27,7 +53,7 @@ do
 			applyQueued = true
 			C_Timer.After(0, function()
 				applyQueued = false
-				ApplyFrames()
+				DisableFrames()
 			end)
 		end
 
@@ -46,10 +72,6 @@ do
 
 			QueueApply()
 		end)
-
-		if hideRaidFrames and EventRegistry then
-			EventRegistry:RegisterCallback("EditMode.Exit", QueueApply, loader)
-		end
 	end
 
 	-- SavedVariables 只保證在插件自身 ADDON_LOADED 時可用
