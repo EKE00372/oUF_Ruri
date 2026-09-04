@@ -184,7 +184,8 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
 	Power:SetHeight(powerHeight)
 	Power:SetPoint("BOTTOMLEFT", self.Health, 0, 0)	-- 與血量條等寬
 	Power:SetPoint("BOTTOMRIGHT", self.Health, 0, 0)
-	Power:SetFrameLevel(self:GetFrameLevel() + 2)
+	-- 高於 HealthPrediction 的所有吸收盾，低於文字與圖示
+	Power:SetFrameLevel(self:GetFrameLevel() + 5)
 	-- 選項
 	Power.frequentUpdates = frequentPowerUpdates
 	Power.colorPower = true
