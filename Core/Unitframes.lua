@@ -348,7 +348,7 @@ local function CreateTargetStyle(self, unit)
 		self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
 		self.Castbar.Time:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 		self.Castbar.Time:SetJustifyH("LEFT")
-		self.Castbar.Time:SetWidth(self:GetWidth() * 0.5)
+		self.Castbar.Time:SetWidth(self:GetWidth() * 0.3)
 	end
 	
 	-- 光環
@@ -457,7 +457,7 @@ local function CreateFocusStyle(self, unit)
 		self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
 		self.Castbar.Time:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 		self.Castbar.Time:SetJustifyH("LEFT")
-		self.Castbar.Time:SetWidth(self:GetWidth() * 0.5)
+		self.Castbar.Time:SetWidth(self:GetWidth() * 0.3)
 	end
 	
 	-- 光環

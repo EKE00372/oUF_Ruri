@@ -228,14 +228,14 @@ T.CreateCastbar_Standalone = function(self, unit)
 	-- 不同模式的布局
 	if self.mystyle == "S" then
 		-- 簡易焦點
-		Castbar:SetSize(C.PWidth/2, C.PHeight)
+		Castbar:SetSize(self:GetWidth(), C.PHeight)
 		
 		Castbar.Spark:SetSize(C.PHeight, C.PHeight)
 		Castbar.Spark:SetPoint("RIGHT", Castbar:GetStatusBarTexture(), 0, 0)
 
 		Castbar.Text = F.CreateText(Castbar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "LEFT")
 		Castbar.Text:SetPoint("LEFT", 5, 0)
-		Castbar.Text:SetWidth(self:GetWidth())
+		Castbar.Text:SetWidth(self:GetWidth() - 10)
 	elseif self.mystyle == "H" then
 		-- 橫式
 		Castbar:SetHeight(C.PHeight)
