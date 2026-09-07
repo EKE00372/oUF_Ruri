@@ -333,7 +333,7 @@ local function CreateBarCastbar(self, unit)
 	Castbar.Text:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 0, -2)
 	-- DurationTextBinding 直接格式化 secret duration，只顯示當前進度而不在 Lua 計算秒數。
 	Castbar.Time = F.CreateText(Castbar, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "RIGHT")
-	Castbar.Time:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 0, 4)
+	Castbar.Time:SetPoint("TOPRIGHT", Castbar, "BOTTOMRIGHT", 0, 6)
 	Castbar.Time.binding = T.CreateCastbarTimeBinding(true)
 	-- 進度高亮
 	Castbar.Spark = Castbar:CreateTexture(nil, "OVERLAY")
