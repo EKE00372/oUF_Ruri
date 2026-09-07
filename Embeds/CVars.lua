@@ -119,7 +119,7 @@ do
 	local loader = CreateFrame("Frame")
 	loader:RegisterEvent("PLAYER_ENTERING_WORLD")
 	loader:SetScript("OnEvent", function()
-		if F.GetRuriOption("CVars") then
+		if F.GetRuriOption("CVars") and F.GetRuriOption("Nameplates") then
 			ApplyNameplateCVars()
 		end
 	end)
