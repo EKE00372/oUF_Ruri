@@ -88,8 +88,6 @@ end
 
 -- 團隊管理介面滑鼠淡入淡出
 do
-	if not F.GetRuriOption("HideCompactRaidManager") then return end
-
 	local fadeOutDelay = 1	-- 延遲一秒淡出
 	local fadeOutToken = 0	-- C_Timer.After 無法取消，用 token 判斷已排程的淡出是否需要取消
 	local fadeOutAnimation
@@ -168,6 +166,8 @@ do
 	loader:RegisterEvent("PLAYER_ENTERING_WORLD")
 	loader:SetScript("OnEvent", function(self)
 		self:UnregisterAllEvents()
+		if not F.GetRuriOption("HideCompactRaidManager") then return end
+
 		CompactRaidFrameManager:HookScript("OnEnter", ShowManager)
 		CompactRaidFrameManager:HookScript("OnLeave", HideCollapsedManager)
 		CompactRaidFrameManager:HookScript("OnShow", RefreshManagerAlpha)
