@@ -193,7 +193,7 @@ local RAID_DEBUFF_GROUPS = {
 	},
 }
 
--- 名條建立時先用 NPC 規則；玩家只替換第二組
+-- 名條建立時先用 NPC 規則；可驅散組再依單位類型切換
 local NAMEPLATE_BUFF_GROUPS = {
 	PRIORITY_BUFF_RULES.bossOrRole,
 	PRIORITY_BUFF_RULES.important,
@@ -1207,7 +1207,7 @@ T.CreateNameplateAuras = function(self)
 			},
 		})
 
-		if layoutIndex == 2 then
+		if group == PRIORITY_BUFF_RULES.dispellable then
 			Auras.unitTypeBuffGroup = groupKey
 		end
 	end
