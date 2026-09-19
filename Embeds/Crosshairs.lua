@@ -1,10 +1,6 @@
 local _, ns = ...
 local F, G = ns[2], ns[3]
 
-local function CrosshairsEnabled()
-	return F.GetRuriOption("Crosshairs")
-end
-
 local function CreateCrosshairs()
 
 	local overallAlpha = 0.7
@@ -178,11 +174,6 @@ local function CreateCrosshairs()
 	end
 
 	function f:PLAYER_TARGET_CHANGED()
-		if not CrosshairsEnabled() then
-			fadeOut:Play()
-			return
-		end
-
 		local nameplate = C_NamePlate.GetNamePlateForUnit('target')
 		if nameplate then
 			FocusPlate(nameplate)
@@ -200,8 +191,6 @@ local function CreateCrosshairs()
 	f:RegisterEvent('PLAYER_ENTERING_WORLD')
 
 	function f:NAME_PLATE_UNIT_ADDED(unit)
-		if not CrosshairsEnabled() then return end
-
 		local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
 		if nameplate and nameplate == C_NamePlate.GetNamePlateForUnit('target') then
 			FocusPlate(nameplate)
@@ -211,8 +200,6 @@ local function CreateCrosshairs()
 	f:RegisterEvent('NAME_PLATE_UNIT_ADDED')
 
 	function f:NAME_PLATE_UNIT_REMOVED(unit)
-		if not CrosshairsEnabled() then return end
-
 		local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
 		local targetPlate = C_NamePlate.GetNamePlateForUnit('target')
 		if not targetPlate or targetPlate == nameplate then
@@ -229,7 +216,7 @@ loader:RegisterEvent('PLAYER_LOGIN')
 loader:SetScript('OnEvent', function(self, event)
 	self:UnregisterEvent(event)
 	self:SetScript('OnEvent', nil)
-	if CrosshairsEnabled() then
+	if F.GetRuriOption("Crosshairs") then
 		CreateCrosshairs()
 	end
 end)
