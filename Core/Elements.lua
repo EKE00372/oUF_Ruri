@@ -588,7 +588,7 @@ local function OnUpdateRunes(element, elapsed)
 	element.timerElapsed = 0
 	local remain = element.runeDuration - duration
 	if remain > 0 then
-		timer:SetText(F.FormatTime(remain))
+		timer:SetFormattedText("%d", remain + .5)
 	else
 		timer:SetText(nil)
 	end
