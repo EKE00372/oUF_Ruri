@@ -163,7 +163,7 @@ local function CanEditOption(option, group, section)
 		if requiredAny then
 			local matched
 			for _, key in ipairs(requiredAny) do
-				if F.GetRuriOption(key) == true then
+				if F.GetSavedRuriOption(key) == true then
 					matched = true
 					break
 				end
@@ -203,7 +203,7 @@ local function SetupOptionRow(row, check, label, desc, option, group, section)
 	-- 開關
 	local function ToggleValue()
 		if not CanEditOption(option, group, section) then
-			check:SetChecked(F.GetRuriOption(option.key) == true)
+			check:SetChecked(F.GetSavedRuriOption(option.key) == true)
 			return
 		end
 
@@ -220,7 +220,7 @@ local function SetupOptionRow(row, check, label, desc, option, group, section)
 	-- 同步選項狀態
 	row.RefreshState = function(self)
 		local available = CanEditOption(option, group, section)
-		check:SetChecked(F.GetRuriOption(option.key) == true)
+		check:SetChecked(F.GetSavedRuriOption(option.key) == true)
 		if available then
 			self:Enable()
 			check:Enable()
