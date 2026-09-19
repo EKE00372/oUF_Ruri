@@ -396,71 +396,36 @@ local function UpdateTankResourcePosition(element, tankResourceOffset)
 	end
 end
 
--- 更新坦克資源內部排列
+-- 坦克資源兩個充能格與恢復條固定按 1:1:2 排列
 local function UpdateTankResourceBars(element)
 	local parentFrame = element.__owner
-	if not parentFrame then return end
+	local charge1 = element[1]
+	local charge2 = element[2]
+	local rechargeBar = element.rechargeBar
+	local unitLength = (C.PWidth - 2*C.PPOffset) / 4
 
-	local max = #element
-	if max <= 0 then return end
+	charge1:ClearAllPoints()
+	charge2:ClearAllPoints()
+	rechargeBar:ClearAllPoints()
 
-	local style = parentFrame.mystyle
-	local rechargeBar = element.rechargeBar or element.__rechargeBar
-	local chargeBarCount = element.chargeBarCount or element.__chargeBarCount
+	if parentFrame.mystyle == "VL" then
+		charge1:SetOrientation("VERTICAL")
+		charge2:SetOrientation("VERTICAL")
+		rechargeBar:SetOrientation("VERTICAL")
 
-	if rechargeBar and chargeBarCount == 2 and element[1] and element[2] then
-		local charge1 = element[1]
-		local charge2 = element[2]
-		local unitLength = (C.PWidth - 2*C.PPOffset) / 4
+		charge1:SetSize(C.PPHeight, unitLength)
+		charge2:SetSize(C.PPHeight, unitLength)
+		rechargeBar:SetSize(C.PPHeight, unitLength*2)
 
-		charge1:ClearAllPoints()
-		charge2:ClearAllPoints()
-		rechargeBar:ClearAllPoints()
+		charge2:SetPoint("BOTTOM", charge1, "TOP", 0, C.PPOffset)
+		rechargeBar:SetPoint("BOTTOM", charge2, "TOP", 0, C.PPOffset)
+	else
+		charge1:SetSize(unitLength, C.PPHeight)
+		charge2:SetSize(unitLength, C.PPHeight)
+		rechargeBar:SetSize(unitLength*2, C.PPHeight)
 
-		if style == "VL" then
-			charge1:SetOrientation("VERTICAL")
-			charge2:SetOrientation("VERTICAL")
-			rechargeBar:SetOrientation("VERTICAL")
-
-			charge1:SetSize(C.PPHeight, unitLength)
-			charge2:SetSize(C.PPHeight, unitLength)
-			rechargeBar:SetSize(C.PPHeight, unitLength*2)
-
-			charge2:SetPoint("BOTTOM", charge1, "TOP", 0, C.PPOffset)
-			rechargeBar:SetPoint("BOTTOM", charge2, "TOP", 0, C.PPOffset)
-		else
-			charge1:SetSize(unitLength, C.PPHeight)
-			charge2:SetSize(unitLength, C.PPHeight)
-			rechargeBar:SetSize(unitLength*2, C.PPHeight)
-
-			charge2:SetPoint("LEFT", charge1, "RIGHT", C.PPOffset, 0)
-			rechargeBar:SetPoint("LEFT", charge2, "RIGHT", C.PPOffset, 0)
-		end
-
-		UpdateTankResourcePosition(element)
-		return
-	end
-
-	for i = 1, max do
-		local bar = element[i]
-		if not bar then break end
-
-		bar:ClearAllPoints()
-
-		if style == "VL" then
-			bar:SetOrientation("VERTICAL")
-			bar:SetSize(C.PPHeight, (C.PWidth - (max-1)*C.PPOffset)/max)
-
-			if i > 1 then
-				bar:SetPoint("BOTTOM", element[i-1], "TOP", 0, C.PPOffset)
-			end
-		else
-			bar:SetSize((C.PWidth - (max-1)*C.PPOffset)/max, C.PPHeight)
-
-			if i > 1 then
-				bar:SetPoint("LEFT", element[i-1], "RIGHT", C.PPOffset, 0)
-			end
-		end
+		charge2:SetPoint("LEFT", charge1, "RIGHT", C.PPOffset, 0)
+		rechargeBar:SetPoint("LEFT", charge2, "RIGHT", C.PPOffset, 0)
 	end
 
 	UpdateTankResourcePosition(element)
@@ -827,13 +792,6 @@ T.CreateTankResource = function(self, unit)
 	local TankResource = {}
 	local maxLength = 3
 
-	TankResource.overrideSpellOptions = {
-		["PALADIN"] = {
-			[432472] = {1, .92, .55}
-		}
-	}
-	TankResource.chargeBarCount = 2
-
     for i = 1, maxLength do
 		TankResource[i] = F.CreateStatusbar(self, G.addon..unit.."_TankResourceBar"..i, "ARTWORK", nil, nil, 1, 1, 0, 1)
 		TankResource[i].border = F.CreateSD(TankResource[i], TankResource[i], 4)
@@ -843,10 +801,28 @@ T.CreateTankResource = function(self, unit)
 		TankResource[i].bg = TankResource[i]:CreateTexture(nil, "BACKGROUND")
 		TankResource[i].bg:SetAllPoints()
 		TankResource[i].bg:SetTexture(G.media.blank)
-		TankResource[i].bg.multiplier = .4
+		TankResource[i].bg.multiplier = .3
 
 	end
 	TankResource.rechargeBar = TankResource[maxLength]
+
+	-- 四捨五入與符文一致；9.5 秒起會取整為 10 或以上，因此不顯示。
+	local formatter = C_StringUtil.CreateNumericRuleFormatter()
+	formatter:AddBreakpoint({threshold = 0, step = 1, rounding = Enum.NumericRuleFormatRounding.Nearest, format = "%d"})
+	formatter:AddBreakpoint({threshold = 9.5, format = ""})
+
+	local time = F.CreateText(TankResource.rechargeBar, "OVERLAY", G.Font, G.NameFS, G.FontFlag, "CENTER")
+	time:SetPoint("CENTER", 0, 0)
+	time:SetText("")
+	time.binding = C_DurationUtil.CreateDurationTextBinding()
+	time.binding:SetFontString(time)
+	time.binding:SetFormatter(formatter)
+	time.binding:SetExpiredText("")
+	time.binding:SetZeroDurationText("")
+	time.binding:SetUpdateInterval(.1)
+	time.binding:SetEnabled(false)
+	TankResource.Time = time
+
 	TankResource.__owner = self
 	TankResource.PostVisibility = PostResourceVisibility
 	UpdateTankResourceBars(TankResource)
