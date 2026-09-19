@@ -7,7 +7,6 @@ local oUF = ns.oUF or oUF
 ------------------------------------------------------
 
 local MIN_ALPHA = C.FadeOutAlpha
-local MAX_ALPHA = 1
 local FADE_IN_TIME = 0.4
 local FADE_OUT_TIME = 1.5
 
@@ -38,8 +37,6 @@ local function FadeOnUpdate(self, elapsed)
 end
 
 local function UIFrameFadeTo(frame, duration, endAlpha)
-    if not frame then return end
-
     local pending = fadeFrames[frame]
     if pending and pending.endAlpha == endAlpha then return end
 
@@ -78,7 +75,7 @@ local function Update(self)
     if not activeFrames[self] then return end
 
     local shouldShow = ShouldFrameShow(self)
-    local targetAlpha = shouldShow and MAX_ALPHA or MIN_ALPHA
+    local targetAlpha = shouldShow and 1 or MIN_ALPHA
     local duration = shouldShow and FADE_IN_TIME or FADE_OUT_TIME
 
     UIFrameFadeTo(self, duration, targetAlpha)
@@ -146,7 +143,7 @@ end
 local function Disable(self)
     activeFrames[self] = nil
     fadeFrames[self] = nil
-    self:SetAlpha(MAX_ALPHA)
+    self:SetAlpha(1)
     UnregisterDriverEvents()
 end
 
