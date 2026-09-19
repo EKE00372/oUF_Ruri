@@ -3,20 +3,13 @@
 
 Try layout as same as classpower/rune.
 
-## Sub-Widgets
-
-.bg - A `Texture` used as a background. It will inherit the color of the main StatusBar.
-
 ## Options
 
-.color
+.color - A ColorMixin-based object (defaults to RGB 0.1, 0.8, 1).
 .updateInterval - number, seconds between Charging_OnUpdate ticks (default 0.05)
 .PostUpdate(self, cur, max) - callback after every refresh, If you want more custom
 .PostVisibility(self, isVisible) - callback after vehicle visibility changes
-
-## Sub-Widget Options
-
-.multiplier - Used to tint the background based on the main widgets R, G and B values. Defaults to 1 (number)[0-1]
+.PostUpdateColor(self, color) - callback after color initialization; background coloring belongs to the layout.
 
 ## Examples
 
@@ -45,13 +38,11 @@ local STATE = {}
 local EssenceEnable, EssenceDisable
 
 local function Charging_OnUpdate(bar, elapsed)
-    local interval = bar.updateInterval or 0.05
-    bar.t = (bar.t or 0) + elapsed
-    if bar.t < interval then return end
+    bar.t = bar.t + elapsed
+    if bar.t < bar.updateInterval then return end
     bar.t = 0
 
-    local pct = (UnitPartialPower('player', PTYPE) or 0) / 1000
-    bar:SetValue(pct)
+    bar:SetValue(UnitPartialPower('player', PTYPE) / 1000)
 end
 
 local function Update(self, _, unit, ptype)
@@ -60,11 +51,11 @@ local function Update(self, _, unit, ptype)
     if not state or not state.enabled then return end
     if unit ~= 'player' or self.__unit ~= unit or (ptype and ptype ~= 'ESSENCE') then return end
 
-    local cur     = UnitPower('player', PTYPE) or 0
-    local max     = UnitPowerMax('player', PTYPE) or 0
+    local cur     = UnitPower('player', PTYPE)
+    local max     = UnitPowerMax('player', PTYPE)
     local created = #element
 
-    -- 龍能基礎 5 顆，天賦可提高到 6 顆；API 未就緒時退回已建立數量。
+    -- 基礎 5 顆，天賦 6 顆
     max = (max > 0 and max <= created) and max or created
 
     if element.__max ~= max then
@@ -77,7 +68,6 @@ local function Update(self, _, unit, ptype)
 
     for i = 1, created do
         local bar = element[i]
-        if not bar then break end
 
         if i > max then
             bar:Hide()
@@ -90,17 +80,13 @@ local function Update(self, _, unit, ptype)
         elseif i == cur + 1 then
             bar:Show()
             bar:SetScript('OnUpdate', Charging_OnUpdate)
-            Charging_OnUpdate(bar, 0)
+            -- 事件當下立即更新
+            bar.t = 0
+            bar:SetValue(UnitPartialPower('player', PTYPE) / 1000)
         else
             bar:Show()
             bar:SetValue(0)
             bar:SetScript('OnUpdate', nil)
-        end
-
-        local r, g, b = bar:GetStatusBarColor()
-        if bar.bg then
-            local mu = bar.bg.multiplier or .3
-            bar.bg:SetVertexColor(r * mu, g * mu, b * mu)
         end
     end
 
@@ -118,7 +104,7 @@ local function Visibility(self, event)
     local state = STATE[element]
     if not state then return end
 
-    -- Essence 只顯示玩家自身資源；進入載具時依 oUF 職業資源慣例停用。
+    -- 進入載具時依 oUF 職業資源慣例停用
     local shouldEnable = self.__unit == 'player' and not UnitHasVehicleUI('player')
     if shouldEnable ~= state.enabled then
         if shouldEnable then
@@ -181,8 +167,8 @@ local function Enable(self, unit)
     if not element or unit ~= 'player' then return end
 
     local interval = element.updateInterval or 0.05
-    local color = element.color or {0.1, 0.8, 1}
-    local r, g, b = color[1], color[2], color[3]
+    local color = element.color or CreateColor(0.1, 0.8, 1)
+    local r, g, b = color:GetRGB()
 
     -- bar int
     for i = 1, #element do
@@ -191,20 +177,18 @@ local function Enable(self, unit)
             bar:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
         end
         bar:SetMinMaxValues(0, 1)
-        bar:SetStatusBarColor(unpack(color))
+        bar:SetStatusBarColor(r, g, b)
 
         bar.updateInterval = interval
-
-        local bg= bar.bg
-        if(bg) then
-            local mu = bg.multiplier or 1
-            bg:SetVertexColor(r * mu, g * mu, b * mu)
-        end
     end
 
     element.__owner = self
     element.ForceUpdate = ForceUpdate
     STATE[element] = {}
+
+    if element.PostUpdateColor then
+        element:PostUpdateColor(color)
+    end
     return true
 end
 
