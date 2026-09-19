@@ -90,10 +90,8 @@ oUF.colors.reaction[8] = oUF:CreateColor(.26, 1, .22)
 -- [[ Name colored by Player class and NPC faction ]] --
 
 oUF.Tags.Methods["namecolor"] = function(unit)
-	local reaction = UnitReaction(unit, "player")
-
 	if UnitIsTapDenied(unit) then
-		return F.Hex(oUF.colors.tapped)
+		return oUF.colors.tapped:GenerateHexColorMarkup()
 	--elseif UnitIsPlayer(unit) or UnitPlayerControlled(unit) then
 	elseif UnitIsPlayer(unit) then
 		local _, class = UnitClass(unit)
@@ -106,12 +104,15 @@ oUF.Tags.Methods["namecolor"] = function(unit)
 			color = oUF.colors.class[class]
 		end
 
-		return color and color:GenerateHexColorMarkup() or F.Hex(1, 1, 1)
-	elseif reaction then
-		return F.Hex(oUF.colors.reaction[reaction])
-	else
-		return F.Hex(1, 1, 1)
+		return color and color:GenerateHexColorMarkup() or "|cffffffff"
 	end
+
+	local reaction = UnitReaction(unit, "player")
+	if reaction then
+		return oUF.colors.reaction[reaction]:GenerateHexColorMarkup()
+	end
+
+	return "|cffffffff"
 end
 oUF.Tags.Events["namecolor"] = "UNIT_NAME_UPDATE UNIT_FACTION"
 
@@ -148,7 +149,7 @@ oUF.Tags.Events["deadskull"] = "UNIT_HEALTH"
 -- [[ 狀態 ]] --
 
 oUF.Tags.Methods["afkdnd"] = function(unit)
-	if not (unit and UnitIsPlayer(unit)) then return end
+	if not UnitIsPlayer(unit) then return end
 	
 	local isAFK = UnitIsAFK(unit)
 	local isDND = UnitIsDND(unit)
@@ -158,7 +159,7 @@ oUF.Tags.Methods["afkdnd"] = function(unit)
 		return "|T"..FRIENDS_TEXTURE_AFK..":14:14:0:0:16:16:1:15:1:15|t"
 	elseif canaccessvalue(isDND) and isDND then			-- 忙錄
 		return "|T"..FRIENDS_TEXTURE_DND..":14:14:0:0:16:16:1:15:1:15|t"
-	elseif canaccessvalue(isConnected) and not isConnected then	-- 離線
+	elseif not isConnected then						-- 離線
 		return "|T"..FRIENDS_TEXTURE_OFFLINE..":14:14:0:0:16:16:1:15:1:15|t"
 	end
 end
@@ -182,7 +183,7 @@ oUF.Tags.Methods["unit:hp"] = function(unit)
 
 	local cur = F.NumberAbbrValue(UnitHealth(unit))
 	local per = format("%d", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
-	return F.Hex(1, 1, 1)..cur.." "..F.Hex(1, 1, 0)..per.."|r"
+	return "|cffffffff"..cur.." |cffffff00"..per.."|r"
 end
 oUF.Tags.Events["unit:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION PLAYER_FLAGS_CHANGED PARTY_MEMBER_ENABLE PARTY_MEMBER_DISABLE"
 
@@ -193,9 +194,9 @@ oUF.Tags.Methods["unit:pp"]  = function(unit)
 	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
 
 	if type == "MANA" then -- 法力
-		return F.Hex(color)..F.NumberAbbrValue(cur).."|r"
+		return color:GenerateHexColorMarkup()..F.NumberAbbrValue(cur).."|r"
 	else
-		return F.Hex(color)..cur.."|r"
+		return color:GenerateHexColorMarkup()..cur.."|r"
 	end
 end
 oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
