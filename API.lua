@@ -1,9 +1,7 @@
 local _, ns = ...
-local unpack = unpack
 local F, G = ns[2], ns[3]
 
-local select, type = select, type
-local floor, format = math.floor, format
+local select = select
 local CreateFrame, CreateAbbreviateConfig, AbbreviateNumbers = CreateFrame, CreateAbbreviateConfig, AbbreviateNumbers
 
 --======================================================--
@@ -73,47 +71,6 @@ local NumberAbbrConfig = {
 -- 直接交給允許 secret number 的原生 formatter
 F.NumberAbbrValue = function(value)
 	return AbbreviateNumbers(value, NumberAbbrConfig)
-end
-
--- [[ 顏色 ]] --
-
-F.Hex = function(r, g, b)
-	-- 未定義則白色
-	if not r then return "|cffFFFFFF" end
-	
-	if type(r) == "table" then
-		if(r.r) then
-			r, g, b = r.r, r.g, r.b
-		else
-			r, g, b = unpack(r)
-		end
-	end
-	
-	return ("|cff%02x%02x%02x"):format(r * 255, g * 255, b * 255)
-end
-
--- [[ 計時 ]] --
-
-F.FormatTime = function(s)
-	local day, hour, minute = 86400, 3600, 60
-	
-	if s >= day then
-		-- 天
-		return format("%dd", floor(s/day + 0.5)), s % day
-	elseif s >= hour then
-		-- 時
-		return format("%dh", floor(s/hour + 0.5)), s % hour
-	elseif s >= minute then
-		-- 五分以下
-		if s <= minute * 5 then
-			return format("%d:%02d", floor(s/60), s % minute), s - floor(s)
-		else
-		-- 五分以上
-			return format("%dm", floor(s/minute + 0.5)), s % minute
-		end
-	else
-		return format("%d", s + .5), s - floor(s)
-	end
 end
 
 --======================================================--
