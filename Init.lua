@@ -161,6 +161,7 @@ local MediaFolder = G.MediaFolder
 -------------------------
 
 	local type, pairs, ipairs = type, pairs, ipairs
+	local activeOptions = {}
 
 	F.GUIOptionMap = {}
 
@@ -201,6 +202,7 @@ local MediaFolder = G.MediaFolder
 			elseif db[key] == nil then
 				db[key] = option.default
 			end
+			activeOptions[key] = db[key]
 		end
 
 		-- Remove stale saved keys / 刪除插件已不存在的存檔項
@@ -211,7 +213,13 @@ local MediaFolder = G.MediaFolder
 		end
 	end
 
+	-- 執行中的模組只讀本次 ADDON_LOADED 建立的快照，直到重載才套用新設定。
 	F.GetRuriOption = function(key)
+		return activeOptions[key]
+	end
+
+	-- GUI 的勾選與依賴狀態使用待重載的存檔值。
+	F.GetSavedRuriOption = function(key)
 		local option = F.GUIOptionMap[key]
 		if not option then return nil end
 
@@ -225,10 +233,11 @@ local MediaFolder = G.MediaFolder
 		return db[key]
 	end
 
+	-- 只更新存檔，不改動本次執行的設定快照。
 	F.SetRuriOption = function(key, value)
 		local option = F.GUIOptionMap[key]
 		if not option or option.disabled then
-			return F.GetRuriOption(key)
+			return F.GetSavedRuriOption(key)
 		end
 
 		local db = GetGUIOptionsDB()
