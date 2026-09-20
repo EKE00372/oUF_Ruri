@@ -7,3 +7,9 @@ CODE_REVIEW.md
 .agents/releases/
 .agents/releases/*.md
 .agents/legacy-module-memory-*.zip
+
+# Local development tools and generated data.
+/Tools/
+
+# Local Markdown notes.
+/Notes/**/*.md
