@@ -297,7 +297,6 @@ end
 -- 視目前副資源的顯示層數，更新玩家減益光環位置
 T.UpdatePlayerDebuffsPosition = function(element, auraOffset)
 	local parentFrame = element.__owner
-	if not parentFrame then return end
 
 	auraOffset = auraOffset or select(3, GetPlayerResourceOffsets(parentFrame))
 
@@ -314,11 +313,7 @@ end
 -- 更新職業資源位置
 local function UpdateClassPowerPosition(element, classPowerOffset)
 	local parentFrame = element.__owner
-	if not parentFrame then return end
-
 	local bar = element[1]
-	if not bar then return end
-
 	local style = parentFrame.mystyle
 
 	bar:ClearAllPoints()
@@ -337,17 +332,13 @@ end
 
 -- 更新職業資源內部豆子排列
 local function UpdateClassPowerBars(element, max)
-	local parentFrame = element.__owner
-	if not parentFrame then return end
-
-	max = max or #element
 	if max <= 0 then return end
 
+	local parentFrame = element.__owner
 	local style = parentFrame.mystyle
 
 	for i = 1, max do
 		local bar = element[i]
-		if not bar then break end
 
 		bar:ClearAllPoints()
 
@@ -379,11 +370,7 @@ end
 -- 更新坦克資源位置
 local function UpdateTankResourcePosition(element, tankResourceOffset)
 	local parentFrame = element.__owner
-	if not parentFrame then return end
-
-	local bar = element[1] or element.rechargeBar or element.__rechargeBar
-	if not bar then return end
-
+	local bar = element[1]
 	local style = parentFrame.mystyle
 	tankResourceOffset = tankResourceOffset or GetPlayerResourceOffsets(parentFrame)
 
@@ -434,7 +421,6 @@ end
 -- 更新單條職業資源位置
 local function UpdateSingleResourceLayout(element, resourceOffset)
 	local parentFrame = element.__owner
-	if not parentFrame then return end
 
 	resourceOffset = resourceOffset or select(2, GetPlayerResourceOffsets(parentFrame))
 
@@ -459,14 +445,8 @@ local function ForceUpdateResource(element)
 	end
 end
 
-local function IsPlayerFrame(self)
-	return self and (self.__unit == "player" or self.__realUnit == "player")
-end
-
 -- 同步 element 狀態後，使用同一份 offset 更新全部資源與光環位置。
 local function UpdateResourceLayout(self)
-	if not IsPlayerFrame(self) then return end
-
 	ForceUpdateResource(self.TankResource)
 	ForceUpdateResource(self.ClassPower)
 	ForceUpdateResource(self.AdditionalPower)
@@ -488,7 +468,6 @@ end
 -- 合併同一批 visibility callback，並避免 ForceUpdate 期間重入
 local playerResourceLayoutQueued
 local function QueueResourceLayoutUpdate(self)
-	if not IsPlayerFrame(self) then return end
 	if playerResourceLayoutQueued then return end
 	playerResourceLayoutQueued = true
 
@@ -502,24 +481,49 @@ local function PostResourceVisibility(element)
 	QueueResourceLayoutUpdate(element.__owner)
 end
 
-T.InitializeResourceLayout = function(self)
-	QueueResourceLayoutUpdate(self)
-end
+T.InitializeResourceLayout = QueueResourceLayoutUpdate
 
 -- [[ 職業資源顏色 ]] --
 
+-- 分段資源共用背景染色；連擊點可在同一輪覆寫普通／滿豆前景色。
+local function PostUpdateClassResourceColor(element, color, overrideForeground)
+	if not color then return end
+
+	local r, g, b = color:GetRGB()
+	for i = 1, #element do
+		local bar = element[i]
+		if overrideForeground then
+			bar:SetStatusBarColor(r, g, b)
+		end
+		local bg = bar.bg
+		local mu = bg.multiplier
+		bg:SetVertexColor(r * mu, g * mu, b * mu)
+	end
+end
+
 -- 連擊點顏色
 local cpColor = {
-	{1, .7, .1},
-	{1, .95, .4}, -- 滿豆
+	CreateColor(1, .7, .1),
+	CreateColor(1, .95, .4), -- 滿豆
 }
 
-local POWER_TYPE_SOUL_FRAGMENTS = "SOUL_FRAGMENTS"
-local SPELL_DARK_HEART = Constants.UnitPowerSpellIDs.DARK_HEART_SPELL_ID or 1225789
-local SPELL_SILENCE_THE_WHISPERS = Constants.UnitPowerSpellIDs.SILENCE_THE_WHISPERS_SPELL_ID or 1227702
-local SPELL_VOID_METAMORPHOSIS = Constants.UnitPowerSpellIDs.VOID_METAMORPHOSIS_SPELL_ID or 1217607
+-- 更新連擊點顏色
+local function PostUpdateClassPowerColor(element, color)
+	if not color then return end
 
--- 更新顏色
+	-- oUF 先換色再更新數值，以公開配色物件識別連擊點，避免載具切換沿用舊資源狀態。
+	local isComboPoints = (color == element.__owner.colors.power.COMBO_POINTS)
+	if isComboPoints then
+		color = element.__comboPointColor or cpColor[1]
+		element.__comboPointColor = color
+	else
+		element.__comboPointColor = nil
+	end
+
+	PostUpdateClassResourceColor(element, color, isComboPoints)
+end
+
+-- 更新連擊點狀態與排列
 local function PostUpdateClassPower(element, cur, max, hasCurChanged, hasMaxChanged, powerType)
 	if not max or not cur then return end
 
@@ -529,40 +533,31 @@ local function PostUpdateClassPower(element, cur, max, hasCurChanged, hasMaxChan
 		UpdateClassPowerBars(element, max)
 	end
 
-	for i = 1, #element do
-		-- 連擊點滿豆時變色
-		if powerType == "COMBO_POINTS" then
-			if max > 0 and cur == max then
-				element[i]:SetStatusBarColor(unpack(cpColor[2]))
-			else
-				element[i]:SetStatusBarColor(unpack(cpColor[1]))
-			end
-		end
-		-- 背景沿用目前資源條顏色
-		if element[i].bg then
-			local mu = element[i].bg.multiplier or 0.3
-			local r, g, b = element[i]:GetStatusBarColor()
-			element[i].bg:SetVertexColor(r * mu, g * mu, b * mu)
+	if powerType == "COMBO_POINTS" then
+		local color = cpColor[(max > 0 and cur == max) and 2 or 1]
+		if color ~= element.__comboPointColor then
+			element.__comboPointColor = color
+			PostUpdateClassPowerColor(element, element.__owner.colors.power.COMBO_POINTS)
 		end
 	end
 end
 
 -- 靈魂碎片
-local function PostUpdateSoulFragments(element, cur, max, hasCurChanged, hasMaxChanged, powerType, ...)
-	PostUpdateClassPower(element, cur, max, hasCurChanged, hasMaxChanged, powerType, ...)
+local function PostUpdateSoulFragments(element, cur, max, hasCurChanged, hasMaxChanged, powerType)
+	PostUpdateClassPower(element, cur, max, hasCurChanged, hasMaxChanged, powerType)
 
 	local value = element.value
-	if powerType ~= POWER_TYPE_SOUL_FRAGMENTS then
+	if powerType ~= "SOUL_FRAGMENTS" then
 		value:SetText(nil)
 		return
 	end
 
 	-- 從光環層數取得靈魂碎片數量
 	local auraInfo
-	if C_UnitAuras_GetPlayerAuraBySpellID(SPELL_VOID_METAMORPHOSIS) then
-		auraInfo = C_UnitAuras_GetPlayerAuraBySpellID(SPELL_SILENCE_THE_WHISPERS)
+	if C_UnitAuras_GetPlayerAuraBySpellID(Constants.UnitPowerSpellIDs.VOID_METAMORPHOSIS_SPELL_ID) then
+		auraInfo = C_UnitAuras_GetPlayerAuraBySpellID(Constants.UnitPowerSpellIDs.SILENCE_THE_WHISPERS_SPELL_ID)
 	else
-		auraInfo = C_UnitAuras_GetPlayerAuraBySpellID(SPELL_DARK_HEART)
+		auraInfo = C_UnitAuras_GetPlayerAuraBySpellID(Constants.UnitPowerSpellIDs.DARK_HEART_SPELL_ID)
 	end
 
 	value:SetText((auraInfo and auraInfo.applications) or 0)
@@ -576,9 +571,6 @@ local function OnUpdateRunes(element, elapsed)
 	element.duration = duration
 	element:SetValue(duration)
 
-	local timer = element.timer
-	if not timer then return end
-
 	local timerElapsed = element.timerElapsed + elapsed
 	if timerElapsed < .1 then
 		element.timerElapsed = timerElapsed
@@ -586,6 +578,7 @@ local function OnUpdateRunes(element, elapsed)
 	end
 
 	element.timerElapsed = 0
+	local timer = element.timer
 	local remain = element.runeDuration - duration
 	if remain > 0 then
 		timer:SetFormattedText("%d", remain + .5)
@@ -606,7 +599,7 @@ local function PostUpdateRunes(element, runemap)
 				--rune:SetAlpha(1)
 				rune:SetScript("OnUpdate", nil)
 				rune.timerElapsed = nil
-				if rune.timer then rune.timer:SetText(nil) end
+				rune.timer:SetText(nil)
 			elseif start then
 				--rune:SetAlpha(.6)
 				rune.runeDuration = duration
@@ -615,11 +608,15 @@ local function PostUpdateRunes(element, runemap)
 				OnUpdateRunes(rune, 0)
 			end
 		end
-		-- 背景
-		if element[index].bg then
-			local mu = element[index].bg.multiplier or 0.3
-			local r, g, b = element[index]:GetStatusBarColor()
-			element[index].bg:SetVertexColor(r * mu, g * mu, b * mu)
+	end
+
+	local parentFrame = element.__owner
+	if parentFrame.mystyle ~= "BPP" then
+		-- oUF Runes 沒有 PostVisibility；只在整組顯隱改變時重排玩家資源與減益。
+		local isShown = element[1]:IsShown()
+		if element.__ruriShown ~= isShown then
+			element.__ruriShown = isShown
+			QueueResourceLayoutUpdate(parentFrame)
 		end
 	end
 end
@@ -662,6 +659,7 @@ T.CreateClassPower = function(self, unit)
 	end
 	
 	ClassPower.__owner = self
+	ClassPower.PostUpdateColor = PostUpdateClassResourceColor
 	UpdateClassPowerBars(ClassPower, maxPoint)
 	
 	if isDK then
@@ -671,7 +669,7 @@ T.CreateClassPower = function(self, unit)
 		self.Runes.PostUpdate = PostUpdateRunes
 	elseif isEVOKER then
 		self.Essence = ClassPower
-		self.Essence.color = {0.02, 0.9, 0.9}
+		self.Essence.color = CreateColor(0.02, 0.9, 0.9)
 		self.Essence.updateInterval = .1
 		self.Essence.MaxChangeUpdate = UpdateClassPowerBars
 		if self.mystyle ~= "BPP" then
@@ -679,6 +677,7 @@ T.CreateClassPower = function(self, unit)
 		end
 	else
 		self.ClassPower = ClassPower
+		self.ClassPower.PostUpdateColor = PostUpdateClassPowerColor
 		if self.mystyle ~= "BPP" then
 			self.ClassPower.PostVisibility = PostResourceVisibility
 		end
