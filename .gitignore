@@ -4,9 +4,14 @@ CODE_REVIEW.md
 .agents/code_reviews/
 .agents/code_reviews/*.md
 .agents/references/
+.agents/guides/
 .agents/releases/
 .agents/releases/*.md
 .agents/legacy-module-memory-*.zip
+
+# Local current development record and migration backups.
+/Docs/Development/UNRELEASE.md
+/Docs/Development/Backups/
 
 # Local development tools and generated data.
 /Tools/

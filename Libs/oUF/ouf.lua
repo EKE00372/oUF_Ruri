@@ -916,6 +916,29 @@ do
 		self.removedCallback = callback
 	end
 
+	--[[ Ruri extension: nameplates:Prewarm(create)
+	Builds one hidden, unitless nameplate for adoption on NAME_PLATE_UNIT_ADDED.
+	The layout owns scheduling and must call this outside combat. The callback must
+	only create visuals: no tags, unit events, element activation or unit queries.
+	The registered style runs once on adoption and must reuse these visuals.
+	--]]
+	function nameplateDriverMixin:Prewarm(create)
+		argcheck(create, 2, 'function')
+
+		self.prewarmPool = self.prewarmPool or {}
+		self.prewarmIndex = (self.prewarmIndex or 0) + 1
+
+		local object = CreateFrame('Button', self.prefix .. 'Prewarm' .. self.prewarmIndex, UIParent, 'PingableUnitFrameTemplate')
+		object:Hide()
+		object:EnableMouse(false)
+		object:SetSize(self.plateWidth or 200, self.plateHeight or 30)
+		object.isNamePlate = true
+		setmetatable(object, frame_metatable)
+
+		create(object)
+		table.insert(self.prewarmPool, object)
+	end
+
 	--[[ nameplates:SetSize(width[, height])
 	Sets the width and size for all nameplates.  
 	If only width is provided it will also be used for the height.  
@@ -998,14 +1021,27 @@ do
 			if(not nameplate.unitFrame) then
 				nameplate.style = self.style
 
-				nameplate.unitFrame = CreateFrame('Button', self.prefix .. nameplate:GetName(), nameplate, 'PingableUnitFrameTemplate')
+				local prewarmed = self.prewarmPool and table.remove(self.prewarmPool)
+				if(prewarmed) then
+					nameplate.unitFrame = prewarmed
+					prewarmed:SetParent(nameplate)
+					prewarmed:ClearAllPoints()
+				else
+					nameplate.unitFrame = CreateFrame('Button', self.prefix .. nameplate:GetName(), nameplate, 'PingableUnitFrameTemplate')
+				end
 				nameplate.unitFrame:EnableMouse(false)
 				nameplate.unitFrame:SetAllPoints()
 				nameplate.unitFrame.isNamePlate = true
 
 				Private.UpdateUnits(nameplate.unitFrame, unit)
 
-				walkObject(nameplate.unitFrame, unit)
+				if(prewarmed) then
+					-- Its visual children are not unit frames. Initialize only the owner.
+					initObject(unit, self.style, styles[self.style], nil, prewarmed)
+					prewarmed:Show()
+				else
+					walkObject(nameplate.unitFrame, unit)
+				end
 
 				-- re-parent other elements directly to the nameplate frame, as there doesn't seem
 				-- to be any downsides to be parented there than to the unit frame within,
@@ -1050,6 +1086,11 @@ do
 			if(self.removedCallback) then
 				self.removedCallback(nameplate.unitFrame, event, unit)
 			end
+		elseif(event == 'CVAR_UPDATE' and unit == 'nameplateShowFriendlyNpcs') then
+			-- BUG: when toggling this cvar friendly nameplates sometimes doesn't show
+			for _, nameplate in next, C_NamePlate.GetNamePlates() do
+				driverEventHandler(self, 'NAME_PLATE_UNIT_ADDED', nameplate.unitToken)
+			end
 		end
 	end
 
@@ -1076,6 +1117,7 @@ do
 		nameplateDriver:RegisterEvent('NAME_PLATE_UNIT_ADDED')
 		nameplateDriver:RegisterEvent('NAME_PLATE_UNIT_REMOVED')
 		nameplateDriver:RegisterEvent('PLAYER_TARGET_CHANGED')
+		nameplateDriver:RegisterEvent('CVAR_UPDATE')
 
 		-- we'd prefer to straight up disable blizzard's nameplate driver, but nameplates contain
 		-- widgets and soft target icons we can't recreate due to protections, and it handles the
@@ -1139,6 +1181,19 @@ function oUF:AddMetaElement(name, create, update, enable, disable)
 		disable = disable,
 	}
 	self:RegisterMetaFunction('Create' .. name, create)
+end
+
+--[[ oUF:GetUnitFrame(unit)
+Query oUF for a frame attached to the unit.  
+
+Layouts can opt out of this by defining `.dontExpose` on each frame.
+--]]
+function oUF:GetUnitFrame(unit)
+	for _, object in next, self.objects do
+		if(object.__unit == unit and not object.dontExpose) then
+			return object
+		end
+	end
 end
 
 oUF.version = _VERSION
