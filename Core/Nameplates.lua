@@ -306,9 +306,9 @@ end
 
 -- [[ 條形施法條 ]]--
 
-local function CreateBarCastbar(self, unit)
+local function CreateBarCastbar(self)
 	-- 創建施法條
-	local Castbar = F.CreateStatusbar(self, G.addon..unit.."_CastBar", "ARTWORK", C.NPHeight)
+	local Castbar = F.CreateStatusbar(self, nil, "ARTWORK", C.NPHeight)
 	Castbar:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, -4)
 	Castbar:SetPoint("TOPRIGHT", self.Health, "BOTTOMRIGHT", 0, -4)
 	Castbar:SetFrameLevel(self:GetFrameLevel() + 3)
@@ -567,19 +567,19 @@ local function CreateNameplateStackingBounds(self)
 	texture:SetColorTexture(1, 1, 1, 0)
 	texture:SetAllPoints(bounds)
 
-	self:GetParent():SetStackingBoundsFrame(bounds)
+	self.StackingBounds = bounds
 end
 
 -- [[ 數字模式 ]] --
 
-local function CreateNumberPlates(self, unit)
+local function CreateNumberPlates(self)
 	self.mystyle = "NNP"
 	CreateNameplateStackingBounds(self)
 
 	self.RingCastActive = false
 
 	-- Health 只供 oUF 更新真實血量與 calculator；光環改由獨立定位條承載。
-	local Health = F.CreateStatusbar(self, G.addon..unit.."_NumberHealth", "ARTWORK", 1, C.NPWidth, 0, 0, 0, 0)
+	local Health = F.CreateStatusbar(self, nil, "ARTWORK", 1, C.NPWidth, 0, 0, 0, 0)
 	Health:SetPoint("BOTTOM", self, "BOTTOM")
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
 	Health:GetStatusBarTexture():SetAlpha(0)
@@ -596,13 +596,11 @@ local function CreateNumberPlates(self, unit)
 	-- 名字放在 Health 底部；實際行高會用來計算 Health 與滿血光環位置。
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", self.Health, "BOTTOM")
-	self:Tag(self.Name, "[name]")
 
 	-- 百分比與名字相距 3px；環形施法條與文字共用中心。
 	self.HealthText = F.CreateText(self.Health, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "CENTER")
 	self.HealthText:SetPoint("BOTTOM", self.Name, "TOP", 0, 3)
 	self.HealthText:SetTextColor(1, 1, 1)
-	self:Tag(self.HealthText, "[perhp]")
 
 	-- 用兩個 FontString 的公開行高建立布局；曲線結果只傳給可接受 secret value 的 SetValue。
 	local nameHeight = self.Name:GetLineHeight()
@@ -647,12 +645,12 @@ end
 
 -- [[ 條形模式 ]] --
 
-local function CreateBarPlates(self, unit)
+local function CreateBarPlates(self)
 	self.mystyle = "BNP"
 	CreateNameplateStackingBounds(self)
 	
 	-- 血量
-	local Health = F.CreateStatusbar(self, G.addon..unit, "ARTWORK", C.NPHeight, C.NPWidth, 0, 0, 0, 1)
+	local Health = F.CreateStatusbar(self, nil, "ARTWORK", C.NPHeight, C.NPWidth, 0, 0, 0, 1)
 	Health:SetPoint("CENTER", self, 0, 0)
 	Health:SetFrameLevel(self:GetFrameLevel() + 3)
 	-- 選項
@@ -674,12 +672,10 @@ local function CreateBarPlates(self, unit)
 	-- 名字
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", self.Health, "TOP",  0, 4)
-	self:Tag(self.Name, "[name]")
 
 	-- 血量
 	self.Health.value = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "RIGHT")
 	self.Health.value:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", 0, -4)
-	self:Tag(self.Health.value, "[perhp]")
 	-- 團隊標記
 	local RaidIcon = Health:CreateTexture(nil, "OVERLAY")
 	RaidIcon:SetSize(28, 28)
@@ -688,7 +684,7 @@ local function CreateBarPlates(self, unit)
 	self.RaidTargetIndicator = RaidIcon
 
 	-- 施法條
-	CreateBarCastbar(self, unit)
+	CreateBarCastbar(self)
 	-- 只顯示傷害吸收；敵方名條不顯示治療吸收
 	T.CreateHealthPrediction(self, false)
 	
@@ -827,7 +823,24 @@ oUF:Factory(function(self)
 		end
 	end
 
-	self:RegisterStyle("Nameplate", (numberStyle and CreateNumberPlates) or CreateBarPlates)
+	local createStyleFrames = (numberStyle and CreateNumberPlates) or CreateBarPlates
+	local function CreatePlateFrames(frame)
+		createStyleFrames(frame)
+		if showNameplateAuras then
+			-- 預建時只配置外觀；綁定真實單位後由 oUF 啟用及更新。
+			frame.Auras:SetEnabled(false)
+		end
+	end
+
+	self:RegisterStyle("Nameplate", function(frame)
+		if not frame.Health then
+			CreatePlateFrames(frame)
+		end
+		-- 這些操作需要真實名條與 unit，不能放進預建階段。
+		frame:GetParent():SetStackingBoundsFrame(frame.StackingBounds)
+		frame:Tag(frame.Name, "[name]")
+		frame:Tag(frame.HealthText or frame.Health.value, "[perhp]")
+	end)
 	self:SetActiveStyle("Nameplate")
 
 	local driver = self:SpawnNamePlates("oUF_Nameplate")
@@ -839,6 +852,20 @@ oUF:Factory(function(self)
 	end
 	driver:SetAddedCallback(UpdateNameplateState)
 	driver:SetRemovedCallback(ResetNameplateIndicators)
+
+	-- 延後分批預建 30 張；戰鬥中暫停，已建好的可立即使用，空池仍走正常建立。
+	C_Timer.After(2, function()
+		local prewarmed = 0
+		C_Timer.NewTicker(.1, function(ticker)
+			if InCombatLockdown() then return end
+
+			driver:Prewarm(CreatePlateFrames)
+			prewarmed = prewarmed + 1
+			if prewarmed == 30 then
+				ticker:Cancel()
+			end
+		end)
+	end)
 
 	if indicatorController then
 		RefreshTargetFocusIndicators()
