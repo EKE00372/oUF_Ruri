@@ -49,7 +49,7 @@ end
 local function CreateUnitShared(self, unit)
 
 	-- [[ 前置作業 ]] --	
-	self:RegisterForClicks("AnyUp")	-- Make mouse active
+	self:RegisterForClicks("AnyDown", "AnyUp")	-- Make mouse active
 	
 	-- [[ 高亮 ]] --
 	
