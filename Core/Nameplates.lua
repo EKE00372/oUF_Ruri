@@ -10,6 +10,7 @@ local issecretvalue = issecretvalue
 local showNameplateAuras
 local showTargetHighlight
 local showMouseoverHighlight
+local reverseThreat = false
 
 local CAST_NORMAL = CreateColor(.9, .9, .9)
 local CAST_SHIELD = CreateColor(unpack(C.CastShield))
@@ -67,7 +68,7 @@ local function UpdateNameplateHealthColor(self, event, unit)
 		and not C_Secrets.ShouldUnitThreatStateBeSecret("player", unit) then
 		local status = UnitThreatSituation("player", unit)
 		if status then
-			color = self.colors.threat[status]
+			color = self.colors.threat[reverseThreat and (3 - status) or status]
 		end
 	end
 
@@ -97,6 +98,22 @@ local function UpdateNameplateHealthColor(self, event, unit)
 
 	if element.PostUpdateColor then
 		element:PostUpdateColor(unit, color)
+	end
+end
+
+-- 只在組隊／職責變更令反轉狀態改變時，重染現有名條；不重跑血量與光環更新。
+local function UpdateNameplateThreatMode(_, event, unit)
+	if event == "PLAYER_SPECIALIZATION_CHANGED" and unit ~= "player" then return end
+
+	local shouldReverse = IsInGroup() and not PlayerUtil.IsPlayerEffectivelyTank()
+	if reverseThreat == shouldReverse then return end
+	reverseThreat = shouldReverse
+
+	for _, nameplate in next, C_NamePlate.GetNamePlates() do
+		local frame = nameplate.unitFrame
+		if frame and frame:IsShown() then
+			UpdateNameplateHealthColor(frame, event, frame.__unit)
+		end
 	end
 end
 
@@ -808,6 +825,16 @@ oUF:Factory(function(self)
 	showNameplateAuras = F.GetRuriOption("ShowAuras")
 	showTargetHighlight = F.GetRuriOption("HLTarget")
 	showMouseoverHighlight = F.GetRuriOption("HLMouseover")
+
+	if F.GetRuriOption("ReverseThreat") then
+		local threatController = CreateFrame("Frame")
+		threatController:RegisterEvent("PLAYER_ENTERING_WORLD")
+		threatController:RegisterEvent("GROUP_ROSTER_UPDATE")
+		threatController:RegisterEvent("PLAYER_ROLES_ASSIGNED")
+		threatController:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+		threatController:SetScript("OnEvent", UpdateNameplateThreatMode)
+		UpdateNameplateThreatMode()
+	end
 
 	if showTargetHighlight or showMouseoverHighlight then
 		indicatorController = CreateFrame("Frame")
