@@ -82,6 +82,8 @@ if GetLocale() == "zhTW" then
 	-- Nameplates
 	L.NumberStyle = "數字模式"
 	L.ShowAuras = "顯示光環"
+	L.ReverseThreat = "反轉仇恨染色"
+	L.ReverseThreatTip = "在你處於組隊狀態而且不是坦克時，反轉名條的仇恨染色。"
 	L.HighlightTargetFocus = "高亮目標和專注目標"
 	L.HighlightMouseover = "高亮滑鼠指向"
 	L.Crosshairs = "目標準星"
@@ -163,6 +165,8 @@ elseif GetLocale() == "zhCN" then
 	-- Nameplates
 	L.NumberStyle = "数字模式"
 	L.ShowAuras = "显示光环"
+	L.ReverseThreat = "反转仇恨染色"
+	L.ReverseThreatTip = "在你处于组队状态而且不是坦克时，反转姓名板的仇恨染色。"
 	L.HighlightTargetFocus = "高亮目标和焦点"
 	L.HighlightMouseover = "高亮鼠标指向"
 	L.Crosshairs = "目标准星"
@@ -244,6 +248,8 @@ else
 	-- Nameplates
 	L.NumberStyle = "Number Style"
 	L.ShowAuras = "Show Auras"
+	L.ReverseThreat = "Reverse Threat Colors"
+	L.ReverseThreatTip = "Reverse nameplate threat colors when you are in a group and are not a tank."
 	L.HighlightTargetFocus = "Highlight Target/Focus"
 	L.HighlightMouseover = "Highlight Mouseover"
 	L.Crosshairs = "Target Crosshairs"
