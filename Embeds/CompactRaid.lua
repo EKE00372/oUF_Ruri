@@ -88,7 +88,6 @@ end
 
 -- 團隊管理介面滑鼠淡入淡出
 do
-	local fadeOutDelay = 1	-- 延遲一秒淡出
 	local fadeOutToken = 0	-- C_Timer.After 無法取消，用 token 判斷已排程的淡出是否需要取消
 	local fadeOutAnimation
 
@@ -121,12 +120,14 @@ do
 		return fadeOutAnimation
 	end
 
-	-- 延遲一秒淡出
-	local function HideManager(manager)
+	-- 只有收合狀態才排程一秒後淡出
+	local function HideCollapsedManager(manager)
+		if not manager.collapsed then return end
+
 		CancelFadeOut()
 		local token = fadeOutToken
 
-		C_Timer.After(fadeOutDelay, function()
+		C_Timer.After(1, function()
 			if token ~= fadeOutToken then return end
 			if not manager.collapsed or manager:IsMouseOver() then return end
 
@@ -141,18 +142,8 @@ do
 		self:SetAlpha(1)
 	end
 
-	-- 只有收合狀態才排程淡出
-	local function HideCollapsedManager(self)
-		if self.collapsed then
-			HideManager(self)
-		end
-	end
-
-	-- 團隊管理介面展開時，重新套用透明度
-	local function RefreshManagerAlpha()
-		local manager = CompactRaidFrameManager
-		if not manager then return end
-
+	-- 介面重新顯示時，套用當前收合與滑鼠狀態
+	local function RefreshManagerAlpha(manager)
 		if manager.collapsed and not manager:IsMouseOver() then
 			CancelFadeOut()
 			manager:SetAlpha(0)
@@ -166,12 +157,13 @@ do
 	loader:RegisterEvent("PLAYER_ENTERING_WORLD")
 	loader:SetScript("OnEvent", function(self)
 		self:UnregisterAllEvents()
+		self:SetScript("OnEvent", nil)
 		if not F.GetRuriOption("HideCompactRaidManager") then return end
 
 		CompactRaidFrameManager:HookScript("OnEnter", ShowManager)
 		CompactRaidFrameManager:HookScript("OnLeave", HideCollapsedManager)
 		CompactRaidFrameManager:HookScript("OnShow", RefreshManagerAlpha)
 
-		RefreshManagerAlpha()
+		RefreshManagerAlpha(CompactRaidFrameManager)
 	end)
 end
