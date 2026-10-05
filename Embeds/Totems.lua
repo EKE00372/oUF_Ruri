@@ -130,7 +130,7 @@ local function CreateTotemButton(element, index)
 	return totem
 end
 
--- 樣式布局：普通圖騰條保留原本四格一字排列；緊湊模式則是單圖示
+-- 建立時配置固定布局；方向設定重載後才生效
 local function LayoutTotemBar(element, compactLimit)
 	local owner = element.__owner or _G.oUF_Player
 	if not owner then return end
@@ -268,6 +268,13 @@ local function ClearTotem(totem)
 	totem:Hide()
 end
 
+-- 秒數交給 Ruri 的原生冷卻／binding；透明原生按鈕只刷新 tooltip
+local function UpdateTotemTooltip(button)
+	if GameTooltip:IsOwned(button) then
+		GameTooltip:SetTotem(button.slot)
+	end
+end
+
 -- 保留暴雪原生圖騰按鈕，用於點擊
 local function AttachBlizzardButton(button, totem)
 	button:ClearAllPoints()
@@ -276,6 +283,8 @@ local function AttachBlizzardButton(button, totem)
 	button:SetAlpha(0)
 	button:SetFrameLevel(totem:GetFrameLevel() + 3)
 	button:EnableMouse(true)
+	-- 原生 Update 每次取出按鈕都會重掛倒數 OnUpdate，需在同步時替換
+	button:SetScript("OnUpdate", UpdateTotemTooltip)
 end
 
 -- 將圖騰的狀態同步到插件創建的圖騰格子
@@ -306,10 +315,6 @@ local function UpdateCompactTotemBar(element, activeButtons, compactLimit)
 
 	UpdateTotemButton(element[1], activeButtons[1], compactLimit == 1)
 
-	for i = 2, MAX_TOTEMS do
-		ClearTotem(element[i])
-	end
-
 	local displayCount = count > compactLimit and compactLimit or count
 	local textPoints = compactLimit > 1 and compactTextPoints[displayCount]
 	for i = 1, MAX_TOTEMS do
@@ -338,6 +343,7 @@ local function UpdateCompactTotemBar(element, activeButtons, compactLimit)
 		button:SetAlpha(0)
 		button:SetFrameLevel(element:GetFrameLevel())
 		button:EnableMouse(false)
+		button:SetScript("OnUpdate", nil)
 	end
 
 	element:SetShown(true)
@@ -390,8 +396,6 @@ function T.UpdateTotemBar()
 		end
 	end
 	sort(activeButtons, SortTotemButtons)
-
-	LayoutTotemBar(element, compactLimit)
 
 	if compactLimit then
 		UpdateCompactTotemBar(element, activeButtons, compactLimit)
