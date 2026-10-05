@@ -1,6 +1,6 @@
-## Interface: 120100
+## Interface: 120105
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R6.1
+## Version: R6.2
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
