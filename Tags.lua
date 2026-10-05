@@ -48,19 +48,24 @@ local function ReplacePowerColor(name, index, r, g, b)
 	oUF.colors.power[index] = oUF.colors.power[name]
 end
 
-ReplacePowerColor("MANA", 0, 0, .8, 1)						-- 0 法力
-ReplacePowerColor("RAGE", 1, .9, .1, .1)					-- 1 戰士熊德 怒氣
-ReplacePowerColor("FOCUS", 2, .9, .5, .1)					-- 2 獵人 集中值
-ReplacePowerColor("ENERGY", 3, .9, .9, .1)					-- 3 盜賊武僧貓德 能量
-ReplacePowerColor("RUNIC_POWER", 6, .1, .9, .9)				-- 6 死騎 符能
-ReplacePowerColor("LUNAR_POWER", 8, 0, .6, 1)				-- 8 鳥德 月能
-ReplacePowerColor("MAELSTROM", 11, 0, .6, 1)				-- 11 薩滿旋渦值
-ReplacePowerColor("INSANITY", 13, .74, .35, .95)            -- 13 暗牧 瘋狂值(共用dh職業色)
-ReplacePowerColor("ARCANE_CHARGES", 16, 0, .8, 1)			-- 16 秘法 充能
-ReplacePowerColor("ESSENCE", 19, .02, .9, .9)				-- 19 喚能師 龍能
--- 載具類型
-oUF.colors.power["FUEL"] = oUF:CreateColor(0, .75, .7)		-- 同時用於npc無屬能量
-oUF.colors.power["AMMOSLOT"] = oUF:CreateColor(.8, .6, 0)
+ReplacePowerColor("MANA", 0, 0, .8, 1)					-- 法力
+ReplacePowerColor("RAGE", 1, .9, .1, .1)				-- 怒氣
+ReplacePowerColor("FOCUS", 2, .9, .5, .1)				-- 集中值
+ReplacePowerColor("ENERGY", 3, .9, .9, .1)				-- 能量
+ReplacePowerColor("RUNIC_POWER", 6, .1, .9, .9)			-- 符能
+ReplacePowerColor("SOUL_SHARDS", 7, .87, .47, 1)		-- 術士，靈魂碎片
+ReplacePowerColor("LUNAR_POWER", 8, 0, .6, 1)			-- 鳥得，星界能量
+ReplacePowerColor("MAELSTROM", 11, 0, .6, 1)			-- 漩渦值
+ReplacePowerColor("INSANITY", 13, .74, .35, .95)		-- 瘋狂值
+ReplacePowerColor("ARCANE_CHARGES", 16, 0, .8, 1)		-- 秘法充能
+ReplacePowerColor("ESSENCE", 19, .02, .9, .9)			-- 精華
+oUF.colors.power.FUEL = oUF:CreateColor(0, .75, .7)		-- 載具，燃料
+oUF.colors.power.AMMOSLOT = oUF:CreateColor(.8, .6, 0)	-- 載具，彈藥
+oUF.colors.power.TIP_OF_THE_SPEAR = oUF:CreateColor(166/255, 242/255, 84/255) -- 生存獵，長矛之尖
+oUF.colors.power.SOUL_FRAGMENTS = {						-- 噬滅，靈魂碎片
+	oUF:CreateColor(.87, .47, 1), -- 一般狀態
+	oUF:CreateColor(.5, .62, 1), -- 虛空變身
+}
 
 -- [[ Faction color ]] --
 
