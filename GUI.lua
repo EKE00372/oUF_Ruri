@@ -15,27 +15,14 @@ local BREATH_MIN_ALPHA, BREATH_MAX_ALPHA = .25, .75
 local BREATH_IN_DURATION, BREATH_OUT_DURATION = 5, 7
 local BREATH_MAIN_SIZE, BREATH_TAB_SIZE = 12, 10
 
-local MAIN_WIDTH, MAIN_HEIGHT = 480, 340
+local MAIN_WIDTH, MAIN_HEIGHT = 500, 340
 local PAGE_HORIZONTAL_INSET, PAGE_TOP_INSET = 26, 32
-local COLUMN_WIDTH, COLUMN_GAP = 205, 18
+local COLUMN_WIDTH, COLUMN_GAP = 215, 18
 local SECTION_HEIGHT, SECTION_GAP = 24, 8
 local OPTION_HEIGHT, OPTION_GAP = 26, 2
 local OVERVIEW_ROW_HEIGHT, OVERVIEW_ROW_GAP = 52, 4
-local TAB_WIDTH, TAB_HEIGHT, TAB_GAP = 150, 32, 10
+local TAB_WIDTH, TAB_HEIGHT, TAB_GAP = 130, 32, 10
 local TITLE_Y_OFFSET = 14
-
------------
--- Reset --
------------
-
--- Reset clears the whole RuriDB table / 重置整個 RuriDB
-local function ResetDB()
-	if type(RuriDB) == "table" then
-		wipe(RuriDB)
-	else
-		RuriDB = {}
-	end
-end
 
 --------------
 -- Template --
@@ -43,7 +30,7 @@ end
 
 -- Text template / 文字模板
 local function CreateText(parent, text, size, justify)
-	local fontString = F.CreateText(parent, "OVERLAY", G.Font, size or G.NameFS, G.FontFlag, justify)
+	local fontString = F.CreateText(parent, "OVERLAY", G.Font, size, G.FontFlag, justify)
 	fontString:SetText(text)
 	return fontString
 end
@@ -57,7 +44,7 @@ local function SetPanelBackdrop(frame, alpha)
 		tile = false,
 		insets = {left = 1, right = 1, top = 1, bottom = 1},
 	})
-	frame:SetBackdropColor(0, 0, 0, alpha or .75)
+	frame:SetBackdropColor(0, 0, 0, alpha)
 	frame:SetBackdropBorderColor(THEME_R, THEME_G, THEME_B, 1)
 end
 
@@ -87,19 +74,25 @@ local function CreateBreathGlow(parent, size)
 end
 
 -- Button template / 按鈕模板
-local function CreateButton(parent, width, height, text)
+local function CreateButton(parent, width, height, text, alpha)
+	local hoverAlpha = alpha or .65
+	alpha = alpha or BUTTON_ALPHA
 	local button = CreateFrame("Button", nil, parent, "BackdropTemplate")
 	button:SetSize(width, height)
-	SetPanelBackdrop(button, BUTTON_ALPHA)
+	SetPanelBackdrop(button, alpha)
 
 	button.Text = CreateText(button, text, G.NameFS, "CENTER")
 	button.Text:SetPoint("CENTER")
 
 	button:SetScript("OnEnter", function(self)
-		self:SetBackdropColor(0, .45, .45, .65)
+		self:SetBackdropColor(0, .45, .45, hoverAlpha)
 	end)
 	button:SetScript("OnLeave", function(self)
-		self:SetBackdropColor(0, 0, 0, BUTTON_ALPHA)
+		if self.Selected then
+			self:SetBackdropColor(0, .35, .35, alpha)
+		else
+			self:SetBackdropColor(0, 0, 0, alpha)
+		end
 	end)
 
 	return button
@@ -112,12 +105,6 @@ local function GetOptionLabel(option)
 		labelText = labelText.." ("..(L.WIP or "WIP")..")"
 	end
 	return labelText
-end
-
--- Title template / 標題模板
-local function CreateSectionTitle(parent, text, yOffset)
-	local title = CreateText(parent, "|cff00ffff"..(L[text] or text).."|r", G.NameFS + 2, "LEFT")
-	title:SetPoint("TOPLEFT", 0, yOffset)
 end
 
 -- Tooltip template / 說明模板
@@ -177,25 +164,9 @@ end
 
 -- 同步選項狀態
 local function RefreshOptionControls()
-	if not MainFrame or not MainFrame.OptionRows then return end
-
 	for _, row in ipairs(MainFrame.OptionRows) do
 		row:RefreshState()
 	end
-end
-
--- 寫入設定值
-local function SetOptionValue(option, value)
-	-- 禁用選項不寫入設定值
-	if option.disabled then return end
-	-- 寫入設定值
-	F.SetRuriOption(option.key, value)
-	-- 提示重載
-	if MainFrame and MainFrame.StatusText then
-		MainFrame.StatusText:SetText("|cffffd100"..(L.StatusChanged or "StatusChanged").."|r")
-	end
-	-- 更新
-	RefreshOptionControls()
 end
 
 -- 將選項綁定至設定值，並處理點擊與更新
@@ -207,7 +178,9 @@ local function SetupOptionRow(row, check, label, desc, option, group, section)
 			return
 		end
 
-		SetOptionValue(option, check:GetChecked() == true)
+		F.SetRuriOption(option.key, check:GetChecked() == true)
+		MainFrame.StatusText:SetText("|cffffd100"..(L.StatusChanged or "StatusChanged").."|r")
+		RefreshOptionControls()
 	end
 	-- 選項方塊=開關
 	check:SetScript("OnClick", ToggleValue)
@@ -301,23 +274,25 @@ local function CreatePage(parent, group)
 	local yOffset = 0
 	local lastOverviewOptionText
 
-	local function AddSection(section)
+	-- 無子分類的頁面只建立選項，不額外顯示頁面標題
+	for _, section in ipairs(group.sections or { { options = group.options } }) do
 		local optionIndex = 0
 		local hasDescription = false
 
 		if section.name then
-			CreateSectionTitle(page, section.name, yOffset)
+			local title = CreateText(page, "|cff00ffff"..(L[section.name] or section.name).."|r", G.NameFS + 2, "LEFT")
+			title:SetPoint("TOPLEFT", 0, yOffset)
 			yOffset = yOffset - SECTION_HEIGHT
 		end
 
-		for _, option in ipairs(section.options or {}) do
+		for _, option in ipairs(section.options) do
 			if option.desc then
 				hasDescription = true
 				break
 			end
 		end
 
-		for _, option in ipairs(section.options or {}) do
+		for _, option in ipairs(section.options) do
 			if option.type == "toggle" then
 				optionIndex = optionIndex + 1
 				if hasDescription then
@@ -338,15 +313,6 @@ local function CreatePage(parent, group)
 		end
 	end
 
-	-- 有子分類的按 sections 分段建立，沒有的直接建立
-	if group.sections then
-		for _, section in ipairs(group.sections) do
-			AddSection(section)
-		end
-	else
-		AddSection({ options = group.options })
-	end
-
 	if group.name == "Overview" then
 		local credits = CreateText(page, L.Credits, G.NameFS - 2, "LEFT")
 		credits:SetPoint("TOPRIGHT", lastOverviewOptionText, "BOTTOMRIGHT", 0, -SECTION_GAP)
@@ -362,7 +328,7 @@ end
 -- Left tab buttons only switch page visibility
 local function SelectTab(frame, index)
 	for tabIndex, tab in ipairs(frame.Tabs) do
-		tab.Selected = tabIndex == index
+		tab.Selected = (tabIndex == index)
 		if tab.Selected then
 			tab:SetBackdropColor(0, .35, .35, PANEL_ALPHA)
 			frame.Pages[tabIndex]:Show()
@@ -371,30 +337,6 @@ local function SelectTab(frame, index)
 			frame.Pages[tabIndex]:Hide()
 		end
 	end
-end
-
--- Create left tab button / 創建分頁按鈕
-local function CreateTab(parent, index, text)
-	local tab = CreateButton(parent, TAB_WIDTH, TAB_HEIGHT, L[text] or text)
-	tab:SetPoint("TOPRIGHT", parent, "TOPLEFT", -10, -48 - (index - 1) * (TAB_HEIGHT + TAB_GAP))
-	tab.Text:SetFont(G.Font, G.NameFS, G.FontFlag)
-	tab:SetBackdropColor(0, 0, 0, PANEL_ALPHA)
-	CreateBreathGlow(tab, BREATH_TAB_SIZE)
-
-	tab:SetScript("OnEnter", function(self)
-		self:SetBackdropColor(0, .45, .45, PANEL_ALPHA)
-	end)
-	tab:SetScript("OnLeave", function(self)
-		if self.Selected then
-			self:SetBackdropColor(0, .35, .35, PANEL_ALPHA)
-		else
-			self:SetBackdropColor(0, 0, 0, PANEL_ALPHA)
-		end
-	end)
-	tab:SetScript("OnClick", function()
-		SelectTab(parent, index)
-	end)
-	return tab
 end
 
 -----------
@@ -431,7 +373,13 @@ local function BuildGUI()
 	MainFrame.OptionRows = {}
 
 	for index, group in ipairs(F.GUIOptionGroups) do
-		MainFrame.Tabs[index] = CreateTab(MainFrame, index, group.name)
+		local tab = CreateButton(MainFrame, TAB_WIDTH, TAB_HEIGHT, L[group.name] or group.name, PANEL_ALPHA)
+		tab:SetPoint("TOPRIGHT", MainFrame, "TOPLEFT", -10, -48 - (index - 1) * (TAB_HEIGHT + TAB_GAP))
+		CreateBreathGlow(tab, BREATH_TAB_SIZE)
+		tab:SetScript("OnClick", function()
+			SelectTab(MainFrame, index)
+		end)
+		MainFrame.Tabs[index] = tab
 		MainFrame.Pages[index] = CreatePage(MainFrame, group)
 	end
 
@@ -448,7 +396,7 @@ local function BuildGUI()
 	local resetButton = CreateButton(MainFrame, 88, 28, RESET)
 	resetButton:SetPoint("RIGHT", reloadButton, "LEFT", -10, 0)
 	resetButton:SetScript("OnClick", function()
-		ResetDB()
+		wipe(RuriDB)
 		ReloadUI()
 	end)
 
@@ -461,11 +409,10 @@ F.CreateRuriGUI = function()
 	if not MainFrame then
 		BuildGUI()
 	end
-	RefreshOptionControls()
-
 	if MainFrame:IsShown() then
 		MainFrame:Hide()
 	else
+		RefreshOptionControls()
 		MainFrame:Show()
 	end
 end

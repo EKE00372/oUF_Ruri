@@ -108,7 +108,7 @@ local MediaFolder = G.MediaFolder
 						{ type = "toggle", key = "PartyBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
 						{ type = "toggle", key = "PartyDebuffs", label = "ShowDebuffAuras", default = true },
 						{ type = "toggle", key = "PartyShowPlayer", label = "ShowPlayer", default = true },
-						{ type = "toggle", key = "PartyHealerManaOnly", label = "HealerManaOnly", default = false, tooltip = "HealerManaOnlyTip" },
+						{ type = "toggle", key = "PartyHealerManaOnly", label = "HealerManaOnly", default = false },
 					},
 				},
 				{
@@ -118,7 +118,7 @@ local MediaFolder = G.MediaFolder
 						{ type = "toggle", key = "RaidBuffs", label = "ShowBuffAuras", default = true, tooltip = "ShowBuffAurasTip" },
 						{ type = "toggle", key = "RaidDebuffs", label = "ShowDebuffAuras", default = true },
 						{ type = "toggle", key = "RaidLayoutButton", label = "RaidLayoutButton", default = true, tooltip = "RaidLayoutButtonTip" },
-						{ type = "toggle", key = "RaidHealerManaOnly", label = "HealerManaOnly", default = true, tooltip = "HealerManaOnlyTip" },
+						{ type = "toggle", key = "RaidHealerManaOnly", label = "HealerManaOnly", default = true },
 					},
 				},
 				{
@@ -139,9 +139,9 @@ local MediaFolder = G.MediaFolder
 					options = {
 						{ type = "toggle", key = "NumberStyle", label = "NumberStyle", default = false },
 						{ type = "toggle", key = "ShowAuras", label = "ShowAuras", default = true },
-						{ type = "toggle", key = "ReverseThreat", label = "ReverseThreat", default = false, tooltip = "ReverseThreatTip" },
 						{ type = "toggle", key = "HLTarget", label = "HighlightTargetFocus", default = true },
 						{ type = "toggle", key = "HLMouseover", label = "HighlightMouseover", default = true },
+						{ type = "toggle", key = "ReverseThreat", label = "ReverseThreat", default = true, tooltip = "ReverseThreatTip" },
 					},
 				},
 				{
@@ -166,17 +166,16 @@ local MediaFolder = G.MediaFolder
 
 	F.GUIOptionMap = {}
 
-	local function AddGUIOption(option)
-		F.GUIOptionMap[option.key] = option
-	end
-
 	for _, group in ipairs(F.GUIOptionGroups) do
-		for _, option in ipairs(group.options or {}) do
-			AddGUIOption(option)
-		end
-		for _, section in ipairs(group.sections or {}) do
-			for _, option in ipairs(section.options or {}) do
-				AddGUIOption(option)
+		if group.options then
+			for _, option in ipairs(group.options) do
+				F.GUIOptionMap[option.key] = option
+			end
+		else
+			for _, section in ipairs(group.sections) do
+				for _, option in ipairs(section.options) do
+					F.GUIOptionMap[option.key] = option
+				end
 			end
 		end
 	end
@@ -191,27 +190,6 @@ local MediaFolder = G.MediaFolder
 		end
 
 		return RuriDB.Options
-	end
-
-	local function ApplyGUIOptions()
-		local db = GetGUIOptionsDB()
-
-		-- Add missing defaults and lock disabled options to defaults / 補上缺少的預設值，並將禁用項鎖回預設值
-		for key, option in pairs(F.GUIOptionMap) do
-			if option.disabled then
-				db[key] = option.default
-			elseif db[key] == nil then
-				db[key] = option.default
-			end
-			activeOptions[key] = db[key]
-		end
-
-		-- Remove stale saved keys / 刪除插件已不存在的存檔項
-		for key in pairs(db) do
-			if F.GUIOptionMap[key] == nil then
-				db[key] = nil
-			end
-		end
 	end
 
 	-- 執行中的模組只讀本次 ADDON_LOADED 建立的快照，直到重載才套用新設定。
@@ -243,7 +221,7 @@ local MediaFolder = G.MediaFolder
 
 		local db = GetGUIOptionsDB()
 		if option.type == "toggle" then
-			db[key] = value == true
+			db[key] = (value == true)
 		else
 			db[key] = value
 		end
@@ -256,7 +234,21 @@ local MediaFolder = G.MediaFolder
 	dbLoader:SetScript("OnEvent", function(self, event, name)
 		if name ~= addon then return end
 
-		ApplyGUIOptions()
+		local db = GetGUIOptionsDB()
+		-- 補預設值並建立執行快照；後續 GUI 寫入只影響存檔
+		for key, option in pairs(F.GUIOptionMap) do
+			if option.disabled or db[key] == nil then
+				db[key] = option.default
+			end
+			activeOptions[key] = db[key]
+		end
+
+		for key in pairs(db) do
+			if F.GUIOptionMap[key] == nil then
+				db[key] = nil
+			end
+		end
+
 		self:UnregisterEvent(event)
 		self:SetScript("OnEvent", nil)
 	end)
