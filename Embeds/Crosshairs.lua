@@ -12,12 +12,8 @@ local function CreateCrosshairs()
 	f:SetPoint('CENTER')
 	f:SetSize(64, 64)
 
-	local uiScale = 1
-	local screen_size = {GetPhysicalScreenSize()}
-	if screen_size and screen_size[2] then
-		uiScale = 768 / screen_size[2]
-	end
-	local lineWidth = uiScale * 2
+	local _, screenHeight = GetPhysicalScreenSize()
+	local lineWidth = 768 / screenHeight * 2
 
 	local circle = f:CreateTexture(nil, 'BACKGROUND')
 	circle:SetTexture(G.media.circle)
@@ -26,21 +22,25 @@ local function CreateCrosshairs()
 
 	local left = f:CreateTexture(nil, 'BACKGROUND')
 	left:SetColorTexture(1, 1, 1, overallAlpha)
+	left:SetAlpha(lineAlpha)
 	left:SetPoint('RIGHT', f, 'LEFT', 8, 0)
 	left:SetSize(2000, lineWidth)
 
 	local right = f:CreateTexture(nil, 'BACKGROUND')
 	right:SetColorTexture(1, 1, 1, overallAlpha)
+	right:SetAlpha(lineAlpha)
 	right:SetPoint('LEFT', f, 'RIGHT', -8, 0)
 	right:SetSize(2000, lineWidth)
 
 	local top = f:CreateTexture(nil, 'BACKGROUND')
 	top:SetColorTexture(1, 1, 1, overallAlpha)
+	top:SetAlpha(lineAlpha)
 	top:SetPoint('BOTTOM', f, 'TOP', 0, -8)
 	top:SetSize(lineWidth, 2000)
 
 	local bottom = f:CreateTexture(nil, 'BACKGROUND')
 	bottom:SetColorTexture(1, 1, 1, overallAlpha)
+	bottom:SetAlpha(lineAlpha)
 	bottom:SetPoint('TOP', f, 'BOTTOM', 0, 8)
 	bottom:SetSize(lineWidth, 2000)
 
@@ -58,30 +58,15 @@ local function CreateCrosshairs()
 
 	local rotationGroup
 
-	local function HideEverything()
-		circle:Hide()
-		left:Hide()
-		right:Hide()
-		top:Hide()
-		bottom:Hide()
-		tx:Hide()
+	f:SetScript('OnHide', function()
+		-- 初次 Hide 早於旋轉動畫建立。
 		if rotationGroup then rotationGroup:Stop() end
-	end
-
-	local function ShowEverything()
-		circle:Show()
-		left:Show()
-		right:Show()
-		top:Show()
-		bottom:Show()
-		tx:Show()
-		if rotationGroup and not rotationGroup:IsPlaying() then
+	end)
+	f:SetScript('OnShow', function()
+		if not rotationGroup:IsPlaying() then
 			rotationGroup:Play()
 		end
-	end
-
-	f:HookScript('OnHide', HideEverything)
-	f:HookScript('OnShow', ShowEverything)
+	end)
 	f:Hide()
 
 	rotationGroup = tx:CreateAnimationGroup()
@@ -121,26 +106,6 @@ local function CreateCrosshairs()
 	fadeInAlpha:SetToAlpha(1)
 	fadeInAlpha:SetDuration(0.2)
 
-	local function SetColor(r, g, b)
-		circle:SetVertexColor(r, g, b)
-		left:SetVertexColor(r, g, b)
-		right:SetVertexColor(r, g, b)
-		top:SetVertexColor(r, g, b)
-		bottom:SetVertexColor(r, g, b)
-		tx:SetVertexColor(r, g, b)
-	end
-
-	-- Adjust line alpha based on combat status
-	local function SetLineAlpha(alpha)
-		left:SetAlpha(alpha)
-		right:SetAlpha(alpha)
-		top:SetAlpha(alpha)
-		bottom:SetAlpha(alpha)
-	end
-
-	-- Initial state
-	SetLineAlpha(lineAlpha)
-
 	local function FocusPlate(plate)
 		fadeOut:Stop()
 		f:ClearAllPoints()
@@ -152,10 +117,8 @@ local function CreateCrosshairs()
 		f:Show()
 		group:Play()
 
-		local r, g, b = 1, 1, 1
-		--if UnitIsTapped('target') and not UnitIsTappedByPlayer('target') and not UnitIsTappedByAllThreatList('target') then
+		local r, g, b
 		if UnitIsTapDenied('target') then
-			--SetColor(0.5, 0.5, 0.5)
 			r, g, b = 0.5, 0.5, 0.5
 		elseif UnitIsPlayer('target') then
 			local _, class = UnitClass('target')
@@ -170,31 +133,32 @@ local function CreateCrosshairs()
 		else
 			r, g, b = UnitSelectionColor('target')
 		end
-		SetColor(r, g, b)
+		circle:SetVertexColor(r, g, b)
+		left:SetVertexColor(r, g, b)
+		right:SetVertexColor(r, g, b)
+		top:SetVertexColor(r, g, b)
+		bottom:SetVertexColor(r, g, b)
+		tx:SetVertexColor(r, g, b)
 	end
 
 	function f:PLAYER_TARGET_CHANGED()
 		local nameplate = C_NamePlate.GetNamePlateForUnit('target')
 		if nameplate then
 			FocusPlate(nameplate)
-			--TargetLock:Show()
 		else
 			fadeOut:Play()
 		end
 	end
 	f:RegisterEvent('PLAYER_TARGET_CHANGED')
 
-	function f:PLAYER_ENTERING_WORLD()
-		-- PLAYER_TARGET_CHANGED doesn't fire when you lose your target from zoning
-		self:PLAYER_TARGET_CHANGED()
-	end
+	-- PLAYER_TARGET_CHANGED doesn't fire when you lose your target from zoning
+	f.PLAYER_ENTERING_WORLD = f.PLAYER_TARGET_CHANGED
 	f:RegisterEvent('PLAYER_ENTERING_WORLD')
 
 	function f:NAME_PLATE_UNIT_ADDED(unit)
 		local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
 		if nameplate and nameplate == C_NamePlate.GetNamePlateForUnit('target') then
 			FocusPlate(nameplate)
-			--TargetLock:Show()
 		end
 	end
 	f:RegisterEvent('NAME_PLATE_UNIT_ADDED')
@@ -208,7 +172,7 @@ local function CreateCrosshairs()
 	end
 	f:RegisterEvent('NAME_PLATE_UNIT_REMOVED')
 
-	f:SetScript('OnEvent', function(self, event, ...) return self[event] and self[event](self, ...) end)
+	f:SetScript('OnEvent', function(self, event, ...) self[event](self, ...) end)
 end
 
 local loader = CreateFrame('Frame')
