@@ -13,8 +13,8 @@
 
 	## Options
 
-	.colorBase - 基礎配色，預設為 {.95, .72, .28}。
-	.colorOverride - lib 指定替換法術的配色，預設為 {1, .92, .55}。
+	.colorBase - 基礎配色，預設為 {.95, .72, .28}；防騎神聖武器可用時使用。
+	.colorOverride - 次要配色，預設為 {1, .92, .55}；防騎神聖堅盾可用時使用。
 	兩種配色接受 {r, g, b} 或 ColorMixin，RGB 必須為公開值；切換規則由 lib 管理。
 	.rechargeBar - 下一層充能進度使用的 StatusBar，預設為 element[3]。
 	.MaxChangeUpdate(maxCharges) - 最大充能數改變後調整 layout。
@@ -95,7 +95,7 @@ local function GetEnableStateAndSpell()
 end
 
 local function GetActiveColor(element, state)
-	if state.overrideSpell and C_Spell_GetOverrideSpell(state.spell) == state.overrideSpell then
+	if state.overrideSpell and C_Spell_GetOverrideSpell(state.spell) ~= state.overrideSpell then
 		return element.colorOverride
 	end
 
