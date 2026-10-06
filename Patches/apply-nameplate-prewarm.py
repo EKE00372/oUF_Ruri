@@ -18,14 +18,14 @@ def main():
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[1]
-    target = root / "Libs/oUF/ouf.lua"
+    target = root / "oUF_Ruri/Libs/oUF/ouf.lua"
     patch_path = root / "Patches/oUF-nameplate-prewarm.patch"
     git = shutil.which("git")
     if not git:
         print("找不到 Git；請先安裝 Git 並讓 git 可從命令列執行。", file=sys.stderr)
         return 1
     if not target.is_file() or not patch_path.is_file():
-        print("缺少 Libs/oUF/ouf.lua 或 Patches/oUF-nameplate-prewarm.patch。", file=sys.stderr)
+        print("缺少 oUF_Ruri/Libs/oUF/ouf.lua 或 Patches/oUF-nameplate-prewarm.patch。", file=sys.stderr)
         return 1
 
     original = target.read_bytes()
@@ -36,12 +36,14 @@ def main():
         return 1
     patch = patch_path.read_bytes()
     patch.decode("utf-8")
+    # Git checkout 可能讓補丁成為 CRLF；只正規化傳入 Git 的內容，不改磁碟原件。
+    patch = patch.replace(b"\r\n", b"\n")
 
     def apply_git(*options):
         # 固定工作目錄與原檔換行；不讓全域 autocrlf 改寫無關行。
         return subprocess.run(
             [git, "-c", "core.autocrlf=" + ("true" if crlf else "false"),
-             "-c", "core.eol=lf", "apply", "--no-index", *options, "-"],
+             "-c", "core.eol=lf", "apply", "--no-index", "--directory=oUF_Ruri", *options, "-"],
             cwd=root, input=patch, capture_output=True, check=False,
             env=dict(os.environ, GIT_CEILING_DIRECTORIES=str(root.parent)),
         )
@@ -49,8 +51,8 @@ def main():
     # 此工具只維護單檔補丁，避免補丁被擴充後連帶修改其他檔案。
     stats = apply_git("--numstat", "-z")
     entries = stats.stdout.rstrip(b"\0").split(b"\0")
-    if stats.returncode or len(entries) != 1 or entries[0].rsplit(b"\t", 1)[-1] != b"Libs/oUF/ouf.lua":
-        print("補丁無效，或修改範圍不是唯一的 Libs/oUF/ouf.lua。", file=sys.stderr)
+    if stats.returncode or len(entries) != 1 or entries[0].rsplit(b"\t", 1)[-1] != b"oUF_Ruri/Libs/oUF/ouf.lua":
+        print("補丁無效，或修改範圍不是唯一的 oUF_Ruri/Libs/oUF/ouf.lua。", file=sys.stderr)
         return 1
 
     if apply_git("--reverse", "--check").returncode == 0:
