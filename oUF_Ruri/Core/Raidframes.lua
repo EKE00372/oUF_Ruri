@@ -44,33 +44,19 @@ end
 -----------------    [[ Role ]]    -----------------
 --================================================--
 
--- 職責圖示
-local groupRoleTextures = {
-	[Enum.LFGRole.Tank] = G.media.role_tank,
-	[Enum.LFGRole.Healer] = G.media.role_healer,
-	[Enum.LFGRole.Damage] = G.media.role_dps,
-}
-
 -- 職責未確認或等待停用時，保持 power 隱藏
 local function PostUpdateGroupPower(element)
 	element:SetShown(element.shouldEnable)
 end
 
 -- 將 power 的 enable/disable 掛在 GroupRoleIndicator 上，利用 ouf 的職責更新節省資源
-local function PostUpdateGroupRole(element, role)
-	-- 職責圖示
-	local texture = groupRoleTextures[role]
-	if texture then
-		element:SetTexture(texture)
-		element:SetTexCoord(0, 1, 0, 1)
-	end
-
+local function PostUpdateGroupRole(element)
 	-- 判斷是否顯示能量
 	local owner = element.__owner
 	local Power = owner.Power
 	if not Power.healerOnly then return end
 
-	local isHealer = (role == Enum.LFGRole.Healer)
+	local isHealer = (UnitGroupRolesAssignedEnum(owner.__unit) == Enum.LFGRole.Healer)
 	local isEnabled = (owner:IsElementEnabled("Power") == true)
 	Power.shouldEnable = isHealer -- 取得職責，取代初始化的 false
 
@@ -269,6 +255,9 @@ local function CreateGroupShared(self, unit, width, height, powerHeight, frequen
     Role:SetSize(28, 28)
     Role:SetPoint("LEFT", self.Name, "RIGHT", -6, 1)
     Role:SetDesaturated(true)
+    Role.tankAtlas = G.media.role_tank
+    Role.healerAtlas = G.media.role_healer
+    Role.damageAtlas = G.media.role_dps
     self.GroupRoleIndicator = Role
 	self.GroupRoleIndicator.PostUpdate = PostUpdateGroupRole -- 利用 ouf 的職責更新來更新 power 啟用停用，節省資源
 end
