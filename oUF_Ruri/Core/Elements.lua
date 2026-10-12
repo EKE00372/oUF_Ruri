@@ -20,11 +20,10 @@ local C_UnitAuras_GetPlayerAuraBySpellID = C_UnitAuras.GetPlayerAuraBySpellID
 -- [[ 通用的 multiplier postupdate ]] -- 
 
 -- 建立著色背景與固定黑色底層
-T.CreateMultiplierBG = function(element, multiplier)
+T.CreateMultiplierBG = function(element)
 	local bg = element:CreateTexture(nil, "BACKGROUND")
 	bg:SetAllPoints()
 	bg:SetTexture(G.media.blank)
-	bg.multiplier = multiplier or 0.3
 	element.bg = bg
 
 	bg:SetDrawLayer("BACKGROUND", 1)
@@ -46,8 +45,8 @@ local function UpdateMultiplierBG(element, color, r, g, b)
 		return
 	end
 
-	-- alpha 是單獨選項，與 RGB 分開設定避免 secret value
-	element.bg:SetAlpha(element.bg.multiplier)
+	-- 固定 alpha 與 RGB 分開設定，不對 secret 顏色做運算。
+	element.bg:SetAlpha(.3)
 end
 
 local function PostUpdateColor_ElementMultiBGColor(element, color)
