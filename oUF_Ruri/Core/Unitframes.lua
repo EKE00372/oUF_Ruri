@@ -294,7 +294,7 @@ local function CreateVPlayerStyle(self, unit)
 	--	T.CreatePlayerAuraFrames(self)
 	--end
 	if F.GetRuriOption("PlayerDebuffs") then
-		T.CreateVPlayerDebuffs(self)
+		T.CreatePlayerDebuffs(self)
 	end
 	T.InitializeResourceLayout(self)
 	
@@ -352,7 +352,7 @@ local function CreateTargetStyle(self, unit)
 	end
 	
 	-- 光環
-	T.CreateTargetAuras(self)
+	T.CreateTargetFocusAuras(self)
 	
 	-- 圖示和標記
 	CreateGroupIndicators(self)
@@ -407,7 +407,7 @@ local function CreateVTargetStyle(self, unit)
 	end
 
 	-- 光環
-	T.CreateVTargetAuras(self)
+	T.CreateTargetFocusAuras(self)
 	
 	-- 圖示和標記
 	CreateGroupIndicators(self)
@@ -461,7 +461,7 @@ local function CreateFocusStyle(self, unit)
 	end
 	
 	-- 光環
-	T.CreateFocusAuras(self)
+	T.CreateTargetFocusAuras(self)
 	
 	-- 圖示和標記
 	CreateGroupIndicators(self)
