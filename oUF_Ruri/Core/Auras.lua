@@ -53,8 +53,8 @@ local ROUND_DOWN = Enum.NumericRuleFormatRounding.Down
 -- nameplateShowAll、nameplateShowPersonal、isBossAura、isBossOrRoleAura 皆可作為布林條件。
 -- 所有非 nil candidateFilters 同樣是 AND，不會自動形成 OR。
 --
--- includeSpellIDs/excludeSpellIDs 只會套用於可協助單位的增益、不可協助單位的減益，以及 NeverSecret 光環；
--- 其他光環會略過這兩個條件，因此不能依賴它們製作完整白名單，應優先使用上述原生分類。
+-- 12.1.5 由 AuraContainerUtil.CanApplyIdentityCandidateFilters 判定是否允許按 spellID 篩選。
+-- 不允許時，includeSpellIDs 直接拒絕該光環；excludeSpellIDs 則略過 ID 排除，繼續其他條件。
 --
 -- AddSlot sortMethod 決定多個候選中由哪一個取得唯一 slot；AddGroup 使用相同選項排列全部候選：
 -- Default            玩家本人施放優先，再依 isPriorityAura、canApplyAura、auraInstanceID 排序。
@@ -73,32 +73,23 @@ local ROUND_DOWN = Enum.NumericRuleFormatRounding.Down
 -----------------    [[ Rules ]]    -----------------
 --=================================================--
 
--- 光環過濾規則
-local PRIORITY_BUFF_RULES = {
-	bossOrRole = { -- 首領與職責增益
+-- 下列清單按框體類型分區；陣列順序為 Group 顯示順序，maxFrameCount 是各組上限，不是容器總上限。
+
+-- ToT/FoT：由 AuraPolarity 在同一組切換敵方增益與友方減益。
+local SUB_HOSTILE = {filter = "HELPFUL", candidateFilters = {isBossOrRoleAura = true,},}
+local SUB_FRIENDLY = {filter = "HARMFUL",candidateFilters = {isPriorityAura = true,},}
+
+-- 首領增益
+local BOSS_BUFF_GROUPS = {
+	{ -- 首領與職責增益
 		filter = "HELPFUL",
 		candidateFilters = {
 			isBossOrRoleAura = true,
 		},
 		maxFrameCount = 2,
 	},
-	stealable = { -- 可偷取的非重要增益
-		filter = "HELPFUL|!IMPORTANT",
-		candidateFilters = {
-			isStealable = true,
-			isBossOrRoleAura = false,
-		},
-		maxFrameCount = 2,
-	},
-	dispellable = { -- 可驅散的非重要增益
-		filter = "HELPFUL|DISPELLABLE|!IMPORTANT",
-		candidateFilters = {
-			isBossOrRoleAura = false,
-		},
-		maxFrameCount = 2,
-	},
-	important = { -- 其餘重要增益
-		filter = "HELPFUL|IMPORTANT",
+	{ -- 其餘可驅散增益
+		filter = "HELPFUL|DISPELLABLE",
 		candidateFilters = {
 			isBossOrRoleAura = false,
 		},
@@ -106,12 +97,7 @@ local PRIORITY_BUFF_RULES = {
 	},
 }
 
-local BOSS_BUFF_GROUPS = {
-	PRIORITY_BUFF_RULES.bossOrRole,
-	PRIORITY_BUFF_RULES.important,
-	PRIORITY_BUFF_RULES.dispellable,
-}
-
+-- 首領減益
 local BOSS_DEBUFF_GROUPS = {
 	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
 		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY",
@@ -126,16 +112,27 @@ local BOSS_DEBUFF_GROUPS = {
 			nameplateShowAll = true,
 			nameplateShowPersonal = false,
 		},
-		maxFrameCount = 4,
+		maxFrameCount = 2,
 	},
 }
 
-local ARENA_BUFF_FILTERS = {
-	"HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",	-- 減傷
-	"HELPFUL|EXTERNAL_DEFENSIVE",	-- 外部減傷
-	"HELPFUL|RAID_PLAYER_DISPELLABLE|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",	-- 可驅散
+-- 競技場增益
+local ARENA_BUFF_GROUPS = {
+	{ -- 減傷
+		filter = "HELPFUL|BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
+		maxFrameCount = 2,
+	},
+	{ -- 外部減傷
+		filter = "HELPFUL|EXTERNAL_DEFENSIVE",
+		maxFrameCount = 2,
+	},
+	{ -- 可驅散
+		filter = "HELPFUL|RAID_PLAYER_DISPELLABLE|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE",
+		maxFrameCount = 2,
+	},
 }
 
+-- 競技場減益
 local ARENA_DEBUFF_GROUPS = {
 	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
 		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
@@ -158,6 +155,7 @@ local ARENA_DEBUFF_GROUPS = {
 	},
 }
 
+-- 團隊小隊增益：共用法術白名單。
 local RAID_BUFF_GROUP = {
 	filter = "HELPFUL",
 	candidateFilters = {
@@ -166,47 +164,44 @@ local RAID_BUFF_GROUP = {
 	maxFrameCount = 4,
 }
 
-local RAID_DEBUFF_GROUPS = {
-	{ -- 首領與職責，最優先分類
-		filter = "HARMFUL",
-		candidateFilters = {
-			isBossOrRoleAura = true,
-			isFromPlayerOrPlayerPet = false,
-		},
+-- 團隊小隊減益：原生團框分類+黑名單。
+local RAID_DEBUFF_GROUP = {
+	filter = "HARMFUL",
+	candidateFilters = {
+		excludeSpellIDs = C.RaidBlackList,
 	},
-	{ -- 其餘高優先級
-		filter = "HARMFUL",
-		candidateFilters = {
-			isBossOrRoleAura = false,
-			isPriorityAura = true,
-			--isFromPlayerOrPlayerPet = false,
-		},
-	},
-	{ -- 其餘普通減益，包含所有可驅散類型
-		filter = "HARMFUL",
-		candidateFilters = {
-			isBossOrRoleAura = false,
-			isPriorityAura = false,
-			isFromPlayerOrPlayerPet = false,
-			excludeSpellIDs = C.RaidBlackList,
-		},
-	},
+	maxFrameCount = 6,
 }
 
--- 名條建立時先用 NPC 規則；可驅散組再依單位類型切換
-local NAMEPLATE_BUFF_GROUPS = {
-	PRIORITY_BUFF_RULES.bossOrRole,
-	PRIORITY_BUFF_RULES.important,
-	PRIORITY_BUFF_RULES.dispellable,
-}
-
+-- 名條光環組合
 local NAMEPLATE_AURA_GROUPS = {
-	NAMEPLATE_BUFF_GROUPS[1],
-	NAMEPLATE_BUFF_GROUPS[2],
-	NAMEPLATE_BUFF_GROUPS[3],
-	ARENA_DEBUFF_GROUPS[1],
-	ARENA_DEBUFF_GROUPS[2],
-	ARENA_DEBUFF_GROUPS[3],
+	{ -- 重要
+		filter = "HELPFUL|IMPORTANT|INCLUDE_NAME_PLATE_ONLY",
+		maxFrameCount = 2,
+	},
+	{ -- 可驅散
+		filter = "HELPFUL|DISPELLABLE|!IMPORTANT|INCLUDE_NAME_PLATE_ONLY",
+		maxFrameCount = 2,
+	},
+	{ -- 玩家與寵物施放、由暴雪標記為個人名條追蹤的減益
+		filter = "HARMFUL|PLAYER|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
+		candidateFilters = {
+			nameplateShowPersonal = true,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 由暴雪標記為所有人可見的其餘名條減益
+		filter = "HARMFUL|INCLUDE_NAME_PLATE_ONLY|!CROWD_CONTROL",
+		candidateFilters = {
+			nameplateShowAll = true,
+			nameplateShowPersonal = false,
+		},
+		maxFrameCount = 4,
+	},
+	{ -- 控場減益
+		filter = "HARMFUL|CROWD_CONTROL",
+		maxFrameCount = 2,
+	},
 }
 
 -- 光環時間格式
@@ -285,8 +280,8 @@ local function PostCreateAuraButton(element, button, options)
 	shadow:SetTexture(G.media.aurashadow)
 	shadow:SetVertexColor(0, 0, 0, 1)
 
-	local showBuffTypeBorder = options.showBuffTypeBorder == true
-	local showDebuffTypeBorder = options.showDebuffTypeBorder == true
+	local showBuffTypeBorder = (options.showBuffTypeBorder == true)
+	local showDebuffTypeBorder = (options.showDebuffTypeBorder == true)
 	if showBuffTypeBorder or showDebuffTypeBorder then
 		local dispelBorder = border
 		if options.preserveDefaultBorder == true then
@@ -309,74 +304,41 @@ local function PostCreateAuraButton(element, button, options)
 		button:AddDispelTypeTexture(dispelBorder, dispelOptions)
 	end
 
-	if button.Count then
-		button.Count:SetFont(G.NFont, G.NumberFS, G.FontFlag)
-		button.Count:ClearAllPoints()
-		button.Count:SetPoint("BOTTOMRIGHT", button, 0, -2)
-		button.Count:SetTextColor(.9, .9, .1)
-	end
+	button.Count:SetFont(G.NFont, G.NumberFS, G.FontFlag)
+	button.Count:ClearAllPoints()
+	button.Count:SetPoint("BOTTOMRIGHT", button, 0, -2)
+	button.Count:SetTextColor(.9, .9, .1)
 
-	if button.Time then
-		button.Time:SetFont(G.NFont, G.NumberFS, G.FontFlag)
-		button.Time:ClearAllPoints()
-		button.Time:SetPoint("TOP", button, 0, 3)
-	end
+	button.Time:SetFont(G.NFont, G.NumberFS, G.FontFlag)
+	button.Time:ClearAllPoints()
+	button.Time:SetPoint("TOP", button, 0, 3)
 end
 
 --====================================================--
 -----------------    [[ Polarity ]]    -----------------
 --====================================================--
 
-local HOSTILE_FILTER = {
-	filter = "HELPFUL",
-	candidateFilters = {
-		isBossOrRoleAura = true,
-	},
-}
-
-local FRIENDLY_FILTER = {
-	filter = "HARMFUL",
-	candidateFilters = {
-		isPriorityAura = true,
-	},
-}
-
--- 依敵我關係切換單組規則，或調整雙組顯示上限
+-- ToT/FoT 依敵我關係切換規則
 local function UpdateAuraPolarity(self, _, unit)
 	if unit and unit ~= self.__unit then return end
 
 	local relation = self.AuraPolarity
-	if not relation then return end
 	
 	-- 敵友判定
-	local hostile = (UnitCanAttack("player", self.__unit) and true) or false
+	local hostile = UnitCanAttack("player", self.__unit)
 	if relation.isHostile == hostile then return end
 
 	-- 切換過濾條件
 	relation.isHostile = hostile
-	if relation.filterGroup then
-		local rule = hostile and HOSTILE_FILTER or FRIENDLY_FILTER
-		relation.container:SetAuraGroupFilterString(
-			relation.filterGroup,
-			rule.filter
-		)
-		relation.container:SetAuraGroupCandidateFilters(
-			relation.filterGroup,
-			rule.candidateFilters
-		)
-		return
-	end
-
-	-- 切換顯示數量
-	relation.container:SetAuraGroupMaxFrameCount(	-- 增益光環
-		relation.helpfulGroup,
-		hostile and relation.hostileHelpfulMax or relation.friendlyHelpfulMax
+	local rule = hostile and SUB_HOSTILE or SUB_FRIENDLY
+	relation.container:SetAuraGroupFilterString(
+		relation.filterGroup,
+		rule.filter
 	)
-	relation.container:SetAuraGroupMaxFrameCount(	-- 減益光環
-		relation.harmfulGroup,
-		hostile and relation.hostileHarmfulMax or relation.friendlyHarmfulMax
+	relation.container:SetAuraGroupCandidateFilters(
+		relation.filterGroup,
+		rule.candidateFilters
 	)
-	relation.container:ForceUpdate()
 end
 
 local function EnableAuraPolarity(self)
@@ -388,10 +350,8 @@ local function EnableAuraPolarity(self)
 end
 
 local function DisableAuraPolarity(self)
-	if self.AuraPolarity then
-		self:UnregisterEvent("UNIT_FACTION", UpdateAuraPolarity)
-		self.AuraPolarity.isHostile = nil
-	end
+	self:UnregisterEvent("UNIT_FACTION", UpdateAuraPolarity)
+	self.AuraPolarity.isHostile = nil
 end
 
 oUF:AddElement("AuraPolarity", UpdateAuraPolarity, EnableAuraPolarity, DisableAuraPolarity)
@@ -400,10 +360,10 @@ oUF:AddElement("AuraPolarity", UpdateAuraPolarity, EnableAuraPolarity, DisableAu
 -----------------    [[ Unitframes ]]    -----------------
 --======================================================--
 
--- 玩家橫式減益
+-- 玩家減益
 T.CreatePlayerDebuffs = function(self)
 	local Debuffs = self:CreateAuras({
-		layout = HORIZONTAL,
+		layout = self.mystyle == "VL" and VERTICAL or HORIZONTAL,
 		layoutLimit = C.PWidth,
 		initialAnchor = "BOTTOMLEFT",
 		growthX = "RIGHT",
@@ -432,66 +392,38 @@ T.CreatePlayerDebuffs = function(self)
 	return Debuffs
 end
 
--- 玩家直式減益
-T.CreateVPlayerDebuffs = function(self)
-	local Debuffs = self:CreateAuras({
-		layout = VERTICAL,
-		layoutLimit = C.PWidth,
-		initialAnchor = "BOTTOMLEFT",
-		growthX = "RIGHT",
-		growthY = "UP",
-	})
-	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	Debuffs.PostCreateButton = PostCreateAuraButton
-	Debuffs.showDuration = true
-	Debuffs.disableCooldown = true
-	Debuffs.durationFormatter = UF_AURA_DURATION
-
-	Debuffs:AddGroup("HARMFUL", {
-		maxFrameCount = 6,
-		size = C.AuraSize + 4,
-		showCount = true,
-		showDebuffTypeBorder = true,
-		layout = {
-			elementSpacing = 5,
-			lineSpacing = 5,
-		},
-	})
-
-	self.Debuffs = Debuffs
-	T.UpdatePlayerDebuffsPosition(Debuffs)
-	return Debuffs
-end
-
--- 目標橫式光環
-T.CreateTargetAuras = function(self)
+-- 目標與完整焦點光環
+T.CreateTargetFocusAuras = function(self)
+	local vertical = (self.mystyle == "VR")
 	local size = C.AuraSize
 	local spacing = 6
 	local lineSpacing = spacing
-	local layoutLimit = self:GetWidth()
-	local iconsPerLine = math.max(1, math.floor(layoutLimit / (size + spacing) + .5))
-	local helpfulMax = iconsPerLine
-	local harmfulMax = math.max(C.MaxAura - helpfulMax, 0)
+	local layoutLimit = vertical and self:GetHeight() or self:GetWidth()
+	local tooltipAnchor = vertical and "ANCHOR_BOTTOMLEFT" or "ANCHOR_TOPLEFT"
 
 	local Auras = self:CreateAuras({
-		layout = HORIZONTAL,
+		layout = vertical and VERTICAL or HORIZONTAL,
 		layoutLimit = layoutLimit,
-		initialAnchor = "BOTTOMLEFT",
-		growthX = "RIGHT",
+		initialAnchor = vertical and "BOTTOMRIGHT" or "BOTTOMLEFT",
+		growthX = vertical and "LEFT" or "RIGHT",
 		growthY = "UP",
 	})
 	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
-	Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
+	if vertical then
+		Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
+	else
+		Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
+	end
 	Auras.PostCreateButton = PostCreateAuraButton
 	Auras.showDuration = true
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local helpfulGroup = Auras:AddGroup("HELPFUL", {
-		maxFrameCount = helpfulMax,
+	Auras:AddGroup("HELPFUL", {
+		maxFrameCount = 7,
 		size = size,
 		showCount = true,
-		tooltipAnchor = "ANCHOR_TOPLEFT",
+		tooltipAnchor = tooltipAnchor,
 		layout = {
 			elementSpacing = spacing,
 			lineSpacing = lineSpacing,
@@ -499,12 +431,12 @@ T.CreateTargetAuras = function(self)
 		},
 	})
 
-	local harmfulGroup = Auras:AddGroup("HARMFUL", {
-		maxFrameCount = harmfulMax,
+	Auras:AddGroup("HARMFUL", {
+		maxFrameCount = 14,
 		size = size,
 		showCount = true,
 		showDebuffTypeBorder = true,
-		tooltipAnchor = "ANCHOR_TOPLEFT",
+		tooltipAnchor = tooltipAnchor,
 		layout = {
 			elementSpacing = spacing,
 			lineSpacing = lineSpacing,
@@ -514,139 +446,6 @@ T.CreateTargetAuras = function(self)
 	})
 
 	self.Auras = Auras
-	self.AuraPolarity = {
-		container = Auras,
-		helpfulGroup = helpfulGroup,
-		harmfulGroup = harmfulGroup,
-		friendlyHelpfulMax = helpfulMax, 
-		friendlyHarmfulMax = harmfulMax,
-		hostileHelpfulMax = 4,
-		hostileHarmfulMax = C.MaxAura,
-	}
-	return Auras
-end
-
--- 目標直式光環
-T.CreateVTargetAuras = function(self)
-	local size = C.AuraSize
-	local spacing = 6
-	local lineSpacing = spacing
-	local layoutLimit = self:GetHeight()
-	local iconsPerLine = math.max(1, math.floor(layoutLimit / (size + spacing) + .5))
-	local helpfulMax = iconsPerLine
-	local harmfulMax = math.max(C.MaxAura - helpfulMax, 0)
-
-	local Auras = self:CreateAuras({
-		layout = VERTICAL,
-		layoutLimit = layoutLimit,
-		initialAnchor = "BOTTOMRIGHT",
-		growthX = "LEFT",
-		growthY = "UP",
-	})
-	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
-	Auras:SetPoint("BOTTOMRIGHT", self.Health, "BOTTOMLEFT", -C.PPOffset - 1, 1)
-	Auras.PostCreateButton = PostCreateAuraButton
-	Auras.showDuration = true
-	Auras.disableCooldown = true
-	Auras.durationFormatter = UF_AURA_DURATION
-
-	local helpfulGroup = Auras:AddGroup("HELPFUL", {
-		maxFrameCount = helpfulMax,
-		size = size,
-		showCount = true,
-		tooltipAnchor = "ANCHOR_BOTTOMLEFT",
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = lineSpacing,
-			groupSpacing = size + spacing,
-		},
-	})
-
-	local harmfulGroup = Auras:AddGroup("HARMFUL", {
-		maxFrameCount = harmfulMax,
-		size = size,
-		showCount = true,
-		showDebuffTypeBorder = true,
-		tooltipAnchor = "ANCHOR_BOTTOMLEFT",
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = lineSpacing,
-			groupSpacing = size + spacing,
-			groupLineSpacing = lineSpacing,
-		},
-	})
-
-	self.Auras = Auras
-	self.AuraPolarity = {
-		container = Auras,
-		helpfulGroup = helpfulGroup,
-		harmfulGroup = harmfulGroup,
-		friendlyHelpfulMax = helpfulMax,
-		friendlyHarmfulMax = harmfulMax,
-		hostileHelpfulMax = 4,
-		hostileHarmfulMax = C.MaxAura,
-	}
-	return Auras
-end
-
--- 焦點光環
-T.CreateFocusAuras = function(self)
-	local size = C.AuraSize
-	local spacing = 6
-	local layoutLimit = self:GetWidth()
-	local iconsPerLine = math.max(1, math.floor(layoutLimit / (size + spacing) + .5))
-	local helpfulMax = iconsPerLine
-	local harmfulMax = math.max(C.MaxAura - helpfulMax, 0)
-
-	local Auras = self:CreateAuras({
-		layout = HORIZONTAL,
-		layoutLimit = layoutLimit,
-		initialAnchor = "BOTTOMLEFT",
-		growthX = "RIGHT",
-		growthY = "UP",
-	})
-	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
-	Auras:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
-	Auras.PostCreateButton = PostCreateAuraButton
-	Auras.showDuration = true
-	Auras.disableCooldown = true
-	Auras.durationFormatter = UF_AURA_DURATION
-
-	local helpfulGroup = Auras:AddGroup("HELPFUL", {
-		maxFrameCount = helpfulMax,
-		size = size,
-		showCount = true,
-		tooltipAnchor = "ANCHOR_TOPLEFT",
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-			groupSpacing = size + spacing,
-		},
-	})
-
-	local harmfulGroup = Auras:AddGroup("HARMFUL", {
-		maxFrameCount = harmfulMax,
-		size = size,
-		showCount = true,
-		showDebuffTypeBorder = true,
-		tooltipAnchor = "ANCHOR_TOPLEFT",
-		layout = {
-			elementSpacing = spacing,
-			lineSpacing = spacing,
-			groupSpacing = size + spacing,
-		},
-	})
-
-	self.Auras = Auras
-	self.AuraPolarity = {
-		container = Auras,
-		helpfulGroup = helpfulGroup,
-		harmfulGroup = harmfulGroup,
-		friendlyHelpfulMax = helpfulMax,
-		friendlyHarmfulMax = harmfulMax,
-		hostileHelpfulMax = 4,
-		hostileHarmfulMax = C.MaxAura,
-	}
 	return Auras
 end
 
@@ -785,8 +584,8 @@ T.CreateToTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
-		candidateFilters = FRIENDLY_FILTER.candidateFilters,
+	local filterGroup = Auras:AddGroup(SUB_FRIENDLY.filter, {
+		candidateFilters = SUB_FRIENDLY.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -827,8 +626,8 @@ T.CreateVToTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
-		candidateFilters = FRIENDLY_FILTER.candidateFilters,
+	local filterGroup = Auras:AddGroup(SUB_FRIENDLY.filter, {
+		candidateFilters = SUB_FRIENDLY.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -876,8 +675,8 @@ T.CreateFoTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
-		candidateFilters = FRIENDLY_FILTER.candidateFilters,
+	local filterGroup = Auras:AddGroup(SUB_FRIENDLY.filter, {
+		candidateFilters = SUB_FRIENDLY.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -919,8 +718,8 @@ T.CreateSimpleFoTAuras = function(self)
 	Auras.disableCooldown = true
 	Auras.durationFormatter = UF_AURA_DURATION
 
-	local filterGroup = Auras:AddGroup(FRIENDLY_FILTER.filter, {
-		candidateFilters = FRIENDLY_FILTER.candidateFilters,
+	local filterGroup = Auras:AddGroup(SUB_FRIENDLY.filter, {
+		candidateFilters = SUB_FRIENDLY.candidateFilters,
 		maxFrameCount = maxFrameCount,
 		size = size,
 		showCount = true,
@@ -953,7 +752,7 @@ T.CreateBossAuras = function(self)
 		growthY = "UP",
 	})
 	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PPOffset * 2 + C.PPHeight)
+	Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, G.NameFS / 2 + C.PPHeight + 5)
 	Debuffs.PostCreateButton = PostCreateAuraButton
 	Debuffs.showDuration = true
 	Debuffs.disableCooldown = true
@@ -962,7 +761,7 @@ T.CreateBossAuras = function(self)
 	for layoutIndex, group in ipairs(BOSS_DEBUFF_GROUPS) do
 		Debuffs:AddGroup(group.filter, {
 			candidateFilters = group.candidateFilters,
-			maxFrameCount = 3,
+			maxFrameCount = group.maxFrameCount,
 			sortMethod = AuraContainerSortMethod.Default,
 			size = C.AuraSize,
 			showCount = true,
@@ -977,13 +776,13 @@ T.CreateBossAuras = function(self)
 
 	local Buffs = self:CreateAuras({
 		layout = HORIZONTAL,
-		layoutLimit = C.PWidth,
+		layoutLimit = C.BWidth,
 		initialAnchor = "RIGHT",
 		growthX = "LEFT",
 		growthY = "UP",
 	})
 	Buffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, C.PPOffset * 2 + C.PPHeight)
+	Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, G.NameFS / 2 + C.PPHeight + 5)
 	Buffs.PostCreateButton = PostCreateAuraButton
 	Buffs.showDuration = true
 	Buffs.disableCooldown = true
@@ -1021,7 +820,7 @@ T.CreateArenaAuras = function(self)
 		growthY = "UP",
 	})
 	Debuffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, C.PHeight / 2 + C.PPOffset)
+	Debuffs:SetPoint("BOTTOMLEFT", self.Health, "TOPLEFT", 1, G.NameFS / 2 + C.PPHeight + 5)
 	Debuffs.PostCreateButton = PostCreateAuraButton
 	Debuffs.showDuration = true
 	Debuffs.disableCooldown = true
@@ -1045,21 +844,21 @@ T.CreateArenaAuras = function(self)
 
 	local Buffs = self:CreateAuras({
 		layout = HORIZONTAL,
-		layoutLimit = C.PWidth,
+		layoutLimit = C.BWidth,
 		initialAnchor = "RIGHT",
 		growthX = "LEFT",
 		growthY = "UP",
 	})
 	Buffs:SetFrameLevel(self:GetFrameLevel() + 4)
-	Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, C.PHeight / 2 + C.PPOffset)
+	Buffs:SetPoint("BOTTOMRIGHT", self.Health, "TOPRIGHT", -1, G.NameFS / 2 + C.PPHeight + 5)
 	Buffs.PostCreateButton = PostCreateAuraButton
 	Buffs.showDuration = true
 	Buffs.disableCooldown = true
 	Buffs.durationFormatter = UF_AURA_DURATION
 
-	for layoutIndex, filter in ipairs(ARENA_BUFF_FILTERS) do
-		Buffs:AddGroup(filter, {
-			maxFrameCount = 1,
+	for layoutIndex, group in ipairs(ARENA_BUFF_GROUPS) do
+		Buffs:AddGroup(group.filter, {
+			maxFrameCount = group.maxFrameCount,
 			sortMethod = AuraContainerSortMethod.Default,
 			size = C.AuraSize,
 			showCount = true,
@@ -1091,6 +890,7 @@ T.CreateRaidDebuffs = function(self)
 		initialAnchor = "BOTTOMLEFT",
 		growthX = "RIGHT",
 		growthY = "UP",
+		policy = {ignoreBuffs = true},
 	})
 	Debuffs:SetFrameLevel(self.StringParent:GetFrameLevel() + 1)
 	Debuffs:SetPoint("BOTTOMLEFT", self, 4, 6)
@@ -1099,23 +899,20 @@ T.CreateRaidDebuffs = function(self)
 	Debuffs.disableCooldown = true
 	Debuffs.durationFormatter = RAID_AURA_DURATION
 
-	for layoutIndex, group in ipairs(RAID_DEBUFF_GROUPS) do
-		Debuffs:AddGroup(group.filter, {
-			candidateFilters = group.candidateFilters,
-			maxFrameCount = 4,
-			sortMethod = AuraContainerSortMethod.Default,
-			size = C.RaidAuraSize,
-			showCount = true,
-			showDebuffTypeBorder = true,
-			disableMouse = true,
-			tooltipAnchor = "ANCHOR_TOPLEFT",
-			layout = {
-				elementSpacing = spacing,
-				lineSpacing = spacing,
-				layoutIndex = layoutIndex,
-			},
-		})
-	end
+	Debuffs:AddGroup(RAID_DEBUFF_GROUP.filter, {
+		candidateFilters = RAID_DEBUFF_GROUP.candidateFilters,
+		maxFrameCount = RAID_DEBUFF_GROUP.maxFrameCount,
+		sortMethod = AuraContainerSortMethod.UnitFrameDebuff,
+		size = C.RaidAuraSize,
+		showCount = true,
+		showDebuffTypeBorder = true,
+		disableMouse = true,
+		tooltipAnchor = "ANCHOR_TOPLEFT",
+		layout = {
+			elementSpacing = spacing,
+			lineSpacing = spacing,
+		},
+	})
 
 	self.Debuffs = Debuffs
 	return Debuffs
@@ -1161,16 +958,6 @@ end
 -----------------    [[ Nameplates ]]    -----------------
 --======================================================--
 
--- 增益光環條件切換：NPC 使用可驅散，玩家使用可偷取
-T.UpdateNameplateAuraFilter = function(Auras, isPlayer)
-	if Auras.usesPlayerBuffFilter == isPlayer then return end
-
-	local group = isPlayer and PRIORITY_BUFF_RULES.stealable or PRIORITY_BUFF_RULES.dispellable
-	Auras:SetAuraGroupFilterString(Auras.unitTypeBuffGroup, group.filter)
-	Auras:SetAuraGroupCandidateFilters(Auras.unitTypeBuffGroup, group.candidateFilters)
-	Auras.usesPlayerBuffFilter = isPlayer
-end
-
 -- 名條光環
 T.CreateNameplateAuras = function(self)
 	local size = C.NPAuraSize
@@ -1191,7 +978,7 @@ T.CreateNameplateAuras = function(self)
 	Auras.durationFormatter = RAID_AURA_DURATION
 
 	for layoutIndex, group in ipairs(NAMEPLATE_AURA_GROUPS) do
-		local groupKey = Auras:AddGroup(group.filter, {
+		Auras:AddGroup(group.filter, {
 			candidateFilters = group.candidateFilters,
 			maxFrameCount = group.maxFrameCount,
 			sortMethod = AuraContainerSortMethod.Default,
@@ -1206,13 +993,8 @@ T.CreateNameplateAuras = function(self)
 				layoutIndex = layoutIndex,
 			},
 		})
-
-		if group == PRIORITY_BUFF_RULES.dispellable then
-			Auras.unitTypeBuffGroup = groupKey
-		end
 	end
 
-	Auras.usesPlayerBuffFilter = false
 	self.Auras = Auras
 	return Auras
 end

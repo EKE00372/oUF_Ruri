@@ -41,7 +41,6 @@ local MediaFolder = G.MediaFolder
 	C.PPOffset = 6				-- Power bar offset / 能量條向下偏移
 
 	C.AuraSize = 26				-- Base aura icon size / 基準光環圖示大小
-	C.MaxAura = 14				-- How many auras show / 顯示光環數量
 
 	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
 	
