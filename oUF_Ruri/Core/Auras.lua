@@ -200,6 +200,11 @@ local NAMEPLATE_AURA_GROUPS = {
 	},
 	{ -- 控場減益
 		filter = "HARMFUL|CROWD_CONTROL",
+		candidateFilters = {
+			excludeSpellIDs = {
+				[1280457] = true,
+			},
+		},
 		maxFrameCount = 2,
 	},
 }
