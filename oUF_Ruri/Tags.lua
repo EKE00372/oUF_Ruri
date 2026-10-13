@@ -63,8 +63,8 @@ oUF.colors.power.FUEL = oUF:CreateColor(0, .75, .7)		-- 載具，燃料
 oUF.colors.power.AMMOSLOT = oUF:CreateColor(.8, .6, 0)	-- 載具，彈藥
 oUF.colors.power.TIP_OF_THE_SPEAR = oUF:CreateColor(166/255, 242/255, 84/255) -- 生存獵，長矛之尖
 oUF.colors.power.SOUL_FRAGMENTS = {						-- 噬滅，靈魂碎片
-	oUF:CreateColor(.87, .47, 1), -- 一般狀態
-	oUF:CreateColor(.5, .62, 1), -- 虛空變身
+	oUF:CreateColor(.87, .47, 1),	-- 一般狀態
+	oUF:CreateColor(.5, .62, 1),	-- 虛空變身
 }
 
 -- [[ Faction color ]] --
@@ -178,30 +178,49 @@ oUF.Tags.Events["afkdnd"] = "PLAYER_FLAGS_CHANGED UNIT_CONNECTION"
 
 -- health: cur per
 oUF.Tags.Methods["unit:hp"] = function(unit)
-	if UnitIsDead(unit) then				-- 死亡
-		return "|cff559655RIP|r"			-- or DEAD
-	elseif UnitIsGhost(unit) then			-- 鬼魂
-		return "|cff559655GHO|r"
+	if UnitIsDeadOrGhost(unit) then			-- 死亡／鬼魂
+		return "|cff559655RIP|r"
 	elseif not UnitIsConnected(unit) then	-- 離線
 		return "|cff559655OFF|r"			-- or PLAYER_OFFLINE
 	end
 
 	local cur = F.NumberAbbrValue(UnitHealth(unit))
-	local per = format("%d", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
-	return "|cffffffff"..cur.." |cffffff00"..per.."|r"
+	local per = format(" |cffffff00%d|r", UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
+
+	return "|cffffffff"..cur.."|r"..F.FormatZero(oUF.Tags.Methods.missinghp(unit), per)
 end
 oUF.Tags.Events["unit:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH UNIT_CONNECTION PLAYER_FLAGS_CHANGED PARTY_MEMBER_ENABLE PARTY_MEMBER_DISABLE"
 
 -- power: cur
 oUF.Tags.Methods["unit:pp"]  = function(unit)
+	if UnitIsDeadOrGhost(unit) or not UnitIsConnected(unit) then
+		return ""
+	end
+
 	local cur = UnitPower(unit)
+	local curText = C_StringUtil.TruncateWhenZero(cur)
 	local _, type = UnitPowerType(unit)
 	local color = oUF.colors.power[type] or oUF.colors.power.FUEL
 
 	if type == "MANA" then -- 法力
-		return color:GenerateHexColorMarkup()..F.NumberAbbrValue(cur).."|r"
-	else
-		return color:GenerateHexColorMarkup()..cur.."|r"
+		cur = F.NumberAbbrValue(cur)
 	end
+
+	-- 當前值與上限任一為 0 都清空文字；兩層條件都由原生字串方法處理。
+	local text = F.FormatZero(curText, color:GenerateHexColorMarkup()..cur.."|r")
+	local maxText = C_StringUtil.TruncateWhenZero(oUF.Tags.Methods.maxpp(unit))
+
+	return F.FormatZero(maxText, text)
 end
-oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER"
+oUF.Tags.Events["unit:pp"] = "UNIT_POWER_FREQUENT UNIT_MAXPOWER UNIT_DISPLAYPOWER UNIT_HEALTH UNIT_CONNECTION"
+
+-- [[ Nameplates ]] --
+
+-- 血量百分比，滿血時省略文字。
+oUF.Tags.Methods["np:hp"] = function(unit)
+	return F.FormatZero(
+		oUF.Tags.Methods.missinghp(unit),
+		oUF.Tags.Methods.perhp(unit)
+	)
+end
+oUF.Tags.Events["np:hp"] = "UNIT_HEALTH UNIT_MAXHEALTH"

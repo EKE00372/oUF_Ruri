@@ -73,6 +73,12 @@ F.NumberAbbrValue = function(value)
 	return AbbreviateNumbers(value, NumberAbbrConfig)
 end
 
+-- condition 為 oUF tag 或 TruncateWhenZero 產生的文字；為空時省略 text，不在 Lua 判斷 secret。
+F.FormatZero = function(condition, text)
+	local link = C_StringUtil.WrapString(condition, "|Hitem:", "|h"..text.."|h")
+	return C_StringUtil.StripHyperlinks(link, true, false, false, false, true)
+end
+
 --======================================================--
 -----------------    [[ Templates ]]    ------------------
 --======================================================--
