@@ -62,21 +62,21 @@ local MediaFolder = G.MediaFolder
 ------------------------
 	
 	C.Raid = {
-		Width = 124,				-- Raid frame width / 團隊寬度
-		Height = 50,				-- Raid frame height / 團隊高度
-		PHeight = 2,				-- Raid frame power height / 團隊能量條高度
-		Space = 6,					-- Raid frame space / 團隊間距
+		Width = 124,		-- Raid frame width / 團隊寬度
+		Height = 50,		-- Raid frame height / 團隊高度
+		PHeight = 2,		-- Raid frame power height / 團隊能量條高度
+		Space = 6,			-- Raid frame space / 團隊間距
 	}
 
 	C.Party = {
-		Width = 130,				-- Party frame width / 隊伍寬度
-		Height = 50,				-- Party frame height / 隊伍高度
-		PHeight = 2,				-- Party frame power height / 隊伍能量條高度
-		Space = 6,					-- Party frame space / 隊伍間距
+		Width = 130,		-- Party frame width / 隊伍寬度
+		Height = 50,		-- Party frame height / 隊伍高度
+		PHeight = 2,		-- Party frame power height / 隊伍能量條高度
+		Space = 6,			-- Party frame space / 隊伍間距
 	}
 
 	C.RaidAuraSize = 18			-- Group frame aura icon size / 組隊框架光環圖示大小
-	--C.midAuraSize = 20				-- Middle big aura size
+	--C.midAuraSize = 20			-- Middle big aura size
 	
 ------------------------
 -- Nameplate settings --
@@ -97,6 +97,11 @@ local MediaFolder = G.MediaFolder
 -----------------------
 -- Position settings --
 -----------------------
+
+	-- 共用焦點座標，讓橫直式、完整與簡易模式各自保留設定名稱。
+	local Focus = {"CENTER", 360, 30}
+	local VFocus = {"CENTER", 0, -250}
+	local SFOT = {"TOP", "oUF_Focus", "BOTTOM", C.PPOffset*2, -C.PPOffset}
 
 	C.Position = {	-- 各元素座標 / Elements positions
 	
@@ -121,15 +126,16 @@ local MediaFolder = G.MediaFolder
 		-- [[ 焦點 / focus ]] --
 		
 		-- 橫式目標時，焦點與焦點目標座標 / Focus and FoT position when horizontal target frame.
-		Focus	= {"CENTER", 360, 0},
+		Focus	= Focus,						-- Normal focus
+		SFocus	= Focus,						-- Simple focus
 		FOT		= {"TOPRIGHT", "oUF_Focus", "BOTTOMRIGHT", 0, -(C.PHeight + C.PPOffset * 2)},
+		SFOT	= SFOT,
 
 		-- 直式目標時，焦點與焦點目標座標 / Focus and FoT position when vertical target frame.
-		VFocus	= {"CENTER", 0, -250},
+		VFocus	= VFocus,						-- Normal focus
+		VSFocus	= VFocus,						-- Simple focus
 		VFOT	= {"LEFT", "oUF_Focus", "RIGHT", C.PPOffset * 2, 0},
-		
-		-- 簡易焦點目標 / Simple style focus target postion
-		SFOT	= {"TOP", "oUF_Focus", "BOTTOM", C.BWidth/4, -C.PPOffset},
+		VSFOT	= SFOT,
 
 		-- [[ Other / 其他 ]] --
 		

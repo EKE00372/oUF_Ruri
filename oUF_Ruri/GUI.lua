@@ -1,7 +1,7 @@
 local addon, ns = ...
 local F, G, L = ns[2], ns[3], ns[5]
 
-local type, ipairs = type, ipairs
+local type, pairs, ipairs = type, pairs, ipairs
 local tinsert, wipe, floor = table.insert, wipe, math.floor
 local MainFrame
 
@@ -167,6 +167,16 @@ local function RefreshOptionControls()
 	for _, row in ipairs(MainFrame.OptionRows) do
 		row:RefreshState()
 	end
+
+	-- 與本次已套用值比較，全部改回原值時清除重載提示。
+	local status = ""
+	for key in pairs(F.GUIOptionMap) do
+		if F.GetSavedRuriOption(key) ~= F.GetRuriOption(key) then
+			status = "|cffffd100"..(L.StatusChanged or "StatusChanged").."|r"
+			break
+		end
+	end
+	MainFrame.StatusText:SetText(status)
 end
 
 -- 將選項綁定至設定值，並處理點擊與更新
@@ -179,7 +189,6 @@ local function SetupOptionRow(row, check, label, desc, option, group, section)
 		end
 
 		F.SetRuriOption(option.key, check:GetChecked() == true)
-		MainFrame.StatusText:SetText("|cffffd100"..(L.StatusChanged or "StatusChanged").."|r")
 		RefreshOptionControls()
 	end
 	-- 選項方塊=開關
