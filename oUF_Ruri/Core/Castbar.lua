@@ -56,8 +56,8 @@ local function CreateCastbarDelayText(element)
 	element.Delay:SetPoint("LEFT", element.Time, "RIGHT", 2, 0)
 end
 
--- 施法條顏色
-local function SetCastbarColor(element, notInterruptible)
+-- 施法開始與打斷狀態更新共用染色
+T.PostUpdateCastbarColor = function(element, unit, spellID, notInterruptible)
 	if element.isPlayerCastbar then
 		element:SetStatusBarColor(element.castNormalColor:GetRGBA())
 	else
@@ -83,11 +83,7 @@ local function PostCastStart_Embed(element, unit, spellID, notInterruptible)
 	if frame.Name then frame.Name:SetAlpha(0) end
 	if frame.Status then frame.Status:SetAlpha(0) end
 
-	SetCastbarColor(element, notInterruptible)
-end
-
-T.PostCastStart = function(element, unit, spellID, notInterruptible)
-	SetCastbarColor(element, notInterruptible)
+	T.PostUpdateCastbarColor(element, unit, spellID, notInterruptible)
 end
 
 -- [[ 停止施法 ]] --
@@ -105,12 +101,6 @@ end
 T.PostCastFailed = function(element, unit)
 	-- 一閃而過的施法失敗紅色條
 	element:SetStatusBarColor(element.castFailedColor:GetRGBA())
-end
-
--- [[ 施法過程中打斷狀態更新 ]] --
-
-T.PostCastInterruptible = function(element, unit, spellID, notInterruptible)
-	SetCastbarColor(element, notInterruptible)
 end
 
 --===========================================================--
@@ -183,7 +173,7 @@ T.CreateCastbar_Embed = function(self, unit)
 	Castbar.PostCastStop = PostCastStop_Embed			-- 施法結束
 	Castbar.PostCastFail = T.PostCastFailed				-- 施法失敗
 	Castbar.PostCastInterrupted = T.PostCastFailed		-- 施法中斷
-	Castbar.PostCastInterruptible = T.PostCastInterruptible	-- 狀態刷新
+	Castbar.PostCastInterruptible = T.PostUpdateCastbarColor	-- 狀態刷新
 	-- 施法結束恢復名字顯示
 	Castbar:HookScript("OnHide", PostCastStop_Embed)
 
@@ -274,10 +264,10 @@ T.CreateCastbar_Standalone = function(self, unit)
 	Castbar.castShieldColor = CAST_SHIELD
 	Castbar.castFailedColor = CAST_FAILED
 
-	Castbar.PostCastStart = T.PostCastStart					-- 施法開始
+	Castbar.PostCastStart = T.PostUpdateCastbarColor			-- 施法開始
 	Castbar.PostCastFail = T.PostCastFailed					-- 施法失敗
 	Castbar.PostCastInterrupted = T.PostCastFailed			-- 施法中斷
-	Castbar.PostCastInterruptible = T.PostCastInterruptible	-- 狀態更新
+	Castbar.PostCastInterruptible = T.PostUpdateCastbarColor	-- 狀態更新
 
 	self.Castbar = Castbar
 end

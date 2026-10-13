@@ -349,10 +349,10 @@ local function CreateCastbar_Bar(self)
 	Castbar.castShieldColor = CAST_SHIELD
 	Castbar.castFailedColor = CAST_FAILED
 
-	Castbar.PostCastStart = T.PostCastStart					-- 施法開始
+	Castbar.PostCastStart = T.PostUpdateCastbarColor			-- 施法開始
 	Castbar.PostCastFail = T.PostCastFailed					-- 施法失敗
 	Castbar.PostCastInterrupted = T.PostCastFailed			-- 施法中斷
-	Castbar.PostCastInterruptible = T.PostCastInterruptible	-- 打斷狀態更新
+	Castbar.PostCastInterruptible = T.PostUpdateCastbarColor	-- 打斷狀態更新
 
 	self.Castbar = Castbar
 end
