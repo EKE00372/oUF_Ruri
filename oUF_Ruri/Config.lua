@@ -41,7 +41,8 @@ local MediaFolder = G.MediaFolder
 	C.PPOffset = 6				-- Power bar offset / 能量條向下偏移
 
 	C.AuraSize = 26				-- Base aura icon size / 基準光環圖示大小
-	C.MaxAura = 14				-- How many auras show / 顯示光環數量
+	C.MaxBuffs = 7				-- Target/full focus buff limit / 目標與完整焦點的增益上限
+	C.MaxDebuffs = 14			-- Target/full focus debuff limit / 目標與完整焦點的減益上限
 
 	C.FadeOutAlpha = 0			-- Fade out value / 淡出值
 	
