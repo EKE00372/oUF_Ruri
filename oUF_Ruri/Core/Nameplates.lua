@@ -22,38 +22,14 @@ local function Noop() end	-- 關閉喚能師的聚能分段
 -----------------    [[ Colors ]]    -----------------
 --==================================================--
 
--- 專用 multiplier
-local function CreateNameplateMultiplierBG(element)
-	local shade = element:CreateTexture(nil, "BACKGROUND", nil, 0)
-	shade:SetAllPoints()
-	shade:SetColorTexture(0, 0, 0, 1)
-
-	local bg = element:CreateTexture(nil, "BACKGROUND", nil, 1)
-	bg:SetAllPoints()
-	bg:SetTexture(G.media.blank)
-
-	element.bg = bg
-end
-
--- 血量文字透明度：未滿血顯示，滿血隱藏
-local HEALTH_TEXT_ALPHA_CURVE = C_CurveUtil.CreateCurve()
-HEALTH_TEXT_ALPHA_CURVE:SetType(Enum.LuaCurveType.Step)
-HEALTH_TEXT_ALPHA_CURVE:AddPoint(0, 1)
-HEALTH_TEXT_ALPHA_CURVE:AddPoint(1, 0)
-
--- 條形名條的血量百分比
-local function PostUpdateBarHealth(element)
-	element.value:SetAlpha(element.values:EvaluateCurrentHealthPercent(HEALTH_TEXT_ALPHA_CURVE))
-end
-
--- 條形名條只在顏色變化時更新顏色
-local function PostUpdateBarHealthColor(element, unit, color)
+-- 條形模式染色
+local function PostUpdateHealthColor_Bar(element, unit, color)
 	local r, g, b = color:GetRGB()
 	element.bg:SetVertexColor(r, g, b, .3)
 end
 
--- 染色
-local function UpdateNameplateHealthColor(self, event, unit)
+-- 名條染色更新
+local function UpdateHealthColor(self, event, unit)
 	if not unit or self.__unit ~= unit then return end
 	-- 純血量與吸收值變化不影響名條顏色
 	if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_ABSORB_AMOUNT_CHANGED" then return end
@@ -101,8 +77,8 @@ local function UpdateNameplateHealthColor(self, event, unit)
 	end
 end
 
--- 只在組隊／職責變更令反轉狀態改變時，重染現有名條；不重跑血量與光環更新。
-local function UpdateNameplateThreatMode(_, event, unit)
+-- 只在組隊和職責變更時重新仇恨染色
+local function UpdateThreatMode(_, event, unit)
 	if event == "PLAYER_SPECIALIZATION_CHANGED" and unit ~= "player" then return end
 
 	local shouldReverse = IsInGroup() and not PlayerUtil.IsPlayerEffectivelyTank()
@@ -112,92 +88,95 @@ local function UpdateNameplateThreatMode(_, event, unit)
 	for _, nameplate in next, C_NamePlate.GetNamePlates() do
 		local frame = nameplate.unitFrame
 		if frame and frame:IsShown() then
-			UpdateNameplateHealthColor(frame, event, frame.__unit)
+			UpdateHealthColor(frame, event, frame.__unit)
 		end
 	end
 end
 
 -- 將顏色套用到數字模式的名字文字
-local function PostUpdateNumberHealthColor(element, unit, color)
+local function PostUpdateHealthColor_Number(element, unit, color)
 	element.__owner.Name:SetTextColor(color:GetRGB())
 end
 
 --==================================================--
------------------    [[ Health ]]    -----------------
+---------------    [[ Number layout ]]    ------------
 --==================================================--
 
--- 數字模式的布局更新
-local function UpdateNumberHealthLayout(frame)
-	local Health = frame.Health
-	Health.Layout:SetValue(Health.values:EvaluateCurrentHealthPercent(Health.LayoutCurve))
-	frame.HealthText:SetAlpha(Health.values:EvaluateCurrentHealthPercent(HEALTH_TEXT_ALPHA_CURVE))
+-- 清除施法環的占位狀態與顯示狀態
+local function ClearCastState_Ring(frame)
+	if not frame.RingCastActive then return end
+
+	frame.RingCastActive = false
+	local Castbar = frame.Castbar
+	Castbar.Ring:Hide()
+	Castbar.RingCooldown:Clear()
+	Castbar.RingCooldown:Hide()
+	return true
 end
 
--- 數字模式的血量變化時套用布局
-local function PostUpdateNumberHealth(element, unit)
-	local owner = element.__owner
-	if owner.RingCastActive then
-		element.Layout:SetValue(1)
-		owner.HealthText:SetAlpha(0)
-		return
+-- 光環位置更新：始終跟隨同一定位條
+local function UpdateLayout_Number(frame, reset)
+	-- 名條建立/加入/移除時，重置施法環狀態
+	if reset then
+		ClearCastState_Ring(frame)
 	end
 
-	UpdateNumberHealthLayout(owner)
+	frame.HealthText:SetAlpha(frame.RingCastActive and 0 or 1)
+	if not showNameplateAuras then return end
+
+	local Health = frame.Health
+	local value
+	if reset then
+		value = Health.LayoutFullValue
+	elseif frame.RingCastActive then
+		value = 1
+	else
+		value = Health.values:EvaluateCurrentHealthPercent(Health.LayoutCurve)
+	end
+	Health.Layout:SetValue(value)
+end
+
+local function PostUpdateHealth_Number(element)
+	local owner = element.__owner
+	if owner.RingCastActive then return end
+	UpdateLayout_Number(owner)
 end
 
 --=========================================================--
 --------------    [[ Ring Castbar callbacks ]]    -----------
 --=========================================================--
 
--- 施法環：顏色
-local function SetRingCastbarColor(element, notInterruptible)
+-- 施法環：打斷狀態更新
+local function PostCastInterruptible_Ring(element, unit, spellID, notInterruptible)
 	element.Ring:SetVertexColorFromBoolean(notInterruptible, CAST_SHIELD, CAST_NORMAL)
 end
 
--- 施法環：打斷狀態更新
-local function PostRingCastInterruptible(element, unit, spellID, notInterruptible)
-	SetRingCastbarColor(element, notInterruptible)
-end
-
--- 施法開始和狀態變化時，更新施法環進度
-local function UpdateRingCastDuration(element)
+-- 施法環：進度更新
+local function UpdateCastDuration_Ring(element)
 	element.RingCooldown:SetCooldownFromDurationObject(element:GetTimerDuration(), false)
 	element.RingCooldown:Show()
 end
 
--- 施法環：開始施法的布局變化
-local function PostRingCastStart(element, unit, spellID, notInterruptible)
-	SetRingCastbarColor(element, notInterruptible)
+-- 施法環：施法開始的布局變化
+local function PostCastStart_Ring(element, unit, spellID, notInterruptible)
+	PostCastInterruptible_Ring(element, unit, spellID, notInterruptible)
 	element.Ring:Show()
-	UpdateRingCastDuration(element)
+	UpdateCastDuration_Ring(element)
 
 	local owner = element.__owner
 	owner.RingCastActive = true
-	owner.Health.Layout:SetValue(1)
-	owner.HealthText:SetAlpha(0)
-end
-
--- 施法環：狀態重置
-local function ClearRingCastState(element)
-	local owner = element.__owner
-	if not owner.RingCastActive then return end
-
-	owner.RingCastActive = false
-	element.Ring:Hide()
-	element.RingCooldown:Clear()
-	element.RingCooldown:Hide()
-	return true
+	UpdateLayout_Number(owner)
 end
 
 -- 施法環：施法結束的狀態重置，並恢復血量文字與光環位置
-local function ResetRingCastLayout(element)
-	if not ClearRingCastState(element) then return end
-
-	UpdateNumberHealthLayout(element.__owner)
+local function ResetCastLayout_Ring(element)
+	local owner = element.__owner
+	if not ClearCastState_Ring(owner) then return end
+	UpdateLayout_Number(owner)
 end
 
 -- 施法環：施法失敗與中斷
-local function PostRingCastFailed(element, unit)
+local function PostCastFailed_Ring(element, unit)
 	element.Ring:SetVertexColor(CAST_FAILED:GetRGB())
 end
 
@@ -205,23 +184,23 @@ end
 --------------    [[ Castbar creation ]]    ------------
 --=====================================================--
 
--- [[ 數字模式環形施法條 ]] --
+-- [[ 環形施法條 ]] --
 
-local function CreateRingCastbar(self, ringBorderSize)
+local function CreateCastbar_Ring(self)
 	local CAST_RING_TEXTURE = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 
-	-- 尺寸繼承血量百分比文字大小
-	local ringSize = math.max(ringBorderSize - 2, 1)
-	local iconBorderSize = math.max(ringSize - 4 * 2, 1)	-- 施法環固定寬度
-	local iconSize = math.max(iconBorderSize - 2, 1)
+	local ringBorderSize = self.HealthText:GetLineHeight() + 16	-- 環總體直徑，尺寸繼承血量百分比文字大小
+	local ringSize = ringBorderSize - 2		-- 進度環直徑，尺寸=總體-邊框1px*2
+	local iconBorderSize = ringSize - 6 * 2	-- 施法圖示總體直徑，尺寸=進度環直徑-寬度*2
+	local iconSize = iconBorderSize - 2		-- 施法圖示本體直徑，尺寸=總體-邊框1px*2
 
 	-- 建立施法條的基底框架
 	local Castbar = CreateFrame("StatusBar", nil, self)
 	Castbar:SetSize(ringSize, ringSize)
-	Castbar:SetPoint("CENTER", self.HealthText, "CENTER")
+	Castbar:SetPoint("TOP", self.HealthText, "TOP", 0, 3)	-- 固定上緣，尺寸變化向下延伸
 	Castbar:SetStatusBarTexture(G.media.blank)
-	Castbar:GetStatusBarTexture():SetAlpha(0)			-- 使其不可見
-	Castbar:SetFrameLevel(self:GetFrameLevel() + 10)	-- 層級必需高於光環
+	Castbar:GetStatusBarTexture():SetAlpha(0)		-- 使其不可見
+	Castbar:SetFrameLevel(self:GetFrameLevel() + 6)	-- 光環按鈕占 +5，施法環 +6~+8。
 
 	-- 環形施法條結構：大圓疊小圓
 	-- 1px邊框-施法環-1px邊框-法術圖示
@@ -310,20 +289,20 @@ local function CreateRingCastbar(self, ringBorderSize)
 	Castbar.UpdatePips = Noop	-- 關閉喚能師的聚能分段
 	Castbar.timeToHold = 0.05
 
-	Castbar.PostCastStart = PostRingCastStart
-	Castbar.PostCastUpdate = UpdateRingCastDuration
-	Castbar.PostCastStop = ResetRingCastLayout
-	Castbar.PostCastFail = PostRingCastFailed
-	Castbar.PostCastInterrupted = PostRingCastFailed
-	Castbar.PostCastInterruptible = PostRingCastInterruptible
-	Castbar:HookScript("OnHide", ResetRingCastLayout)
+	Castbar.PostCastStart = PostCastStart_Ring
+	Castbar.PostCastUpdate = UpdateCastDuration_Ring
+	Castbar.PostCastStop = ResetCastLayout_Ring
+	Castbar.PostCastFail = PostCastFailed_Ring
+	Castbar.PostCastInterrupted = PostCastFailed_Ring
+	Castbar.PostCastInterruptible = PostCastInterruptible_Ring
+	Castbar:HookScript("OnHide", ResetCastLayout_Ring)
 
 	self.Castbar = Castbar
 end
 
 -- [[ 條形施法條 ]]--
 
-local function CreateBarCastbar(self)
+local function CreateCastbar_Bar(self)
 	-- 創建施法條
 	local Castbar = F.CreateStatusbar(self, nil, "ARTWORK", C.NPHeight)
 	Castbar:SetPoint("TOPLEFT", self.Health, "BOTTOMLEFT", 0, -4)
@@ -386,7 +365,7 @@ end
 local targetNameplate
 local focusNameplate
 local mouseoverNameplate
-local indicatorController
+local highlightController
 
 -- 從原生名條取得 oUF frame，避免使用受限制的 UnitIsUnit()
 local function GetNameplateUnitFrame(unit)
@@ -394,8 +373,9 @@ local function GetNameplateUnitFrame(unit)
 	return nameplate and nameplate.unitFrame
 end
 
--- NineSlice 只用固定資料建立材質與錨點，不會讀取由 secret 名字決定的框體尺寸。
-local function SetupNameplateHighlightPiece(_, piece, setupInfo, pieceLayout)
+-- 數字模式高亮跟隨名字自然寬度，名字為 secret value 時，需避免 BackdropTemplate 對寬度做運算觸發 secret taint
+-- 改用 NineSlice 重建高亮外觀，由原生錨點跟隨名字伸縮
+local function SetupHighlightPiece(_, piece, setupInfo, pieceLayout)
 	if setupInfo.pieceName == "Center" then
 		piece:SetColorTexture(1, 1, 1, 1)
 		return
@@ -414,7 +394,7 @@ end
 
 -- glow.tga 是 128x16 的八格 legacy edgeFile；長邊沿用固定 UV stretch。
 local NAMEPLATE_HIGHLIGHT_LAYOUT = {
-	setupPieceVisualsFunction = SetupNameplateHighlightPiece,
+	setupPieceVisualsFunction = SetupHighlightPiece,
 	TopLeftCorner = {
 		layer = "BACKGROUND", subLevel = 1,
 		texCoords = {.5078125, .0625, .5078125, .9375, .6171875, .0625, .6171875, .9375},
@@ -451,11 +431,11 @@ local NAMEPLATE_HIGHLIGHT_LAYOUT = {
 }
 
 -- 以共用 NineSlice layout 重現 edgeSize 10 的 glow backdrop，避免 BackdropTemplate 計算 secret 寬度。
-local function CreateNameplateHighlight(frame)
+local function CreateHighlightTexture(frame)
 	local isNumberStyle = frame.mystyle == "NNP"
 	local highlight = CreateFrame("Frame", nil, frame)
-	-- 高亮層級固定在所有可見名條元素下方
-	highlight:SetFrameLevel(frame:GetFrameLevel() + 1)
+
+	highlight:SetFrameLevel(frame:GetFrameLevel() + 1)	-- 高亮層級固定在所有可見名條元素下方
 	if isNumberStyle then
 		highlight:SetPoint("TOPLEFT", frame.Name, -10, 8)
 		highlight:SetPoint("BOTTOMRIGHT", frame.Name, 10, -10)
@@ -473,9 +453,9 @@ local function CreateNameplateHighlight(frame)
 end
 
 -- 高亮優先級：目標-焦點-指向；快取公開狀態以跳過重複染色
-local function UpdateNameplateIndicator(frame)
-	local indicator = frame and frame.HighlightIndicator
-	if not indicator then return end
+local function UpdateHighlight(frame)
+	local highlight = frame and frame.Highlight
+	if not highlight then return end
 
 	local state
 	if showTargetHighlight and frame == targetNameplate then
@@ -489,8 +469,8 @@ local function UpdateNameplateIndicator(frame)
 		state = "mouseover"
 	end
 
-	if indicator.highlightState == state then return end
-	indicator.highlightState = state
+	if highlight.highlightState == state then return end
+	highlight.highlightState = state
 
 	local r, g, b
 	if state == "target" then
@@ -500,18 +480,18 @@ local function UpdateNameplateIndicator(frame)
 	elseif state == "mouseover" then
 		r, g, b = 1, 1, 0
 	else
-		indicator:Hide()
+		highlight:Hide()
 		return
 	end
 
 	-- 條形只顯示毛邊，數字模式同時顯示底色
-	NineSlicePanelMixin.SetCenterColor(indicator, r, g, b, frame.mystyle == "NNP" and .8 or 0)
-	NineSlicePanelMixin.SetBorderColor(indicator, r, g, b, .8)
-	indicator:Show()
+	NineSlicePanelMixin.SetCenterColor(highlight, r, g, b, frame.mystyle == "NNP" and .8 or 0)
+	NineSlicePanelMixin.SetBorderColor(highlight, r, g, b, .8)
+	highlight:Show()
 end
 
 -- 目標與焦點高亮的更新
-local function RefreshTargetFocusIndicators()
+local function RefreshHighlight_TargetFocus()
 	-- 儲存舊frame
 	local previousTarget = targetNameplate
 	local previousFocus = focusNameplate
@@ -519,60 +499,59 @@ local function RefreshTargetFocusIndicators()
 	targetNameplate = GetNameplateUnitFrame("target")
 	focusNameplate = GetNameplateUnitFrame("focus")
 
-	UpdateNameplateIndicator(previousTarget)	-- 更新舊目標
-	UpdateNameplateIndicator(previousFocus)		-- 更新舊焦點
-	UpdateNameplateIndicator(targetNameplate)	-- 更新新目標
-	UpdateNameplateIndicator(focusNameplate)	-- 更新新焦點
-	UpdateNameplateIndicator(mouseoverNameplate)-- 更新指向判斷
+	UpdateHighlight(previousTarget)		-- 更新舊目標
+	UpdateHighlight(previousFocus)		-- 更新舊焦點
+	UpdateHighlight(targetNameplate)	-- 更新新目標
+	UpdateHighlight(focusNameplate)		-- 更新新焦點
+	UpdateHighlight(mouseoverNameplate)	-- 更新指向判斷
 end
 
 -- 指向高亮的更新
-local function RefreshMouseoverIndicator()
+local function RefreshHighlight_Mouseover()
 	-- 儲存舊frame
 	local previous = mouseoverNameplate
 	-- 取得新frame
 	mouseoverNameplate = GetNameplateUnitFrame("mouseover")
-
 	-- 指向改變時清除舊 frame 的高亮
-	if previous ~= mouseoverNameplate then UpdateNameplateIndicator(previous) end
-
-	UpdateNameplateIndicator(mouseoverNameplate)	-- 更新目前指向高亮
-	indicatorController:SetShown(mouseoverNameplate ~= nil)
+	if previous ~= mouseoverNameplate then UpdateHighlight(previous) end
+	-- 更新目前指向高亮
+	UpdateHighlight(mouseoverNameplate)
+	highlightController:SetShown(mouseoverNameplate ~= nil)
 end
 
 -- 統一處理高亮變化
-local function OnIndicatorControllerEvent(self, event)
+local function OnHighlightEvent(self, event)
 	if event == "UPDATE_MOUSEOVER_UNIT" then
-		RefreshMouseoverIndicator()
+		RefreshHighlight_Mouseover()
 	else
-		RefreshTargetFocusIndicators()
+		RefreshHighlight_TargetFocus()
 	end
 end
 
 -- 指向高亮的 OnUpdate：UPDATE_MOUSEOVER_UNIT 只管移入，不管移出
-local function OnIndicatorControllerUpdate(self, elapsed)
+local function OnHighlightUpdate(self, elapsed)
 	self.elapsed = self.elapsed + elapsed
 	if self.elapsed >= .1 then
 		self.elapsed = 0
-		RefreshMouseoverIndicator()
+		RefreshHighlight_Mouseover()
 	end
 end
 
 -- 每張名條只建立一組高亮，由公開 frame 身分決定目前顏色與顯示狀態
-local function CreateNameplateIndicator(self)
-	self.HighlightIndicator = CreateNameplateHighlight(self)
-	UpdateNameplateIndicator(self)
+local function CreateHighlight(self)
+	self.Highlight = CreateHighlightTexture(self)
+	UpdateHighlight(self)
 end
 
 --=======================================================--
 -----------------    [[ NamePlates ]]    ------------------
 --=======================================================--
 
--- 堆疊範圍固定跟隨名條基底，以免出現變動
+-- 堆疊範圍固定跟隨名條基底尺寸，以免出現變動
 local function CreateNameplateStackingBounds(self)
 	local bounds = CreateFrame("Frame", nil, self)
 	if self.mystyle == "BNP" and showNameplateAuras then
-		-- 固定向上預留半個光環高度，不隨光環顯隱改變
+		-- 固定向上預留一個光環高度，不隨光環顯隱改變
 		bounds:SetPoint("TOPLEFT", self, "TOPLEFT", 0, C.NPAuraSize)
 		bounds:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0)
 	else
@@ -589,13 +568,13 @@ end
 
 -- [[ 數字模式 ]] --
 
-local function CreateNumberPlates(self)
+local function CreateNameplate_Number(self)
 	self.mystyle = "NNP"
 	CreateNameplateStackingBounds(self)
 
 	self.RingCastActive = false
 
-	-- Health 只供 oUF 更新真實血量與 calculator；光環改由獨立定位條承載。
+	-- 隱藏的血量條：Health 只供 oUF 更新真實血量與 calculator
 	local Health = F.CreateStatusbar(self, nil, "ARTWORK", 1, C.NPWidth, 0, 0, 0, 0)
 	Health:SetPoint("BOTTOM", self, "BOTTOM")
 	Health:SetFrameLevel(self:GetFrameLevel() + 2)
@@ -606,42 +585,29 @@ local function CreateNumberPlates(self)
 	Health.colorThreat = true
 	Health.colorHealth = true
 	self.Health = Health
-	self.Health.UpdateColor = UpdateNameplateHealthColor
-	self.Health.PostUpdateColor = PostUpdateNumberHealthColor
-	self.Health.PostUpdate = PostUpdateNumberHealth
+	self.Health.UpdateColor = UpdateHealthColor
+	self.Health.PostUpdateColor = PostUpdateHealthColor_Number
+	self.Health.PostUpdate = PostUpdateHealth_Number
 
-	-- 名字放在 Health 底部；實際行高會用來計算 Health 與滿血光環位置。
-	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
+	-- 名字：保持在 Health 底部，層級低於施法環
+	local NameLayer = CreateFrame("Frame", nil, self.Health)
+	NameLayer:SetAllPoints(self.Health)
+	NameLayer:SetFrameLevel(self:GetFrameLevel() + 3)
+	self.Name = F.CreateText(NameLayer, "OVERLAY", G.Font, G.NPNameFS+4, G.FontFlag, "CENTER")
 	self.Name:SetPoint("BOTTOM", self.Health, "BOTTOM")
 
-	-- 百分比與名字相距 3px；環形施法條與文字共用中心。
+	-- 百分比
 	self.HealthText = F.CreateText(self.Health, "OVERLAY", G.NPFont, G.NPFS, G.FontFlag, "CENTER")
 	self.HealthText:SetPoint("BOTTOM", self.Name, "TOP", 0, 3)
 	self.HealthText:SetTextColor(1, 1, 1)
 
-	-- 用兩個 FontString 的公開行高建立布局；曲線結果只傳給可接受 secret value 的 SetValue。
+	-- 從兩個 FontString 的公開行高取得框體高度，建立布局
 	local nameHeight = self.Name:GetLineHeight()
 	local healthTextHeight = self.HealthText:GetLineHeight()
 	local healthHeight = nameHeight + 3 + healthTextHeight
-	local fullHealthValue = nameHeight / healthHeight
 	self.Name:SetHeight(nameHeight)
 	self.HealthText:SetHeight(healthTextHeight)
 	Health:SetHeight(healthHeight)
-
-	-- 固定 0..1 範圍，只接收布局值，避免與 oUF 的血量寫入共用 StatusBar。
-	local Layout = F.CreateStatusbar(Health, nil, "BACKGROUND")
-	Layout:SetAllPoints(Health)
-	Layout:SetOrientation("VERTICAL")
-	Layout:SetMinMaxValues(0, 1)
-	Layout:SetStatusBarColor(0, 1, 1)
-	Layout:GetStatusBarTexture():SetAlpha(0)
-	Health.Layout = Layout
-	Health.LayoutFullValue = fullHealthValue
-	Health.LayoutCurve = C_CurveUtil.CreateCurve()
-	Health.LayoutCurve:SetType(Enum.LuaCurveType.Step)
-	Health.LayoutCurve:AddPoint(0, 1)
-	Health.LayoutCurve:AddPoint(1, fullHealthValue)
-	Layout:SetValue(fullHealthValue)
 
 	local RaidIcon = self.Health:CreateTexture(nil, "OVERLAY")
 	RaidIcon:SetSize(24, 24)
@@ -649,20 +615,39 @@ local function CreateNumberPlates(self)
 	RaidIcon:SetPoint("RIGHT", self.Name, "LEFT", -2, 0)
 	self.RaidTargetIndicator = RaidIcon
 
-	CreateRingCastbar(self, healthTextHeight + 8)	-- 上下超出
+	-- 施法環
+	CreateCastbar_Ring(self)
 
 	if showNameplateAuras then
+		-- 給光環定位用的隱藏狀態條
+		local layoutHeight = (healthHeight - 2) -- 上位位置-2px 補回百分比字型的上方版面留空
+		local Layout = F.CreateStatusbar(Health, nil, "BACKGROUND")
+		Layout:SetPoint("BOTTOMLEFT", Health, "BOTTOMLEFT")
+		Layout:SetPoint("BOTTOMRIGHT", Health, "BOTTOMRIGHT")
+		Layout:SetHeight(layoutHeight)
+		Layout:SetOrientation("VERTICAL")
+		Layout:SetMinMaxValues(0, 1)
+		Layout:SetStatusBarColor(0, 1, 1)
+		Layout:GetStatusBarTexture():SetAlpha(0)
+		Health.Layout = Layout
+		Health.LayoutFullValue = (nameHeight / layoutHeight)	-- 滿血時高度，換成百分比
+		Health.LayoutCurve = C_CurveUtil.CreateCurve()
+		Health.LayoutCurve:SetType(Enum.LuaCurveType.Step)
+		Health.LayoutCurve:AddPoint(0, 1)	-- 不滿血，填充100%
+		Health.LayoutCurve:AddPoint(1, Health.LayoutFullValue)	-- 滿血，填到前面計算的高度
+
 		T.CreateNameplateAuras(self)
-		self.Auras:SetPoint("BOTTOM", Layout:GetStatusBarTexture(), "TOP", 0, 3)
+		self.Auras:SetPoint("BOTTOM", Layout:GetStatusBarTexture(), "TOP", 0, 3)	-- 和百分比一樣與名字相距3px
 	end
 	if showTargetHighlight or showMouseoverHighlight then
-		CreateNameplateIndicator(self)
+		CreateHighlight(self)
 	end
+	UpdateLayout_Number(self, true)
 end
 
 -- [[ 條形模式 ]] --
 
-local function CreateBarPlates(self)
+local function CreateNameplate_Bar(self)
 	self.mystyle = "BNP"
 	CreateNameplateStackingBounds(self)
 	
@@ -679,12 +664,11 @@ local function CreateBarPlates(self)
 	-- 陰影
 	Health.border = F.CreateSD(Health, Health, 3)
 	-- 背景
-	CreateNameplateMultiplierBG(Health)
+	T.CreateMultiplierBG(Health)
 	-- 註冊到ouf
 	self.Health = Health
-	self.Health.UpdateColor = UpdateNameplateHealthColor
-	self.Health.PostUpdate = PostUpdateBarHealth
-	self.Health.PostUpdateColor = PostUpdateBarHealthColor
+	self.Health.UpdateColor = UpdateHealthColor
+	self.Health.PostUpdateColor = PostUpdateHealthColor_Bar
 	
 	-- 名字
 	self.Name = F.CreateText(self.Health, "OVERLAY", G.Font, G.NPNameFS, G.FontFlag, "CENTER")
@@ -701,7 +685,7 @@ local function CreateBarPlates(self)
 	self.RaidTargetIndicator = RaidIcon
 
 	-- 施法條
-	CreateBarCastbar(self)
+	CreateCastbar_Bar(self)
 	-- 只顯示傷害吸收；敵方名條不顯示治療吸收
 	T.CreateHealthPrediction(self, false)
 	
@@ -711,51 +695,43 @@ local function CreateBarPlates(self)
 		self.Auras:SetPoint("BOTTOM", self.Name, "TOP", 0, 4)
 	end
 	if showTargetHighlight or showMouseoverHighlight then
-		CreateNameplateIndicator(self)
+		CreateHighlight(self)
 	end
 end
 
--- nameplate driver 新增框架時重置狀態、套用單位類型光環並更新所有高亮
-local function UpdateNameplateState(self, _, unit)
+-- nameplate driver 新增框架時重置狀態並更新所有高亮
+local function UpdateNameplateState(self)
 	-- 名條復用時先清掉上一個單位留下的施法狀態
 	if self.mystyle == "NNP" then
-		ClearRingCastState(self.Castbar)
-		self.Health.Layout:SetValue(self.Health.LayoutFullValue)
-		self.HealthText:SetAlpha(0)
+		UpdateLayout_Number(self, true)
 	end
 
-	if showNameplateAuras then
-		T.UpdateNameplateAuraFilter(self.Auras, UnitIsPlayer(unit))
-	end
-
-	if indicatorController then
-		RefreshTargetFocusIndicators()
+	if highlightController then
+		RefreshHighlight_TargetFocus()
 		if showMouseoverHighlight then
-			RefreshMouseoverIndicator()
+			RefreshHighlight_Mouseover()
 		end
 	end
 end
 
--- nameplate driver 移除框架時隱藏高亮並清除數字模式布局狀態
-local function ResetNameplateIndicators(self)
+-- nameplate driver 移除框架時，隱藏高亮並清除數字模式布局狀態
+local function ResetNameplateHighlights(self)
 	if targetNameplate == self then targetNameplate = nil end
 	if focusNameplate == self then focusNameplate = nil end
 	if mouseoverNameplate == self then
 		mouseoverNameplate = nil
 		-- 延遲補查；若移除事件與 mouseover 切換交錯，不會永久停掉 fallback。
-		indicatorController.elapsed = .1
-		indicatorController:Show()
+		highlightController.elapsed = .1
+		highlightController:Show()
 	end
 
-	if self.HighlightIndicator then
+	if self.Highlight then
 		-- pooled frame 再次使用時必須重算，不能沿用隱藏前的快取狀態。
-		self.HighlightIndicator.highlightState = nil
-		self.HighlightIndicator:Hide()
+		self.Highlight.highlightState = nil
+		self.Highlight:Hide()
 	end
 	if self.mystyle == "NNP" then
-		ClearRingCastState(self.Castbar)
-		self.Health.Layout:SetValue(self.Health.LayoutFullValue)
-		self.HealthText:SetAlpha(0)
+		UpdateLayout_Number(self, true)
 	end
 end
 
@@ -764,7 +740,7 @@ end
 --=======================================================--
 
 -- [[ 自行創建玩家名條，取代暴雪的個人資源 ]] --
-local function CreatePlayerBarPlate(self, unit)
+local function CreateNameplate_PlayerPlate(self, unit)
 	self.mystyle = "BPP"
 
 	self:SetSize(C.PlayerPlateWidth, C.NPHeight*5)
@@ -810,51 +786,53 @@ end
 --===================================================--
 
 oUF:Factory(function(self)
-	-- 官方 oUF 的 Spawn 會停用 Blizzard PlayerFrame
+	-- oUF 的 Spawn 會停用 Blizzard PlayerFrame，所以玩家個人資源選項只能掛在 unitframes 下
 	if F.GetRuriOption("PlayerPlate") and F.GetRuriOption("UnitFrames") then
 		SetCVar("nameplateShowSelf", 0)
-		self:RegisterStyle("PlayerPlate", CreatePlayerBarPlate)
+		self:RegisterStyle("PlayerPlate", CreateNameplate_PlayerPlate)
 		self:SetActiveStyle("PlayerPlate")
 		local plate = self:Spawn("player", "oUF_PlayerPlate")
 		plate:SetPoint(unpack(C.Position.PlayerPlate))
 	end
 
+	-- 名條
 	if not F.GetRuriOption("Nameplates") then return end
-
 	local numberStyle = F.GetRuriOption("NumberStyle")
 	showNameplateAuras = F.GetRuriOption("ShowAuras")
 	showTargetHighlight = F.GetRuriOption("HLTarget")
 	showMouseoverHighlight = F.GetRuriOption("HLMouseover")
 
+	-- 仇恨反轉
 	if F.GetRuriOption("ReverseThreat") then
 		local threatController = CreateFrame("Frame")
 		threatController:RegisterEvent("PLAYER_ENTERING_WORLD")
 		threatController:RegisterEvent("GROUP_ROSTER_UPDATE")
 		threatController:RegisterEvent("PLAYER_ROLES_ASSIGNED")
 		threatController:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-		threatController:SetScript("OnEvent", UpdateNameplateThreatMode)
-		UpdateNameplateThreatMode()
+		threatController:SetScript("OnEvent", UpdateThreatMode)
+		UpdateThreatMode()
 	end
 
+	-- 目標高亮
 	if showTargetHighlight or showMouseoverHighlight then
-		indicatorController = CreateFrame("Frame")
-		indicatorController:RegisterEvent("PLAYER_TARGET_CHANGED")
-		indicatorController:RegisterEvent("PLAYER_FOCUS_CHANGED")
-		indicatorController:SetScript("OnEvent", OnIndicatorControllerEvent)
-		indicatorController:Hide()
+		highlightController = CreateFrame("Frame")
+		highlightController:RegisterEvent("PLAYER_TARGET_CHANGED")
+		highlightController:RegisterEvent("PLAYER_FOCUS_CHANGED")
+		highlightController:SetScript("OnEvent", OnHighlightEvent)
+		highlightController:Hide()
 
 		if showMouseoverHighlight then
-			indicatorController.elapsed = 0
-			indicatorController:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-			indicatorController:SetScript("OnUpdate", OnIndicatorControllerUpdate)
+			highlightController.elapsed = 0
+			highlightController:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+			highlightController:SetScript("OnUpdate", OnHighlightUpdate)
 		end
 	end
 
-	local createStyleFrames = (numberStyle and CreateNumberPlates) or CreateBarPlates
+	-- 預創建名條
+	local createStyleFrames = (numberStyle and CreateNameplate_Number) or CreateNameplate_Bar
 	local function CreatePlateFrames(frame)
 		createStyleFrames(frame)
 		if showNameplateAuras then
-			-- 預建時只配置外觀；綁定真實單位後由 oUF 啟用及更新。
 			frame.Auras:SetEnabled(false)
 		end
 	end
@@ -866,7 +844,7 @@ oUF:Factory(function(self)
 		-- 這些操作需要真實名條與 unit，不能放進預建階段。
 		frame:GetParent():SetStackingBoundsFrame(frame.StackingBounds)
 		frame:Tag(frame.Name, "[name]")
-		frame:Tag(frame.HealthText or frame.Health.value, "[perhp]")
+		frame:Tag(frame.HealthText or frame.Health.value, "[np:hp]")
 	end)
 	self:SetActiveStyle("Nameplate")
 
@@ -878,7 +856,7 @@ oUF:Factory(function(self)
 		driver:SetSize(C.NPWidth, C.NPHeight * 4)
 	end
 	driver:SetAddedCallback(UpdateNameplateState)
-	driver:SetRemovedCallback(ResetNameplateIndicators)
+	driver:SetRemovedCallback(ResetNameplateHighlights)
 
 	-- 延後分批預建 30 張；戰鬥中暫停，已建好的可立即使用，空池仍走正常建立。
 	C_Timer.After(2, function()
@@ -894,10 +872,10 @@ oUF:Factory(function(self)
 		end)
 	end)
 
-	if indicatorController then
-		RefreshTargetFocusIndicators()
+	if highlightController then
+		RefreshHighlight_TargetFocus()
 		if showMouseoverHighlight then
-			RefreshMouseoverIndicator()
+			RefreshHighlight_Mouseover()
 		end
 	end
 end)
