@@ -141,7 +141,7 @@ local MediaFolder = G.MediaFolder
 						{ type = "toggle", key = "ShowAuras", label = "ShowAuras", default = true },
 						{ type = "toggle", key = "HLTarget", label = "HighlightTargetFocus", default = true },
 						{ type = "toggle", key = "HLMouseover", label = "HighlightMouseover", default = true },
-						{ type = "toggle", key = "ReverseThreat", label = "ReverseThreat", default = true, tooltip = "ReverseThreatTip" },
+						{ type = "toggle", key = "ReverseThreat", label = "ReverseThreat", default = false, tooltip = "ReverseThreatTip" },
 					},
 				},
 				{

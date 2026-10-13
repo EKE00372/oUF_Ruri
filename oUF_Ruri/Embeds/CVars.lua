@@ -136,6 +136,7 @@ do
 	local function ApplyFriendlyNameSize()
 		-- 戰鬥中不延後重試，直接跳過
 		if InCombatLockdown() then return end
+		SetCVar("nameplateShowOnlyNameForFriendlyPlayerUnits", 1)
 		-- 設定 nameplateSize
 		if GetCVarNumberOrDefault("nameplateSize") ~= Enum.NamePlateSize.Large then
 			SetCVar("nameplateSize", Enum.NamePlateSize.Large)	-- * Large = 3

@@ -9,7 +9,7 @@ local function DisableProtectedItems(_, rootDescription, contextData)
 
 	for _, description in rootDescription:EnumerateElementDescriptions() do
 		local text = MenuUtil.GetElementText(description)
-		if description.SetEnabled and (text == SET_FOCUS or text == FOLLOW or text == UNIT_VIEW_HOUSES) then
+		if text == SET_FOCUS or text == FOLLOW or text == UNIT_VIEW_HOUSES then
 			description:SetEnabled(false)
 		end
 	end

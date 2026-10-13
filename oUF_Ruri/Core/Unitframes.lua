@@ -428,7 +428,7 @@ local function CreateFocusStyle(self, unit)
 	-- 文本
 	self.Name:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 	self.Name:SetJustifyH("RIGHT")
-	self.Status:SetPoint("TOPRIGHT", self.Name, "TOPLEFT", 0, 0)
+	self.Status:SetPoint("RIGHT", self.Name, "LEFT", 0, 0)
 	self.Health.value:SetPoint("RIGHT", self.Power, 0, 2)
 	self.Health.value:SetJustifyH("RIGHT")
 	self.Power.value:SetPoint("LEFT", self.Power, 0, 2)
@@ -451,7 +451,7 @@ local function CreateFocusStyle(self, unit)
 		end
 	else
 		T.CreateCastbar_Embed(self, unit)
-		self.Castbar.IconBG:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, 0)
+		self.Castbar.IconBG:SetPoint("TOPRIGHT", self.Health, "TOPLEFT", -6, -1)
 		self.Castbar.Text:SetPoint("TOPRIGHT", self.Health, 0, G.NameFS/2 + C.PPHeight)
 		self.Castbar.Text:SetJustifyH("RIGHT")
 		self.Castbar.Text:SetWidth(self:GetWidth() * 0.7)
@@ -519,7 +519,7 @@ local function CreateSFocusStyle(self, unit)
 	
 	-- 施法條
 	T.CreateCastbar_Standalone(self, unit)
-	self.Castbar.IconBG:SetPoint("RIGHT", self, "LEFT", -2, -2)
+	self.Castbar.IconBG:SetPoint("RIGHT", self, "LEFT", -C.PPOffset, -2)
 	self.Castbar:SetPoint("RIGHT", self.Castbar.IconBG, "LEFT", -1, 0)
 
 	-- 光環
@@ -852,19 +852,19 @@ oUF:Factory(function(self)
 		-- 焦點
 		self:SetActiveStyle("Focus")
 		local focus = self:Spawn("focus", "oUF_Focus")
-		focus:SetPoint(unpack(C.Position.VFocus))
+		focus:SetPoint(unpack(F.GetRuriOption("SimpleFocus") and C.Position.VSFocus or C.Position.VFocus))
 		-- 焦點目標
 		if F.GetRuriOption("SimpleFocus") then
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
-			focustarget:SetPoint(unpack(C.Position.SFOT))
+			focustarget:SetPoint(unpack(C.Position.VSFOT))
 		else
 			self:SetActiveStyle("FoT")
 			local focustarget = self:Spawn("focustarget", "oUF_FoT")
 			focustarget:SetPoint(unpack(C.Position.VFOT))
 		end
 	else
-	-- 目標
+		-- 目標
 		self:SetActiveStyle("Target")
 		local target = self:Spawn("target", "oUF_Target")
 		target:SetPoint(unpack(C.Position.Target))
@@ -875,7 +875,7 @@ oUF:Factory(function(self)
 		-- 焦點
 		self:SetActiveStyle("Focus")
 		local focus = self:Spawn("focus", "oUF_Focus")
-		focus:SetPoint(unpack(C.Position.Focus))
+		focus:SetPoint(unpack(F.GetRuriOption("SimpleFocus") and C.Position.SFocus or C.Position.Focus))
 		-- 焦點目標
 		if F.GetRuriOption("SimpleFocus") then
 			self:SetActiveStyle("FoT")

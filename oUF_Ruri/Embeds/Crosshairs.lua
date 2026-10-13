@@ -109,7 +109,7 @@ local function CreateCrosshairs()
 	local function FocusPlate(plate)
 		fadeOut:Stop()
 		f:ClearAllPoints()
-		f:SetPoint('CENTER', plate)
+		f:SetPoint('CENTER', plate, 'CENTER', 0, 3)
 		if not f:IsShown() then
 			fadeIn:Play()
 		end
