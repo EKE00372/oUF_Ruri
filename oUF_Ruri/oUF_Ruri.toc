@@ -1,6 +1,6 @@
-## Interface: 120105
+## Interface: 120105, 120107
 ## Title: oUF_|cff00ffffRuri|r
-## Version: R6.2
+## Version: R6.3
 ## Author: EK (Linodas@Illidan-US)
 ## Notes: Unitframes with nameplates.
 ## X-oUF: oUF_Ruri
@@ -19,18 +19,7 @@ Libs\oUF_Essence.lua
 Libs\oUF_TankResource.lua
 Libs\oUF_Fader.lua
 
-Embeds\CVars.lua
-Embeds\Crosshairs.lua
-Embeds\CompactRaid.lua
-Embeds\UnitMenu.lua
-Embeds\Totems.lua
-#Embeds\Auras.lua
+Embeds\Embeds.xml
 
 Tags.lua
-Core\Castbar.lua
-Core\Auras.lua
-Core\Elements.lua
-
-Core\Unitframes.lua
-Core\Raidframes.lua
-Core\Nameplates.lua
+Core\Core.xml

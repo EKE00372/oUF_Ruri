@@ -1,0 +1,8 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="CVars.lua"/>
+	<Script file="Crosshairs.lua"/>
+	<Script file="CompactRaid.lua"/>
+	<!-- <Script file="UnitMenu.lua"/> -->
+	<Script file="Totems.lua"/>
+	<!-- <Script file="Auras.lua"/> -->
+</Ui>
