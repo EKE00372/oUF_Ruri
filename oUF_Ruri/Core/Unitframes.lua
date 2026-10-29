@@ -738,6 +738,13 @@ local function CreateArenaStyle(self, unit)
 	CreateUnitShared(self, unit)		-- 繼承通用樣式
 	self:SetSize(C.BWidth, C.PHeight)	-- 主框體尺寸
 
+	-- 準備階段的職業色可能是 secret，直接交給原生 StatusBar，避開 oUF 的 RGB 數值比較。
+	local arenaIndex = tonumber(unit:match("^arena(%d+)$"))
+	self.Power.UpdateColorArenaPreparation = function(power)
+		local info = UnitFrameUtil.GetArenaOpponentSpecDisplayInfo(arenaIndex)
+		power:SetStatusBarColor(info.barColorR, info.barColorG, info.barColorB)
+	end
+
 	-- 文本
 	self.Status:SetPoint("TOPLEFT", self.Health, 0, G.NameFS/2+C.PPHeight)
 	self.Status:SetJustifyH("LEFT")
