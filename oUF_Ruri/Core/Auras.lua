@@ -304,7 +304,7 @@ local function PostCreateAuraButton(element, button, options)
 			showWhenHelpful = showBuffTypeBorder,
 			showWithoutDispelType = true,	-- 無驅散類型的光環也顯示
 			style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,	-- 保留自定義材質，不被原生邊框材質取代
-			customDispelColorMap = element.__owner.colors.dispel,	-- 使用 ouf 的減益類型顏色表
+			customDispelColorMap = element.dispelColors or element.__owner.colors.dispel,	-- 預熱容器尚無 owner，使用同一份公開色表
 		}
 		button:AddDispelTypeTexture(dispelBorder, dispelOptions)
 	end
@@ -963,23 +963,13 @@ end
 -----------------    [[ Nameplates ]]    -----------------
 --======================================================--
 
--- 名條光環
-T.CreateNameplateAuras = function(self)
+-- 名條光環外觀與群組在預熱／冷建立時完成一次，接管後不再操作按鈕。
+local function InitializeNameplateAuras(Auras)
 	local size = C.NPAuraSize
 	local spacing = 5
-	local layoutLimit = size * C.NPMaxAura + spacing * (C.NPMaxAura - 1)
 
-	local Auras = self:CreateAuras({
-		layout = HORIZONTAL,
-		layoutLimit = layoutLimit,
-		initialAnchor = "BOTTOMLEFT",
-		growthX = "RIGHT",
-		growthY = "UP",
-	})
-	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
 	Auras.PostCreateButton = PostCreateAuraButton
-	Auras.showDuration = true
-	Auras.disableCooldown = true
+	Auras.dispelColors = oUF.colors.dispel
 	Auras.durationFormatter = RAID_AURA_DURATION
 
 	for layoutIndex, group in ipairs(NAMEPLATE_AURA_GROUPS) do
@@ -988,10 +978,8 @@ T.CreateNameplateAuras = function(self)
 			maxFrameCount = group.maxFrameCount,
 			sortMethod = AuraContainerSortMethod.Default,
 			size = size,
-			showCount = true,
 			showBuffTypeBorder = true,
 			showDebuffTypeBorder = true,
-			disableMouse = true,
 			layout = {
 				elementSpacing = spacing,
 				lineSpacing = spacing,
@@ -999,7 +987,24 @@ T.CreateNameplateAuras = function(self)
 			},
 		})
 	end
+end
 
+local NAMEPLATE_AURA_OPTIONS = {
+	layout = HORIZONTAL,
+	layoutLimit = C.NPAuraSize * C.NPMaxAura + 5 * (C.NPMaxAura - 1),
+	initialAnchor = "BOTTOMLEFT",
+	growthX = "RIGHT",
+	growthY = "UP",
+	initialize = InitializeNameplateAuras,
+}
+
+T.PrewarmNameplateAuras = function()
+	oUF:PrewarmAuras(NAMEPLATE_AURA_OPTIONS)
+end
+
+T.CreateNameplateAuras = function(self)
+	local Auras = self:CreatePrewarmAuras(NAMEPLATE_AURA_OPTIONS)
+	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
 	self.Auras = Auras
 	return Auras
 end

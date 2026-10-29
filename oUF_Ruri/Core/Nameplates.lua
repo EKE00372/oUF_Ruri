@@ -828,20 +828,9 @@ oUF:Factory(function(self)
 		end
 	end
 
-	-- 預創建名條
 	local createStyleFrames = (numberStyle and CreateNameplate_Number) or CreateNameplate_Bar
-	local function CreatePlateFrames(frame)
-		createStyleFrames(frame)
-		if showNameplateAuras then
-			frame.Auras:SetEnabled(false)
-		end
-	end
-
 	self:RegisterStyle("Nameplate", function(frame)
-		if not frame.Health then
-			CreatePlateFrames(frame)
-		end
-		-- 這些操作需要真實名條與 unit，不能放進預建階段。
+		createStyleFrames(frame)
 		frame:GetParent():SetStackingBoundsFrame(frame.StackingBounds)
 		frame:Tag(frame.Name, "[name]")
 		frame:Tag(frame.HealthText or frame.Health.value, "[np:hp]")
@@ -858,19 +847,21 @@ oUF:Factory(function(self)
 	driver:SetAddedCallback(UpdateNameplateState)
 	driver:SetRemovedCallback(ResetNameplateHighlights)
 
-	-- 延後分批預建 30 張；戰鬥中暫停，已建好的可立即使用，空池仍走正常建立。
-	C_Timer.After(2, function()
-		local prewarmed = 0
-		C_Timer.NewTicker(.1, function(ticker)
-			if InCombatLockdown() then return end
+	-- 只分批預建 30 個光環容器；戰鬥中暫停背景建立，空池仍即時建立並顯示。
+	if showNameplateAuras then
+		C_Timer.After(2, function()
+			local prewarmed = 0
+			C_Timer.NewTicker(.1, function(ticker)
+				if InCombatLockdown() then return end
 
-			driver:Prewarm(CreatePlateFrames)
-			prewarmed = prewarmed + 1
-			if prewarmed == 30 then
-				ticker:Cancel()
-			end
+				T.PrewarmNameplateAuras()
+				prewarmed = prewarmed + 1
+				if prewarmed == 30 then
+					ticker:Cancel()
+				end
+			end)
 		end)
-	end)
+	end
 
 	if highlightController then
 		RefreshHighlight_TargetFocus()
