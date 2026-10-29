@@ -15,6 +15,7 @@ API.lua
 GUI.lua
 
 Libs\oUF\oUF.xml
+Libs\oUF_PrewarmAuras.lua
 Libs\oUF_Essence.lua
 Libs\oUF_TankResource.lua
 Libs\oUF_Fader.lua
