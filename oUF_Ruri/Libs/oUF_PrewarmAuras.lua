@@ -44,10 +44,15 @@ function elementMixin:ForceUpdate()
 	self:UpdateAllAuras()
 end
 
-local function Build(options)
-	local element = CreateFrame("AuraContainer", nil, UIParent, "CustomAuraContainerTemplate")
-	element:SetEnabled(false)
-	element:Hide()
+local function Build(parent, options)
+	local element = CreateFrame("AuraContainer", nil, parent or UIParent, "CustomAuraContainerTemplate")
+	element.__owner = parent
+	if parent then
+		element:SetFrameLevel(parent:GetFrameLevel() + options.frameLevelOffset)
+	else
+		element:SetEnabled(false)
+		element:Hide()
+	end
 	element.groupIndex = 0
 	Mixin(element, elementMixin)
 
@@ -67,18 +72,24 @@ function oUF:PrewarmAuras(options)
 		pool = {}
 		pools[options] = pool
 	end
-	local element = Build(options)
+	local element = Build(nil, options)
 	pool[#pool + 1] = element
 	return element
 end
 
 local function Create(self, options)
 	local pool = pools[options]
-	local element = (pool and table.remove(pool)) or Build(options)
-	element.__owner = self
+	local element = pool and table.remove(pool)
+	if element then
+		element.__owner = self
+		element:SetParent(self)
+		element:SetFrameLevel(self:GetFrameLevel() + options.frameLevelOffset)
+		element:Show()
+	else
+		-- 空池直接在最終 owner 下建立，不經過預熱容器的隱藏停放與移掛。
+		element = Build(self, options)
+	end
 	elements[self] = element
-	element:SetParent(self)
-	element:Show()
 	-- 接管後永久留在這個 owner；原生名條復用只換 unit，不回池、不重建群組。
 	return element
 end

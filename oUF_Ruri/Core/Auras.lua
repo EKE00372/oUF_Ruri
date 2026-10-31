@@ -990,6 +990,7 @@ local function InitializeNameplateAuras(Auras)
 end
 
 local NAMEPLATE_AURA_OPTIONS = {
+	frameLevelOffset = 4,
 	layout = HORIZONTAL,
 	layoutLimit = C.NPAuraSize * C.NPMaxAura + 5 * (C.NPMaxAura - 1),
 	initialAnchor = "BOTTOMLEFT",
@@ -1004,7 +1005,6 @@ end
 
 T.CreateNameplateAuras = function(self)
 	local Auras = self:CreatePrewarmAuras(NAMEPLATE_AURA_OPTIONS)
-	Auras:SetFrameLevel(self:GetFrameLevel() + 4)
 	self.Auras = Auras
 	return Auras
 end
