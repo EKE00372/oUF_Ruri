@@ -49,7 +49,6 @@ local MediaFolder = G.MediaFolder
 		role_dps = MediaFolder.."role_DPS.tga",
 		role_tank = MediaFolder.."role_Tank.tga",
 		role_healer = MediaFolder.."role_Healer.tga",
-		info = "Interface\\FriendsFrame\\InformationIcon",
 	}
 
 ------------------

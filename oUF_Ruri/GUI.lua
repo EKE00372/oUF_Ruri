@@ -107,32 +107,30 @@ local function GetOptionLabel(option)
 	return labelText
 end
 
--- Tooltip template / 說明模板
-local function CreateInfoTooltip(parent, text)
-	local icon = CreateFrame("Button", nil, parent)
-	icon:SetSize(G.NameFS + 2, G.NameFS + 2)
-
-	local texture = icon:CreateTexture(nil, "ARTWORK")
-	texture:SetAllPoints()
-	texture:SetTexture(G.media.info)
-	icon:SetHighlightTexture(G.media.info)
-
-	icon:SetScript("OnEnter", function(self)
+-- 整行與勾選框共用說明；函數型詞條在滑鼠指向時才取最新內容。
+local function SetupOptionTooltip(row, check, text)
+	local function ShowTooltip(self)
 		local tooltip = L[text] or text
 		if type(tooltip) == "function" then
 			tooltip = tooltip()
 		end
 
 		GameTooltip:ClearLines()
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 0, 0)
+		GameTooltip:SetOwner(self, "ANCHOR_NONE")
+		GameTooltip:ClearAllPoints()
+		GameTooltip:SetPoint("BOTTOM", row, "TOP", 0, 4)
 		GameTooltip:AddLine(tooltip, 1, 1, 1, true)
 		GameTooltip:Show()
-	end)
-	icon:SetScript("OnLeave", function()
-		GameTooltip:Hide()
-	end)
+	end
+	local function HideTooltip(self)
+		if GameTooltip:IsOwned(self) then GameTooltip:Hide() end
+	end
 
-	return icon
+	for _, frame in ipairs({row, check}) do
+		frame:SetScript("OnEnter", ShowTooltip)
+		frame:SetScript("OnLeave", HideTooltip)
+		frame:SetScript("OnHide", HideTooltip)
+	end
 end
 
 ---------------
@@ -181,6 +179,10 @@ end
 
 -- 將選項綁定至設定值，並處理點擊與更新
 local function SetupOptionRow(row, check, label, desc, option, group, section)
+	if option.tooltip then
+		SetupOptionTooltip(row, check, option.tooltip)
+	end
+
 	-- 開關
 	local function ToggleValue()
 		if not CanEditOption(option, group, section) then
@@ -206,7 +208,11 @@ local function SetupOptionRow(row, check, label, desc, option, group, section)
 		if available then
 			self:Enable()
 			check:Enable()
-			label:SetTextColor(1, 1, 1, 1)
+			if option.tooltip then
+				label:SetTextColor(230 / 255, 199 / 255, 122 / 255, 1)
+			else
+				label:SetTextColor(1, 1, 1, 1)
+			end
 			if desc then desc:SetTextColor(.72, .86, .86, 1) end
 		else
 			self:Disable()
@@ -246,8 +252,7 @@ local function CreateOverviewOption(parent, option, index, yBase, group, section
 	return desc or label
 end
 
--- 一般選項：兩欄選項並支援 [i] tooltip
--- Regular option: two-column layout and support [i] tooltips
+-- 一般選項：兩欄排列，名稱顏色標示是否有說明。
 local function CreateCheckOption(parent, option, index, yBase, group, section)
 	local column = (index - 1) % 2
 	local rowIndex = floor((index - 1) / 2)
@@ -263,12 +268,7 @@ local function CreateCheckOption(parent, option, index, yBase, group, section)
 
 	local label = CreateText(row, GetOptionLabel(option), G.NameFS, "LEFT")
 	label:SetPoint("LEFT", check, "RIGHT", 2, 0)
-	if option.tooltip then
-		local tip = CreateInfoTooltip(row, option.tooltip)
-		tip:SetPoint("LEFT", label, "RIGHT", 4, 2)
-	else
-		label:SetPoint("RIGHT", row, "RIGHT", 0, 0)
-	end
+	label:SetPoint("RIGHT", row, "RIGHT", 0, 0)
 
 	SetupOptionRow(row, check, label, nil, option, group, section)
 end
