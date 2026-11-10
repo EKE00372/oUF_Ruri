@@ -88,7 +88,6 @@ local MediaFolder = G.MediaFolder
 				{
 					name = "DisplayElements",
 					options = {
-						--{ type = "toggle", key = "BlizzardAuras", label = "BlizzardAuras", default = true, tooltip = "BlizzardAurasTip" },
 						{ type = "toggle", key = "PlayerDebuffs", label = "PlayerDebuffs", default = true },
 						{ type = "toggle", key = "Totems", label = "Totems", default = false, tooltip = "TotemsTip" },
 						{ type = "toggle", key = "TankResource", label = "TankResource", default = false, tooltip = "TankResourceTip" },
@@ -150,7 +149,6 @@ local MediaFolder = G.MediaFolder
 						{ type = "toggle", key = "FriendlyNameSize", label = "FriendlyNameSize", default = true, tooltip = "FriendlyNameSizeTip", requiresAny = { "Nameplates" } },
 						{ type = "toggle", key = "CVars", label = "CVars", default = true, tooltip = "CVarsTip", requiresAny = { "Nameplates" } },
 						{ type = "toggle", key = "PlayerPlate", label = "PlayerPlate", default = false, tooltip = "PlayerPlateTip", requiresAny = { "UnitFrames" } },
-						--{ type = "toggle", key = "ObjectGlow", label = "ObjectGlow", default = false, tooltip = "ObjectGlowTip" },
 					},
 				},
 			},

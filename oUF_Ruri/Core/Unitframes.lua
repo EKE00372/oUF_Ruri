@@ -218,9 +218,6 @@ local function CreatePlayerStyle(self, unit)
 	end
 	
 	-- 光環
-	--if F.GetRuriOption("BlizzardAuras") then
-	--	T.CreatePlayerAuraFrames(self)
-	--end
 	if F.GetRuriOption("PlayerDebuffs") then
 		T.CreatePlayerDebuffs(self)
 	end
@@ -290,9 +287,6 @@ local function CreateVPlayerStyle(self, unit)
 	end
 
 	-- 光環
-	--if F.GetRuriOption("BlizzardAuras") then
-	--	T.CreatePlayerAuraFrames(self)
-	--end
 	if F.GetRuriOption("PlayerDebuffs") then
 		T.CreatePlayerDebuffs(self)
 	end
